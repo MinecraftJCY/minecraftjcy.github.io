@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitHub主页</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        --card-bg: rgba(255, 255, 255, 0.1);
+        --card-bg-hover: rgba(255, 255, 255, 0.15);
+        --card-border: rgba(255, 255, 255, 0.2);
+        --card-border-hover: rgba(255, 255, 255, 0.4);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.9);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      body {
+        background: var(--bg-gradient);
+        background-attachment: fixed;
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 2rem 1rem;
+        position: relative;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        animation: bgMove 20s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      @keyframes bgMove {
+        0%,
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        50% {
+          transform: translate(-50px, -50px) rotate(180deg);
+        }
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 4rem;
+        animation: fadeInDown 0.8s ease-out;
+      }
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      h1 {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        letter-spacing: -0.02em;
+      }
+      .subtitle {
+        font-size: clamp(1rem, 3vw, 1.25rem);
+        color: var(--text-secondary);
+        font-weight: 300;
+        letter-spacing: 0.5px;
+      }
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+      .project-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        padding: 2rem;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: var(--transition);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease-out backwards;
+      }
+      .project-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+        opacity: 0;
+        transition: var(--transition);
+      }
+      .project-card:hover {
+        background: var(--card-bg-hover);
+        border-color: var(--card-border-hover);
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+      }
+      .project-card:hover::before {
+        opacity: 1;
+      }
+      .project-card:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .project-card:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .project-card:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .project-card:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      .project-card:nth-child(5) {
+        animation-delay: 0.5s;
+      }
+      .project-card:nth-child(6) {
+        animation-delay: 0.6s;
+      }
+      .project-card:nth-child(7) {
+        animation-delay: 0.7s;
+      }
+      .project-card:nth-child(8) {
+        animation-delay: 0.8s;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .card-icon {
+        font-size: 2.5rem;
+        display: block;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        transition: var(--transition);
+        flex-shrink: 0;
+      }
+      .project-card:hover .card-icon {
+        transform: scale(1.1) rotate(5deg);
+      }
+      .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .card-description {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+      footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        animation: fadeIn 1s ease-out 1s backwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @media (max-width: 768px) {
+        body {
+          padding: 1.5rem 1rem;
+        }
+        header {
+          margin-bottom: 3rem;
+        }
+        .projects-grid {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+        .project-card {
+          padding: 1.5rem;
+        }
+        footer {
+          margin-top: 3rem;
+        }
+      }
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .projects-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>欢迎来到我的GitHub主页</h1>
+        <p class="subtitle">点击卡片开始探索吧</p>
+      </header>
+      <main class="projects-grid">
+        <a href="五子棋.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">⚫</span>
+            <h2 class="card-title">五子棋</h2>
+          </div>
+          <p class="card-description">经典策略游戏，与电脑对战，看谁先连成五子</p>
+        </a>
+        <a href="俄罗斯方块.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🧱</span>
+            <h2 class="card-title">俄罗斯方块</h2>
+          </div>
+          <p class="card-description">经典益智游戏，旋转下落方块，消除整行得分</p>
+        </a>
+        <a href="贪吃蛇.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🐍</span>
+            <h2 class="card-title">贪吃蛇</h2>
+          </div>
+          <p class="card-description">经典街机游戏，控制蛇吃食物，不断变长</p>
+        </a>
+        <a href="数字华容道.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🔢</span>
+            <h2 class="card-title">数字华容道</h2>
+          </div>
+          <p class="card-description">数字拼图游戏，移动方块，按顺序排列数字</p>
+        </a>
+        <a href="星际大战.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🚀</span>
+            <h2 class="card-title">星际大战</h2>
+          </div>
+          <p class="card-description">驾驶太空战机，消灭敌人，拯救宇宙</p>
+        </a>
+        <a href="彩票.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🎰</span>
+            <h2 class="card-title">彩票</h2>
+          </div>
+          <p class="card-description">模拟彩票抽奖，试试你的运气</p>
+        </a>
+        <a href="爱心.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">💖</span>
+            <h2 class="card-title">爱心</h2>
+          </div>
+          <p class="card-description">浪漫的爱心动画效果，温馨唯美</p>
+        </a>
+        <a href="大球吃小球.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🔮</span>
+            <h2 class="card-title">大球吃小球</h2>
+          </div>
+          <p class="card-description">吃掉比你小的球，躲避比你大的球</p>
+        </a>
+      </main>
+      <footer>
+        <p>Generated by AI</p>
+      </footer>
+    </div>
+  </body>
+</html>

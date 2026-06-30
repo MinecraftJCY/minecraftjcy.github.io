@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>贪吃蛇</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Microsoft YaHei", sans-serif;
+      }
+      body {
+        height: 100vh;
+        background-color: #1a2b2a;
+        display: flex;
+        padding: 20px;
+        overflow: hidden;
+      }
+      .game-container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        gap: 30px;
+      }
+      .info-panel {
+        width: 280px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 24px;
+        color: #e0e0e0;
+      }
+      .game-title {
+        font-size: 32px;
+        color: #4ade80;
+        text-align: center;
+      }
+      .score-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .game-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+      }
+      #snakeCanvas {
+        border: 4px solid #22c55e;
+        border-radius: 8px;
+        background-color: #1e2f2e;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .control-btn {
+        padding: 12px 30px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #ffffff;
+        background-color: #16a34a;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .control-btn:hover {
+        background-color: #15803d;
+      }
+      .control-btn:active {
+        background-color: #166534;
+      }
+      #restartBtn {
+        display: none;
+      }
+      .game-tips {
+        color: #94a393;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .mobile-controls {
+        display: none;
+        flex-shrink: 0;
+        justify-content: center;
+      }
+      .dir-btn {
+        padding: 0;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        width: 100%;
+        height: 100%;
+        -webkit-tap-highlight-color: transparent;
+      }
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+        .game-container {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .info-panel {
+          width: 100%;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+        .game-title {
+          width: 100%;
+          font-size: 24px;
+          text-align: center;
+          margin-bottom: 0;
+        }
+        .score-panel {
+          width: 100%;
+          flex-direction: row;
+          gap: 16px;
+          font-size: 16px;
+          justify-content: center;
+        }
+        .game-tips {
+          display: none;
+        }
+        #pauseBtn,
+        #restartBtn {
+          flex: 1 1 auto;
+          min-width: 0;
+          font-size: 16px;
+          padding: 10px 16px;
+          text-align: center;
+        }
+        .game-wrapper {
+          flex: 1;
+          min-height: 0;
+        }
+        .mobile-controls {
+          display: grid;
+          grid-template-columns: repeat(3, 60px);
+          grid-template-rows: 60px 60px;
+          gap: 10px;
+          justify-content: center;
+          align-content: center;
+        }
+        .dir-btn {
+          font-size: 26px;
+          border-radius: 12px;
+        }
+        .dir-btn[data-dir="up"] {
+          grid-row: 1 / 2;
+          grid-column: 2 / 3;
+        }
+        .dir-btn[data-dir="left"] {
+          grid-row: 2 / 3;
+          grid-column: 1 / 2;
+        }
+        .dir-btn[data-dir="down"] {
+          grid-row: 2 / 3;
+          grid-column: 2 / 3;
+        }
+        .dir-btn[data-dir="right"] {
+          grid-row: 2 / 3;
+          grid-column: 3 / 4;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <div class="info-panel">
+        <h1 class="game-title">🐍 贪吃蛇</h1>
+        <div class="score-panel">
+          <span>当前分数：<span id="score">0</span></span>
+          <span>游戏状态：<span id="status">等待开始</span></span>
+        </div>
+        <button class="control-btn" id="pauseBtn">开始游戏</button>
+        <button class="control-btn" id="restartBtn">重新开始</button>
+        <p class="game-tips">游戏说明："方向键"或"WASD"键控制蛇移动；吃到食物加分；撞到墙或自己游戏结束。</p>
+      </div>
+      <div class="game-wrapper">
+        <canvas id="snakeCanvas"></canvas>
+      </div>
+      <div class="mobile-controls">
+        <button class="control-btn dir-btn" data-dir="up">▲</button>
+        <button class="control-btn dir-btn" data-dir="left">◀</button>
+        <button class="control-btn dir-btn" data-dir="down">▼</button>
+        <button class="control-btn dir-btn" data-dir="right">▶</button>
+      </div>
+    </div>
+    <script>
+      const CANVAS_ID = "snakeCanvas";
+      const SCORE_ELEMENT_ID = "score";
+      const STATUS_ELEMENT_ID = "status";
+      const PAUSE_BTN_ID = "pauseBtn";
+      const RESTART_BTN_ID = "restartBtn";
+      const GRID_COUNT = 20;
+      const GAME_SPEED = 180;
+      const FOOD_SCORE = 10;
+      const SNAKE_HEAD_COLOR = "#4ade80";
+      const SNAKE_BODY_COLOR = "#22c55e";
+      const FOOD_COLOR = "#f87171";
+      const GRID_LINE_COLOR = "#2d3a38";
+      const STATUS_WAITING = "等待开始";
+      const STATUS_PLAYING = "游戏中";
+      const STATUS_PAUSED = "已暂停";
+      const STATUS_GAME_OVER = "游戏结束";
+      const BTN_TEXT_START = "开始游戏";
+      const BTN_TEXT_PAUSE = "暂停游戏";
+      const BTN_TEXT_RESUME = "继续游戏";
+      const DIRECTION_UP = "up";
+      const DIRECTION_DOWN = "down";
+      const DIRECTION_LEFT = "left";
+      const DIRECTION_RIGHT = "right";
+      const canvas = document.getElementById(CANVAS_ID);
+      const context = canvas.getContext("2d");
+      let CELL_PIXEL;
+      const scoreElement = document.getElementById(SCORE_ELEMENT_ID);
+      const statusElement = document.getElementById(STATUS_ELEMENT_ID);
+      const pauseButton = document.getElementById(PAUSE_BTN_ID);
+      const restartButton = document.getElementById(RESTART_BTN_ID);
+      const oppositeDirection = {
+        [DIRECTION_UP]: DIRECTION_DOWN,
+        [DIRECTION_DOWN]: DIRECTION_UP,
+        [DIRECTION_LEFT]: DIRECTION_RIGHT,
+        [DIRECTION_RIGHT]: DIRECTION_LEFT,
+      };
+      const keyDirectionMap = {
+        ArrowUp: DIRECTION_UP,
+        w: DIRECTION_UP,
+        W: DIRECTION_UP,
+        ArrowDown: DIRECTION_DOWN,
+        s: DIRECTION_DOWN,
+        S: DIRECTION_DOWN,
+        ArrowLeft: DIRECTION_LEFT,
+        a: DIRECTION_LEFT,
+        A: DIRECTION_LEFT,
+        ArrowRight: DIRECTION_RIGHT,
+        d: DIRECTION_RIGHT,
+        D: DIRECTION_RIGHT,
+      };
+      const gameState = {
+        snakeBody: [],
+        currentDirection: "",
+        pendingDirection: "",
+        foodPosition: {},
+        currentScore: 0,
+        isGameOver: false,
+        isGameStarted: false,
+        isGamePaused: false,
+        gameInterval: null,
+      };
+      const clearCanvas = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      };
+      const drawGrid = () => {
+        context.strokeStyle = GRID_LINE_COLOR;
+        context.lineWidth = 1;
+        for (let index = 0; index <= GRID_COUNT; index++) {
+          const coordinate = index * CELL_PIXEL;
+          context.beginPath();
+          context.moveTo(coordinate, 0);
+          context.lineTo(coordinate, canvas.height);
+          context.stroke();
+          context.beginPath();
+          context.moveTo(0, coordinate);
+          context.lineTo(canvas.width, coordinate);
+          context.stroke();
+        }
+      };
+      const drawSnake = () => {
+        gameState.snakeBody.forEach((segment, index) => {
+          context.fillStyle = index === 0 ? SNAKE_HEAD_COLOR : SNAKE_BODY_COLOR;
+          context.fillRect(segment.x * CELL_PIXEL, segment.y * CELL_PIXEL, CELL_PIXEL - 2, CELL_PIXEL - 2);
+        });
+      };
+      const drawFood = () => {
+        if (!gameState.foodPosition.x && gameState.foodPosition.x !== 0) return;
+        context.fillStyle = FOOD_COLOR;
+        context.fillRect(gameState.foodPosition.x * CELL_PIXEL, gameState.foodPosition.y * CELL_PIXEL, CELL_PIXEL - 2, CELL_PIXEL - 2);
+      };
+      const renderGame = () => {
+        clearCanvas();
+        drawGrid();
+        if (gameState.snakeBody.length) drawSnake();
+        drawFood();
+      };
+      const renderScore = () => {
+        scoreElement.textContent = gameState.currentScore;
+      };
+      const renderGameStatus = (statusText) => {
+        statusElement.textContent = statusText;
+      };
+      const checkWallCollision = (head) => {
+        return head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT;
+      };
+      const checkSelfCollision = (head) => {
+        return gameState.snakeBody.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
+      };
+      const checkCollision = (head) => {
+        return checkWallCollision(head) || checkSelfCollision(head);
+      };
+      const generateFood = () => {
+        let foodX, foodY;
+        let isOnSnake = true;
+        while (isOnSnake) {
+          foodX = Math.floor(Math.random() * GRID_COUNT);
+          foodY = Math.floor(Math.random() * GRID_COUNT);
+          isOnSnake = gameState.snakeBody.some((segment) => segment.x === foodX && segment.y === foodY);
+        }
+        gameState.foodPosition = { x: foodX, y: foodY };
+      };
+      const setDirection = (newDirection) => {
+        const { isGameStarted, isGameOver, isGamePaused, currentDirection } = gameState;
+        if (!isGameStarted || isGameOver || isGamePaused) return;
+        if (newDirection && newDirection !== oppositeDirection[currentDirection]) {
+          gameState.pendingDirection = newDirection;
+        }
+      };
+      const moveSnake = () => {
+        const { isGameOver, isGameStarted, isGamePaused, pendingDirection } = gameState;
+        if (isGameOver || !isGameStarted || isGamePaused) return;
+        if (pendingDirection) {
+          gameState.currentDirection = pendingDirection;
+        }
+        const head = { ...gameState.snakeBody[0] };
+        switch (gameState.currentDirection) {
+          case DIRECTION_UP:
+            head.y--;
+            break;
+          case DIRECTION_DOWN:
+            head.y++;
+            break;
+          case DIRECTION_LEFT:
+            head.x--;
+            break;
+          case DIRECTION_RIGHT:
+            head.x++;
+            break;
+        }
+        if (checkCollision(head)) {
+          handleGameOver();
+          return;
+        }
+        gameState.snakeBody.unshift(head);
+        const eatFood = head.x === gameState.foodPosition.x && head.y === gameState.foodPosition.y;
+        if (eatFood) {
+          gameState.currentScore += FOOD_SCORE;
+          renderScore();
+          generateFood();
+        } else {
+          gameState.snakeBody.pop();
+        }
+        renderGame();
+      };
+      const startGameLoop = () => {
+        if (gameState.gameInterval) clearInterval(gameState.gameInterval);
+        gameState.gameInterval = setInterval(moveSnake, GAME_SPEED);
+      };
+      const handleGameOver = () => {
+        gameState.isGameOver = true;
+        gameState.isGameStarted = false;
+        gameState.isGamePaused = false;
+        clearInterval(gameState.gameInterval);
+        renderGameStatus(STATUS_GAME_OVER);
+        pauseButton.textContent = BTN_TEXT_START;
+        restartButton.style.display = "none";
+      };
+      const toggleGamePause = () => {
+        const { isGameStarted, isGameOver } = gameState;
+        if (!isGameStarted && !isGameOver) {
+          launchGame();
+          return;
+        }
+        if (isGameOver) {
+          resetGame();
+          launchGame();
+          return;
+        }
+        gameState.isGamePaused = !gameState.isGamePaused;
+        const isPaused = gameState.isGamePaused;
+        pauseButton.textContent = isPaused ? BTN_TEXT_RESUME : BTN_TEXT_PAUSE;
+        renderGameStatus(isPaused ? STATUS_PAUSED : STATUS_PLAYING);
+      };
+      const launchGame = () => {
+        gameState.snakeBody = [
+          { x: 10, y: 10 },
+          { x: 9, y: 10 },
+          { x: 8, y: 10 },
+        ];
+        gameState.currentDirection = DIRECTION_RIGHT;
+        gameState.pendingDirection = DIRECTION_RIGHT;
+        gameState.currentScore = 0;
+        gameState.isGameOver = false;
+        gameState.isGameStarted = true;
+        gameState.isGamePaused = false;
+        generateFood();
+        renderScore();
+        renderGameStatus(STATUS_PLAYING);
+        pauseButton.textContent = BTN_TEXT_PAUSE;
+        restartButton.style.display = "block";
+        startGameLoop();
+        renderGame();
+      };
+      const resetGame = () => {
+        clearInterval(gameState.gameInterval);
+        gameState.snakeBody = [];
+        gameState.foodPosition = {};
+        gameState.currentScore = 0;
+        gameState.isGameStarted = false;
+        gameState.isGamePaused = false;
+        gameState.isGameOver = false;
+        gameState.gameInterval = null;
+        renderScore();
+        renderGameStatus(STATUS_WAITING);
+        pauseButton.textContent = BTN_TEXT_START;
+        restartButton.style.display = "none";
+        renderGame();
+      };
+      const handleKeyDown = (event) => {
+        const newDirection = keyDirectionMap[event.key];
+        if (newDirection) {
+          event.preventDefault();
+          setDirection(newDirection);
+        }
+      };
+      const setupMobileControls = () => {
+        const mobileButtons = document.querySelectorAll(".dir-btn");
+        mobileButtons.forEach((button) => {
+          const applyDirection = () => {
+            const direction = button.getAttribute("data-dir");
+            if (direction) {
+              setDirection(direction);
+            }
+          };
+          button.addEventListener("click", applyDirection);
+          button.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            applyDirection();
+          });
+        });
+      };
+      const bindEventListeners = () => {
+        document.addEventListener("keydown", handleKeyDown);
+        pauseButton.addEventListener("click", toggleGamePause);
+        restartButton.addEventListener("click", resetGame);
+        setupMobileControls();
+      };
+      const resizeCanvas = () => {
+        const wrapper = canvas.parentElement;
+        const wrapperWidth = wrapper.clientWidth;
+        const wrapperHeight = wrapper.clientHeight;
+        const availableSize = Math.min(wrapperWidth, wrapperHeight);
+        if (availableSize <= 8) return;
+        const size = availableSize - 8;
+        canvas.width = size;
+        canvas.height = size;
+        CELL_PIXEL = size / GRID_COUNT;
+        renderGame();
+      };
+      const initGame = () => {
+        bindEventListeners();
+        window.addEventListener("resize", resizeCanvas);
+        setTimeout(() => {
+          resizeCanvas();
+        }, 0);
+      };
+      initGame();
+    </script>
+  </body>
+</html>

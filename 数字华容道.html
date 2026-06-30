@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字华容道</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #1e293b;
+            padding: 20px;
+            gap: 24px
+        }
+
+        .level-container {
+            display: flex;
+            gap: 12px
+        }
+
+        .level-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #334155;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all .2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .2)
+        }
+
+        .level-btn:hover {
+            transform: translateY(-2px);
+            background: #475569;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .25)
+        }
+
+        .level-btn.active {
+            background: #30aea6;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(78, 205, 196, .3)
+        }
+
+        #board {
+            display: grid;
+            gap: 8px;
+            background: #334155;
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .3)
+        }
+
+        .tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #475569;
+            color: #e9f4ff;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2)
+        }
+
+        .tile:hover:not(.empty) {
+            background: #64748b;
+            transform: scale(.96)
+        }
+
+        .tile.empty {
+            background: transparent;
+            cursor: default;
+            box-shadow: none
+        }
+
+        .control-container {
+            display: flex;
+            align-items: center;
+            gap: 32px
+        }
+
+        #startBtn {
+            padding: 14px 36px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 12px;
+            background: #3b82f6;
+            color: #fff;
+            cursor: pointer;
+            transition: all .2s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, .2)
+        }
+
+        #startBtn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, .3)
+        }
+
+        #timer {
+            font-size: 18px;
+            color: #94a3b8;
+            font-weight: 500;
+            display: none
+        }
+
+        #message {
+            font-size: 24px;
+            color: #10b981;
+            font-weight: 600;
+            min-height: 32px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="level-container">
+        <button class="level-btn" data-level="2">2阶</button>
+        <button class="level-btn" data-level="3">3阶</button>
+        <button class="level-btn" data-level="4">4阶</button>
+        <button class="level-btn" data-level="5">5阶</button>
+    </div>
+    <div id="board"></div>
+    <div class="control-container">
+        <button id="startBtn">开始游戏</button>
+        <div id="timer">用时：0.00s</div>
+    </div>
+    <div id="message"></div>
+    <script>
+        const FONT_SIZES = ['120px', '80px', '60px', '50px'];
+        const DOM = {
+            levelBtns: document.querySelectorAll('.level-btn'),
+            board: document.getElementById('board'),
+            startBtn: document.getElementById('startBtn'),
+            timer: document.getElementById('timer'),
+            message: document.getElementById('message')
+        };
+
+        let size, board, target, emptyPos, startTime, isPlaying, isFinished;
+
+        const updateEmptyPos = () => {
+            const index = board.flat().findIndex(val => val === 0);
+            emptyPos = { row: Math.floor(index / size), col: index % size };
+        };
+
+        const checkBoardEqual = (a, b) => {
+            return a.every((row, i) => row.every((val, j) => val === b[i][j]));
+        };
+
+        const checkSolvable = (puzzle) => {
+            const flat = puzzle.flat();
+            const emptyIndex = flat.findIndex(val => val === 0);
+            const emptyRow = Math.floor(emptyIndex / size);
+            const nums = flat.filter(val => val !== 0);
+
+            let inversions = 0;
+            for (let i = 0; i < nums.length; i++) {
+                for (let j = i + 1; j < nums.length; j++) {
+                    nums[i] > nums[j] && inversions++;
+                }
+            }
+
+            const emptyDistance = size - emptyRow;
+            return size % 2
+                ? inversions % 2 === 0
+                : (inversions + emptyDistance) % 2 === 1;
+        };
+
+        const shufflePuzzle = () => {
+            let temp;
+            do {
+                const arr = [...Array(size * size - 1)].map((_, i) => i + 1).concat(0);
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                temp = Array.from({ length: size }, (_, i) => arr.slice(i * size, (i + 1) * size));
+            } while (!checkSolvable(temp) || checkBoardEqual(board, temp));
+
+            board = temp;
+            updateEmptyPos();
+        };
+
+        const initGameBoard = () => {
+            let num = 1;
+            board = [];
+            target = [];
+
+            for (let i = 0; i < size; i++) {
+                const row = [];
+                const targetRow = [];
+                for (let j = 0; j < size; j++) {
+                    const val = i === size - 1 && j === size - 1 ? 0 : num++;
+                    row.push(val);
+                    targetRow.push(val);
+                }
+                board.push(row);
+                target.push(targetRow);
+            }
+
+            updateEmptyPos();
+            renderBoard();
+        };
+
+        const moveTile = (row, col) => {
+            if (!isPlaying || isFinished) return;
+            const distance = Math.abs(row - emptyPos.row) + Math.abs(col - emptyPos.col);
+            if (distance !== 1) return;
+
+            [board[emptyPos.row][emptyPos.col], board[row][col]] =
+                [board[row][col], board[emptyPos.row][emptyPos.col]];
+
+            emptyPos = { row, col };
+            checkWin();
+            renderBoard();
+        };
+
+        const checkWin = () => {
+            if (!checkBoardEqual(board, target)) return;
+
+            isPlaying = false;
+            isFinished = true;
+            DOM.timer.textContent = `用时：${((Date.now() - startTime) / 1000).toFixed(2)}s`;
+            DOM.timer.style.display = 'block';
+            DOM.message.textContent = '挑战成功！';
+        };
+
+        const resetGameState = () => {
+            isPlaying = false;
+            isFinished = false;
+            startTime = null;
+            DOM.timer.style.display = 'none';
+            DOM.message.textContent = '';
+        };
+
+        const startGame = () => {
+            shufflePuzzle();
+            isPlaying = true;
+            isFinished = false;
+            startTime = Date.now();
+            DOM.message.textContent = '';
+            DOM.timer.style.display = 'none';
+            renderBoard();
+        };
+
+        const switchLevel = (level) => {
+            size = Number(level);
+            DOM.levelBtns.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-level="${level}"]`).classList.add('active');
+            resetGameState();
+            initGameBoard();
+        };
+
+        const renderBoard = () => {
+            DOM.board.innerHTML = '';
+            DOM.board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+            const boardSize = Math.min(600, window.innerWidth - 40);
+            DOM.board.style.width = `${boardSize}px`;
+            DOM.board.style.height = `${boardSize}px`;
+
+            const fontSize = FONT_SIZES[size - 2];
+
+            board.forEach((row, i) => {
+                row.forEach((val, j) => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.style.fontSize = fontSize;
+
+                    if (val === 0) {
+                        tile.classList.add('empty');
+                    } else {
+                        tile.textContent = val;
+                        tile.onclick = () => moveTile(i, j);
+                    }
+
+                    DOM.board.appendChild(tile);
+                });
+            });
+        };
+
+        window.addEventListener('resize', renderBoard);
+        DOM.levelBtns.forEach(btn => btn.addEventListener('click', () => switchLevel(btn.dataset.level)));
+        DOM.startBtn.addEventListener('click', startGame);
+        switchLevel(2);
+    </script>
+</body>
+
+</html>

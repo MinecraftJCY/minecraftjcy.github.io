@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Love</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        background: linear-gradient(135deg, #1a0011 0%, #2d0a1f 25%, #3d0f2f 50%, #2d0a1f 75%, #1a0011 100%);
+        overflow: hidden;
+      }
+      #pinkboard {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        animation: heartbeat 1.5s ease-in-out infinite;
+      }
+      #stars {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      @keyframes heartbeat {
+        0% {
+          transform: scale(0.8);
+        }
+        25% {
+          transform: scale(0.7);
+        }
+        50% {
+          transform: scale(1);
+        }
+        75% {
+          transform: scale(0.7);
+        }
+        100% {
+          transform: scale(0.8);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="stars"></canvas>
+    <canvas id="pinkboard"></canvas>
+    <script>
+      (function initStars() {
+        const canvas = document.getElementById("stars");
+        const ctx = canvas.getContext("2d");
+        const STAR_COUNT = 80;
+        let stars = [];
+        function resize() {
+          canvas.width = canvas.clientWidth;
+          canvas.height = canvas.clientHeight;
+          stars = Array.from({ length: STAR_COUNT }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 1.5 + 0.5,
+            alpha: Math.random(),
+            speed: Math.random() * 0.005 + 0.002,
+            dir: Math.random() > 0.5 ? 1 : -1,
+          }));
+        }
+        function draw() {
+          requestAnimationFrame(draw);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for (const s of stars) {
+            s.alpha += s.speed * s.dir;
+            if (s.alpha >= 1) {
+              s.alpha = 1;
+              s.dir = -1;
+            }
+            if (s.alpha <= 0.1) {
+              s.alpha = 0.1;
+              s.dir = 1;
+            }
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 200, 220, ${s.alpha})`;
+            ctx.fill();
+          }
+        }
+        window.addEventListener("resize", resize);
+        resize();
+        draw();
+      })();
+    </script>
+    <script>
+      const PARTICLE_COUNT = 500;
+      const PARTICLE_DURATION = 2;
+      const PARTICLE_VELOCITY = 100;
+      const PARTICLE_ACCELERATION_FACTOR = -0.75;
+      const PARTICLE_BASE_SIZE = 30;
+      const HEART_COLOR = "#ff6b9d";
+      const HEART_SCALE_RATIO = 350;
+      class Vector2D {
+        constructor(x = 0, y = 0) {
+          this.x = x;
+          this.y = y;
+        }
+        clone() {
+          return new Vector2D(this.x, this.y);
+        }
+        magnitude(value) {
+          if (value === undefined) return Math.hypot(this.x, this.y);
+          this.normalize();
+          this.x *= value;
+          this.y *= value;
+          return this;
+        }
+        normalize() {
+          const length = this.magnitude();
+          this.x /= length;
+          this.y /= length;
+          return this;
+        }
+      }
+      class Particle {
+        constructor() {
+          this.position = new Vector2D();
+          this.velocity = new Vector2D();
+          this.acceleration = new Vector2D();
+          this.lifetime = 0;
+        }
+        reset(originX, originY, directionX, directionY) {
+          this.position.x = originX;
+          this.position.y = originY;
+          this.velocity.x = directionX;
+          this.velocity.y = directionY;
+          this.acceleration.x = directionX * PARTICLE_ACCELERATION_FACTOR;
+          this.acceleration.y = directionY * PARTICLE_ACCELERATION_FACTOR;
+          this.lifetime = 0;
+        }
+        evolve(deltaTime) {
+          this.position.x += this.velocity.x * deltaTime;
+          this.position.y += this.velocity.y * deltaTime;
+          this.velocity.x += this.acceleration.x * deltaTime;
+          this.velocity.y += this.acceleration.y * deltaTime;
+          this.lifetime += deltaTime;
+        }
+        render(context, texture) {
+          const easeProgress = 1 - Math.pow(1 - this.lifetime / PARTICLE_DURATION, 3);
+          const renderSize = texture.width * easeProgress;
+          context.globalAlpha = 1 - this.lifetime / PARTICLE_DURATION;
+          context.drawImage(texture, this.position.x - renderSize / 2, this.position.y - renderSize / 2, renderSize, renderSize);
+        }
+      }
+      class ParticleSystem {
+        constructor(capacity) {
+          this.particles = Array.from({ length: capacity }, () => new Particle());
+          this.activeHead = 0;
+          this.freeHead = 0;
+          this.maxLifetime = PARTICLE_DURATION;
+        }
+        emit(originX, originY, directionX, directionY) {
+          this.particles[this.freeHead].reset(originX, originY, directionX, directionY);
+          this.freeHead = (this.freeHead + 1) % this.particles.length;
+          this.activeHead = this.activeHead === this.freeHead ? (this.activeHead + 1) % this.particles.length : this.activeHead;
+        }
+        #traverseActiveParticles(callback) {
+          const { particles, activeHead, freeHead } = this;
+          if (activeHead < freeHead) {
+            for (let i = activeHead; i < freeHead; i++) callback(particles[i]);
+            return;
+          }
+          for (let i = activeHead; i < particles.length; i++) callback(particles[i]);
+          for (let i = 0; i < freeHead; i++) callback(particles[i]);
+        }
+        update(deltaTime) {
+          this.#traverseActiveParticles((particle) => particle.evolve(deltaTime));
+          while (this.particles[this.activeHead].lifetime >= this.maxLifetime && this.activeHead !== this.freeHead) {
+            this.activeHead = (this.activeHead + 1) % this.particles.length;
+          }
+        }
+        draw(context, texture) {
+          this.#traverseActiveParticles((particle) => particle.render(context, texture));
+        }
+      }
+      function calculateHeartPoint(angle) {
+        return new Vector2D(160 * Math.sin(angle) ** 3, 130 * Math.cos(angle) - 50 * Math.cos(2 * angle) - 20 * Math.cos(3 * angle) - 10 * Math.cos(4 * angle) + 25);
+      }
+      function createHeartTexture() {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = PARTICLE_BASE_SIZE;
+        canvas.height = PARTICLE_BASE_SIZE;
+        const getTexturePoint = (angle) => {
+          const heartPoint = calculateHeartPoint(angle);
+          return new Vector2D(PARTICLE_BASE_SIZE / 2 + (heartPoint.x * PARTICLE_BASE_SIZE) / HEART_SCALE_RATIO, PARTICLE_BASE_SIZE / 2 - (heartPoint.y * PARTICLE_BASE_SIZE) / HEART_SCALE_RATIO);
+        };
+        context.beginPath();
+        let currentAngle = -Math.PI;
+        const startPoint = getTexturePoint(currentAngle);
+        context.moveTo(startPoint.x, startPoint.y);
+        while (currentAngle < Math.PI) {
+          currentAngle += 0.01;
+          const pathPoint = getTexturePoint(currentAngle);
+          context.lineTo(pathPoint.x, pathPoint.y);
+        }
+        context.closePath();
+        context.fillStyle = HEART_COLOR;
+        context.fill();
+        const texture = new Image();
+        texture.src = canvas.toDataURL();
+        return texture;
+      }
+      function initAnimation() {
+        const canvas = document.getElementById("pinkboard");
+        const context = canvas.getContext("2d");
+        const particleSystem = new ParticleSystem(PARTICLE_COUNT);
+        const emitFrequency = PARTICLE_COUNT / PARTICLE_DURATION;
+        let previousTimestamp = 0;
+        const heartTexture = createHeartTexture();
+        function resizeCanvas() {
+          canvas.width = canvas.clientWidth;
+          canvas.height = canvas.clientHeight;
+        }
+        function renderFrame(timestamp) {
+          requestAnimationFrame(renderFrame);
+          const deltaTime = (timestamp - previousTimestamp) / 1000;
+          previousTimestamp = timestamp;
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          const emitCount = emitFrequency * deltaTime;
+          for (let i = 0; i < emitCount; i++) {
+            const randomAngle = Math.PI - 2 * Math.PI * Math.random();
+            const heartPosition = calculateHeartPoint(randomAngle);
+            const direction = heartPosition.clone().magnitude(PARTICLE_VELOCITY);
+            particleSystem.emit(canvas.width / 2 + heartPosition.x, canvas.height / 2 - heartPosition.y, direction.x, -direction.y);
+          }
+          particleSystem.update(deltaTime);
+          particleSystem.draw(context, heartTexture);
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+        requestAnimationFrame(renderFrame);
+      }
+      initAnimation();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>彩票</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Microsoft YaHei", sans-serif;
+      }
+      body {
+        min-height: 100vh;
+        background: #628f64;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .game-container {
+        background: white;
+        width: 100%;
+        max-width: 500px;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+      .title {
+        font-size: 28px;
+        color: #1976d2;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+      .rule {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 25px;
+        line-height: 1.5;
+      }
+      .balance-box {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+      }
+      .balance-title {
+        font-size: 16px;
+        color: #333;
+      }
+      .balance {
+        font-size: 36px;
+        color: #2e7d32;
+        font-weight: bold;
+        margin-top: 5px;
+      }
+      .bet-title {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 15px;
+      }
+      .bet-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 25px;
+      }
+      .bet-btn {
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        background: #1976d2;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .bet-btn:hover:not(:disabled) {
+        background: #0d47a1;
+        transform: scale(1.05);
+      }
+      .bet-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .result-box {
+        min-height: 50px;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .win {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .lose {
+        background: #ffebee;
+        color: #c62828;
+      }
+      .reset-btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        background: #d32f2f;
+        color: white;
+        cursor: pointer;
+        display: none;
+        margin: 0 auto;
+      }
+      .reset-btn:hover {
+        background: #b71c1c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1 class="title">趣味彩票</h1>
+      <p class="rule">规则：50%概率翻倍中奖！</p>
+      <div class="balance-box">
+        <p class="balance-title">当前余额</p>
+        <p class="balance" id="balance">200</p>
+      </div>
+      <p class="bet-title">选择投注金额（元）</p>
+      <div class="bet-buttons">
+        <button class="bet-btn" data-bet="1">1元</button>
+        <button class="bet-btn" data-bet="5">5元</button>
+        <button class="bet-btn" data-bet="10">10元</button>
+        <button class="bet-btn" data-bet="20">20元</button>
+        <button class="bet-btn" data-bet="50">50元</button>
+        <button class="bet-btn" data-bet="100">100元</button>
+      </div>
+      <div class="result-box" id="result"></div>
+      <button class="reset-btn" id="resetBtn">重新开始</button>
+    </div>
+    <script>
+      let balance = 200;
+      const balanceEl = document.getElementById("balance");
+      const resultEl = document.getElementById("result");
+      const resetBtn = document.getElementById("resetBtn");
+      const betButtons = document.querySelectorAll(".bet-btn");
+      function updateBalance() {
+        balanceEl.textContent = balance.toFixed(2);
+        checkButtonStatus();
+        checkGameOver();
+      }
+      function checkButtonStatus() {
+        betButtons.forEach((btn) => {
+          const betAmount = parseInt(btn.dataset.bet);
+          btn.disabled = balance < betAmount;
+        });
+      }
+      function checkGameOver() {
+        if (balance < 1) {
+          resultEl.textContent = "你的余额不足1元，无法继续投注~";
+          resultEl.className = "result-box lose";
+          resetBtn.style.display = "block";
+          betButtons.forEach((btn) => (btn.disabled = true));
+        }
+      }
+      betButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const betAmount = parseInt(btn.dataset.bet);
+          const isWin = Math.random() >= 0.5;
+          if (isWin) {
+            balance += betAmount;
+            resultEl.textContent = `🎉 恭喜中奖！投注${betAmount}元，奖励${betAmount}元`;
+            resultEl.className = "result-box win";
+          } else {
+            balance -= betAmount;
+            resultEl.textContent = `😥 未中奖！扣除${betAmount}元`;
+            resultEl.className = "result-box lose";
+          }
+          updateBalance();
+        });
+      });
+      resetBtn.addEventListener("click", () => {
+        balance = 200;
+        resultEl.textContent = "";
+        resultEl.className = "result-box";
+        resetBtn.style.display = "none";
+        updateBalance();
+      });
+      updateBalance();
+    </script>
+  </body>
+</html>
