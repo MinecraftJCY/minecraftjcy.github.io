@@ -102,6 +102,7 @@
       const PARTICLE_BASE_SIZE = 30;
       const HEART_COLOR = "#ff6b9d";
       const HEART_SCALE_RATIO = 350;
+      const HEART_FIT_RATIO = 480;
       class Vector2D {
         constructor(x = 0, y = 0) {
           this.x = x;
@@ -147,9 +148,9 @@
           this.velocity.y += this.acceleration.y * deltaTime;
           this.lifetime += deltaTime;
         }
-        render(context, texture) {
+        render(context, texture, scale = 1) {
           const easeProgress = 1 - Math.pow(1 - this.lifetime / PARTICLE_DURATION, 3);
-          const renderSize = texture.width * easeProgress;
+          const renderSize = texture.width * easeProgress * scale;
           context.globalAlpha = 1 - this.lifetime / PARTICLE_DURATION;
           context.drawImage(texture, this.position.x - renderSize / 2, this.position.y - renderSize / 2, renderSize, renderSize);
         }
@@ -181,8 +182,8 @@
             this.activeHead = (this.activeHead + 1) % this.particles.length;
           }
         }
-        draw(context, texture) {
-          this.#traverseActiveParticles((particle) => particle.render(context, texture));
+        draw(context, texture, scale = 1) {
+          this.#traverseActiveParticles((particle) => particle.render(context, texture, scale));
         }
       }
       function calculateHeartPoint(angle) {
@@ -219,10 +220,12 @@
         const particleSystem = new ParticleSystem(PARTICLE_COUNT);
         const emitFrequency = PARTICLE_COUNT / PARTICLE_DURATION;
         let previousTimestamp = 0;
+        let heartScale = 1;
         const heartTexture = createHeartTexture();
         function resizeCanvas() {
           canvas.width = canvas.clientWidth;
           canvas.height = canvas.clientHeight;
+          heartScale = Math.min(canvas.width, canvas.height) / HEART_FIT_RATIO;
         }
         function renderFrame(timestamp) {
           requestAnimationFrame(renderFrame);
@@ -230,14 +233,17 @@
           previousTimestamp = timestamp;
           context.clearRect(0, 0, canvas.width, canvas.height);
           const emitCount = emitFrequency * deltaTime;
+          const scaledVelocity = PARTICLE_VELOCITY * heartScale;
           for (let i = 0; i < emitCount; i++) {
             const randomAngle = Math.PI - 2 * Math.PI * Math.random();
             const heartPosition = calculateHeartPoint(randomAngle);
-            const direction = heartPosition.clone().magnitude(PARTICLE_VELOCITY);
-            particleSystem.emit(canvas.width / 2 + heartPosition.x, canvas.height / 2 - heartPosition.y, direction.x, -direction.y);
+            const scaledX = heartPosition.x * heartScale;
+            const scaledY = heartPosition.y * heartScale;
+            const direction = heartPosition.clone().magnitude(scaledVelocity);
+            particleSystem.emit(canvas.width / 2 + scaledX, canvas.height / 2 - scaledY, direction.x, -direction.y);
           }
           particleSystem.update(deltaTime);
-          particleSystem.draw(context, heartTexture);
+          particleSystem.draw(context, heartTexture, heartScale);
         }
         window.addEventListener("resize", resizeCanvas);
         resizeCanvas();
