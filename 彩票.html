@@ -1,193 +1,669 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>彩票</title>
+    <title>幸运彩票</title>
     <style>
+      :root {
+        --bg: #b8c9b2;
+        --bg-gradient: linear-gradient(160deg, #b8c9b2 0%, #c5d4be 30%, #a8bda0 100%);
+        --card-bg: #fdfaf3;
+        --card-border: 1px solid rgba(0, 0, 0, 0.05);
+        --card-shadow: 0 4px 16px rgba(60, 50, 30, 0.08), 0 1px 4px rgba(60, 50, 30, 0.04);
+        --text: #3d3226;
+        --text-secondary: #6b5e4f;
+        --text-muted: #8c7f6f;
+        --heading: #2c5f3f;
+        --primary: #4a8c6a;
+        --primary-hover: #3a7054;
+        --primary-active: #2e5c44;
+        --primary-text: #ffffff;
+        --danger: #c0553a;
+        --danger-hover: #a3442d;
+        --danger-text: #ffffff;
+        --balance-color: #3d6b4f;
+        --balance-bg: #f2efe8;
+        --balance-border: #e0d8c8;
+        --win-bg: #e6f0e4;
+        --win-text: #2d5a38;
+        --win-border: #c8dcc4;
+        --lose-bg: #fce8e4;
+        --lose-text: #a83828;
+        --lose-border: #f0ccc2;
+        --result-neutral-bg: #f5f2ec;
+        --disabled-bg: #d5cec2;
+        --disabled-text: #a89880;
+        --divider: #e8e0d2;
+        --toggle-bg: #e8e0d2;
+        --toggle-hover: #d8cebc;
+        --overlay: rgba(0, 0, 0, 0.04);
+        --stat-bg: #faf7f0;
+        --stat-border: #ece3d4;
+        --transition-speed: 0.35s;
+        --radius-sm: clamp(6px, 1.2vw, 10px);
+        --radius-md: clamp(10px, 1.8vw, 16px);
+        --radius-lg: clamp(14px, 2.4vw, 22px);
+        --radius-xl: clamp(18px, 3vw, 28px);
+        --font-mono: "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+        --container-padding: clamp(24px, 4vw, 48px);
+        --gap-small: clamp(6px, 1vw, 12px);
+        --gap-medium: clamp(10px, 1.6vw, 16px);
+      }
+      [data-theme="dark"] {
+        --bg: #1a1e22;
+        --bg-gradient: linear-gradient(160deg, #1a1e22 0%, #1f2328 30%, #161a1d 100%);
+        --card-bg: #252830;
+        --card-border: 1px solid rgba(255, 255, 255, 0.05);
+        --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.2);
+        --text: #e0d8c8;
+        --text-secondary: #b0a898;
+        --text-muted: #887f70;
+        --heading: #8cc9a0;
+        --primary: #6aaa82;
+        --primary-hover: #5a9870;
+        --primary-active: #4a8460;
+        --primary-text: #1a1e22;
+        --danger: #d36a52;
+        --danger-hover: #bf5540;
+        --danger-text: #fdfaf3;
+        --balance-color: #8cc9a0;
+        --balance-bg: #1f2329;
+        --balance-border: #363840;
+        --win-bg: #253628;
+        --win-text: #8cc9a0;
+        --win-border: #3a5038;
+        --lose-bg: #352320;
+        --lose-text: #e8806a;
+        --lose-border: #4a3028;
+        --result-neutral-bg: #2a2c32;
+        --disabled-bg: #3a3c42;
+        --disabled-text: #5e5c55;
+        --divider: #363840;
+        --toggle-bg: #363840;
+        --toggle-hover: #484a52;
+        --overlay: rgba(255, 255, 255, 0.02);
+        --stat-bg: #2a2c32;
+        --stat-border: #3a3c42;
+      }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "Microsoft YaHei", sans-serif;
+      }
+      html {
+        font-size: 16px;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       body {
         min-height: 100vh;
-        background: #628f64;
+        min-height: 100dvh;
+        background: var(--bg-gradient);
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 20px;
+        padding: clamp(16px, 2.5vw, 32px);
+        font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+        transition: background var(--transition-speed) ease;
+        position: relative;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: var(--overlay);
+        pointer-events: none;
+        z-index: 0;
+        transition: background var(--transition-speed) ease;
+      }
+      .game-wrapper {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: clamp(420px, 60vw, 720px);
       }
       .game-container {
-        background: white;
+        background: var(--card-bg);
         width: 100%;
-        max-width: 500px;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        padding: var(--container-padding);
+        border-radius: var(--radius-xl);
+        border: var(--card-border);
+        box-shadow: var(--card-shadow);
         text-align: center;
+        transition:
+          background var(--transition-speed) ease,
+          box-shadow var(--transition-speed) ease,
+          border-color var(--transition-speed) ease;
+        position: relative;
+      }
+      .top-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: clamp(8px, 1.4vw, 16px);
+        flex-wrap: wrap;
+        gap: var(--gap-small);
+      }
+      .new-game-btn {
+        background: var(--stat-bg);
+        border: 1px solid var(--stat-border);
+        color: var(--text);
+        padding: clamp(7px, 1.1vw, 12px) clamp(14px, 2vw, 22px);
+        border-radius: clamp(18px, 2.6vw, 28px);
+        font-size: clamp(12px, 1.3vw, 16px);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        gap: clamp(3px, 0.5vw, 6px);
+        letter-spacing: 0.03em;
+        user-select: none;
+        -webkit-user-select: none;
+        white-space: nowrap;
+      }
+      .new-game-btn:hover {
+        background: var(--toggle-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .new-game-btn:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+      .theme-toggle {
+        width: clamp(36px, 5.5vw, 48px);
+        height: clamp(36px, 5.5vw, 48px);
+        border-radius: 50%;
+        border: none;
+        background: var(--toggle-bg);
+        cursor: pointer;
+        font-size: clamp(18px, 2.8vw, 24px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.25s ease,
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+        line-height: 1;
+        user-select: none;
+        -webkit-user-select: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        flex-shrink: 0;
+      }
+      .theme-toggle:hover {
+        background: var(--toggle-hover);
+        transform: scale(1.1);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+      }
+      .theme-toggle:active {
+        transform: scale(0.93);
+        transition: transform 0.1s ease;
+      }
+      .header-area {
+        margin-bottom: clamp(16px, 2.6vw, 28px);
+      }
+      .icon-row {
+        font-size: clamp(34px, 5.5vw, 56px);
+        margin-bottom: clamp(2px, 0.4vw, 8px);
+        animation: float 3s ease-in-out infinite;
+        display: inline-block;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(clamp(-6px, -0.8vw, -10px));
+        }
       }
       .title {
-        font-size: 28px;
-        color: #1976d2;
-        margin-bottom: 10px;
-        font-weight: bold;
+        font-size: clamp(22px, 3.6vw, 36px);
+        font-weight: 700;
+        color: var(--heading);
+        letter-spacing: 0.04em;
+        transition: color var(--transition-speed) ease;
       }
-      .rule {
-        color: #666;
-        font-size: 14px;
-        margin-bottom: 25px;
-        line-height: 1.5;
+      .subtitle {
+        font-size: clamp(12px, 1.5vw, 15px);
+        color: var(--text-secondary);
+        margin-top: clamp(2px, 0.3vw, 4px);
+        letter-spacing: 0.03em;
+        transition: color var(--transition-speed) ease;
       }
-      .balance-box {
-        background: #f5f5f5;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 25px;
+      .stats-row {
+        display: flex;
+        gap: var(--gap-medium);
+        margin-bottom: clamp(18px, 2.8vw, 30px);
       }
-      .balance-title {
-        font-size: 16px;
-        color: #333;
+      .stat-card {
+        flex: 1;
+        background: var(--stat-bg);
+        border: 1px solid var(--stat-border);
+        padding: clamp(12px, 2vw, 20px) clamp(8px, 1.4vw, 16px);
+        border-radius: var(--radius-md);
+        transition:
+          background var(--transition-speed) ease,
+          border-color var(--transition-speed) ease;
       }
-      .balance {
-        font-size: 36px;
-        color: #2e7d32;
-        font-weight: bold;
-        margin-top: 5px;
+      .stat-label {
+        font-size: clamp(11px, 1.2vw, 14px);
+        color: var(--text-secondary);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: clamp(3px, 0.5vw, 6px);
+        transition: color var(--transition-speed) ease;
       }
-      .bet-title {
-        font-size: 18px;
-        color: #333;
-        margin-bottom: 15px;
+      .stat-value {
+        font-size: clamp(20px, 3vw, 30px);
+        font-weight: 700;
+        color: var(--balance-color);
+        font-family: var(--font-mono);
+        letter-spacing: -0.02em;
+        transition:
+          color var(--transition-speed) ease,
+          transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: inline-block;
       }
-      .bet-buttons {
+      .stat-value.pulse {
+        transform: scale(1.12);
+      }
+      .section-label {
+        font-size: clamp(13px, 1.6vw, 17px);
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: clamp(10px, 1.5vw, 16px);
+        letter-spacing: 0.03em;
+        transition: color var(--transition-speed) ease;
+      }
+      .bet-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 25px;
+        gap: var(--gap-medium);
+        margin-bottom: clamp(16px, 2.6vw, 28px);
       }
       .bet-btn {
-        padding: 12px;
+        padding: clamp(11px, 1.8vw, 18px) clamp(4px, 0.8vw, 12px);
         border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: bold;
-        background: #1976d2;
-        color: white;
+        border-radius: var(--radius-md);
+        font-size: clamp(14px, 1.7vw, 19px);
+        font-weight: 600;
+        background: var(--primary);
+        color: var(--primary-text);
         cursor: pointer;
-        transition: 0.3s;
+        transition:
+          background 0.2s ease,
+          transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+          box-shadow 0.2s ease,
+          opacity 0.2s ease;
+        letter-spacing: 0.03em;
+        position: relative;
+        overflow: hidden;
+        -webkit-user-select: none;
+        user-select: none;
+        min-height: clamp(42px, 6vw, 60px);
+      }
+      .bet-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.12);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        border-radius: inherit;
+        pointer-events: none;
       }
       .bet-btn:hover:not(:disabled) {
-        background: #0d47a1;
-        transform: scale(1.05);
+        background: var(--primary-hover);
+        transform: translateY(clamp(-2px, -0.3vw, -3px));
+        box-shadow: 0 clamp(4px, 1vw, 8px) clamp(14px, 2.5vw, 24px) rgba(0, 0, 0, 0.18);
+      }
+      .bet-btn:hover:not(:disabled)::after {
+        opacity: 1;
+      }
+      .bet-btn:active:not(:disabled) {
+        transform: translateY(1px) scale(0.97);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition:
+          transform 0.08s ease,
+          box-shadow 0.08s ease;
       }
       .bet-btn:disabled {
-        background: #ccc;
+        background: var(--disabled-bg);
+        color: var(--disabled-text);
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
+        opacity: 0.6;
       }
-      .result-box {
-        min-height: 50px;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-size: 18px;
-        font-weight: bold;
+      .result-area {
+        min-height: clamp(46px, 7vw, 64px);
+        padding: clamp(12px, 2vw, 20px) clamp(14px, 2.2vw, 22px);
+        border-radius: var(--radius-md);
+        margin-bottom: clamp(14px, 2.2vw, 24px);
+        font-size: clamp(14px, 1.6vw, 18px);
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        transition:
+          background var(--transition-speed) ease,
+          color var(--transition-speed) ease,
+          border-color var(--transition-speed) ease,
+          opacity 0.25s ease,
+          transform 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        line-height: 1.5;
       }
-      .win {
-        background: #e8f5e9;
-        color: #2e7d32;
+      .result-neutral {
+        background: var(--result-neutral-bg);
+        color: var(--text-muted);
+        border: 1px dashed var(--divider);
       }
-      .lose {
-        background: #ffebee;
-        color: #c62828;
+      .result-win {
+        background: var(--win-bg);
+        color: var(--win-text);
+        border: 1px solid var(--win-border);
+        animation: resultPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .result-lose {
+        background: var(--lose-bg);
+        color: var(--lose-text);
+        border: 1px solid var(--lose-border);
+        animation: resultPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes resultPopIn {
+        0% {
+          opacity: 0;
+          transform: scale(0.9) translateY(6px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
       }
       .reset-btn {
-        padding: 15px 30px;
+        padding: clamp(12px, 2vw, 18px) clamp(28px, 5vw, 44px);
         border: none;
-        border-radius: 8px;
-        font-size: 18px;
-        background: #d32f2f;
-        color: white;
+        border-radius: var(--radius-md);
+        font-size: clamp(15px, 1.8vw, 20px);
+        font-weight: 600;
+        background: var(--danger);
+        color: var(--danger-text);
         cursor: pointer;
+        transition:
+          background 0.2s ease,
+          transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+          box-shadow 0.2s ease,
+          opacity 0.3s ease;
+        letter-spacing: 0.04em;
         display: none;
         margin: 0 auto;
+        -webkit-user-select: none;
+        user-select: none;
       }
       .reset-btn:hover {
-        background: #b71c1c;
+        background: var(--danger-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 clamp(4px, 1vw, 8px) clamp(14px, 2.5vw, 24px) rgba(0, 0, 0, 0.2);
+      }
+      .reset-btn:active {
+        transform: translateY(1px) scale(0.97);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.08s ease;
+      }
+      .reset-btn.visible {
+        display: inline-block;
+        animation: fadeInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (max-width: 480px) {
+        .game-wrapper {
+          max-width: 100%;
+        }
+      }
+      @media (min-width: 1400px) {
+        .game-wrapper {
+          max-width: 680px;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="game-container">
-      <h1 class="title">趣味彩票</h1>
-      <p class="rule">规则：50%概率翻倍中奖！</p>
-      <div class="balance-box">
-        <p class="balance-title">当前余额</p>
-        <p class="balance" id="balance">200</p>
+    <div class="game-wrapper">
+      <div class="game-container">
+        <div class="top-actions">
+          <button class="new-game-btn" id="newGameBtn"><span>🔄</span> 新游戏</button>
+          <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换明暗主题">🌙</button>
+        </div>
+        <div class="header-area">
+          <div class="icon-row">🎰</div>
+          <h1 class="title">幸运彩票</h1>
+          <p class="subtitle">50% 概率 · 翻倍中奖</p>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">购买次数</div>
+            <div class="stat-value" id="purchaseCountDisplay">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">当前余额</div>
+            <div class="stat-value" id="balanceDisplay">200</div>
+          </div>
+        </div>
+        <p class="section-label">选择投注金额</p>
+        <div class="bet-grid" id="betGrid">
+          <button class="bet-btn" data-bet="1">1 元</button>
+          <button class="bet-btn" data-bet="5">5 元</button>
+          <button class="bet-btn" data-bet="10">10 元</button>
+          <button class="bet-btn" data-bet="20">20 元</button>
+          <button class="bet-btn" data-bet="50">50 元</button>
+          <button class="bet-btn" data-bet="100">100 元</button>
+        </div>
+        <div class="result-area result-neutral" id="resultArea">点击上方按钮开始投注</div>
+        <button class="reset-btn" id="resetBtn">🔄 重新开始</button>
       </div>
-      <p class="bet-title">选择投注金额（元）</p>
-      <div class="bet-buttons">
-        <button class="bet-btn" data-bet="1">1元</button>
-        <button class="bet-btn" data-bet="5">5元</button>
-        <button class="bet-btn" data-bet="10">10元</button>
-        <button class="bet-btn" data-bet="20">20元</button>
-        <button class="bet-btn" data-bet="50">50元</button>
-        <button class="bet-btn" data-bet="100">100元</button>
-      </div>
-      <div class="result-box" id="result"></div>
-      <button class="reset-btn" id="resetBtn">重新开始</button>
     </div>
     <script>
-      let balance = 200;
-      const balanceEl = document.getElementById("balance");
-      const resultEl = document.getElementById("result");
-      const resetBtn = document.getElementById("resetBtn");
-      const betButtons = document.querySelectorAll(".bet-btn");
-      function updateBalance() {
-        balanceEl.textContent = balance.toFixed(2);
-        checkButtonStatus();
-        checkGameOver();
-      }
-      function checkButtonStatus() {
-        betButtons.forEach((btn) => {
-          const betAmount = parseInt(btn.dataset.bet);
-          btn.disabled = balance < betAmount;
-        });
-      }
-      function checkGameOver() {
-        if (balance < 1) {
-          resultEl.textContent = "你的余额不足1元，无法继续投注~";
-          resultEl.className = "result-box lose";
-          resetBtn.style.display = "block";
-          betButtons.forEach((btn) => (btn.disabled = true));
+      (function () {
+        const STATE_KEY = "lottery_balance";
+        const COUNT_KEY = "lottery_purchase_count";
+        const THEME_KEY = "lottery_theme";
+        const INITIAL_BALANCE = 200;
+        const WIN_RATE = 0.5;
+        const balanceDisplay = document.getElementById("balanceDisplay");
+        const purchaseCountDisplay = document.getElementById("purchaseCountDisplay");
+        const resultArea = document.getElementById("resultArea");
+        const resetBtn = document.getElementById("resetBtn");
+        const newGameBtn = document.getElementById("newGameBtn");
+        const betGrid = document.getElementById("betGrid");
+        const themeToggle = document.getElementById("themeToggle");
+        const html = document.documentElement;
+        let balance = INITIAL_BALANCE;
+        let purchaseCount = 0;
+        let betButtons = [];
+        let animFrameId = null;
+        function loadNumber(key, fallback) {
+          try {
+            const saved = localStorage.getItem(key);
+            if (saved !== null) {
+              const parsed = parseFloat(saved);
+              if (!isNaN(parsed) && parsed >= 0 && isFinite(parsed)) {
+                return parsed;
+              }
+            }
+          } catch (_) {}
+          return fallback;
         }
-      }
-      betButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const betAmount = parseInt(btn.dataset.bet);
-          const isWin = Math.random() >= 0.5;
-          if (isWin) {
+        function saveNumber(key, value) {
+          try {
+            localStorage.setItem(key, value.toFixed(0));
+          } catch (_) {}
+        }
+        function loadBalance() {
+          return loadNumber(STATE_KEY, INITIAL_BALANCE);
+        }
+        function loadPurchaseCount() {
+          return loadNumber(COUNT_KEY, 0);
+        }
+        function saveBalance() {
+          try {
+            localStorage.setItem(STATE_KEY, balance.toFixed(2));
+          } catch (_) {}
+        }
+        function savePurchaseCount() {
+          saveNumber(COUNT_KEY, purchaseCount);
+        }
+        function loadTheme() {
+          try {
+            const saved = localStorage.getItem(THEME_KEY);
+            if (saved === "dark" || saved === "light") {
+              return saved;
+            }
+          } catch (_) {}
+          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            return "dark";
+          }
+          return "light";
+        }
+        function saveTheme(theme) {
+          try {
+            localStorage.setItem(THEME_KEY, theme);
+          } catch (_) {}
+        }
+        function applyTheme(theme) {
+          html.setAttribute("data-theme", theme);
+          themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+          saveTheme(theme);
+        }
+        function collectBetButtons() {
+          betButtons = Array.from(betGrid.querySelectorAll(".bet-btn"));
+        }
+        function updateBalanceDisplay(animate = false) {
+          balanceDisplay.textContent = balance.toFixed(2);
+          if (animate) {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            balanceDisplay.classList.remove("pulse");
+            void balanceDisplay.offsetWidth;
+            balanceDisplay.classList.add("pulse");
+            animFrameId = setTimeout(() => {
+              balanceDisplay.classList.remove("pulse");
+              animFrameId = null;
+            }, 220);
+          }
+        }
+        function updatePurchaseCountDisplay() {
+          purchaseCountDisplay.textContent = purchaseCount;
+        }
+        function updateButtonStates() {
+          betButtons.forEach((btn) => {
+            const betAmount = parseFloat(btn.dataset.bet);
+            btn.disabled = balance < betAmount;
+          });
+        }
+        function isGameOver() {
+          const minBet = Math.min(...betButtons.map((b) => parseFloat(b.dataset.bet)));
+          return balance < minBet;
+        }
+        function setResult(message, type) {
+          resultArea.textContent = message;
+          resultArea.className = "result-area";
+          void resultArea.offsetWidth;
+          resultArea.classList.add(type === "win" ? "result-win" : type === "lose" ? "result-lose" : "result-neutral");
+        }
+        function handleGameOver() {
+          const minBet = Math.min(...betButtons.map((b) => parseFloat(b.dataset.bet)));
+          setResult("😔 余额不足 " + minBet.toFixed(0) + " 元，无法继续投注", "lose");
+          resetBtn.classList.add("visible");
+          betButtons.forEach((b) => (b.disabled = true));
+        }
+        function refreshUI(animateBalance = false) {
+          updateBalanceDisplay(animateBalance);
+          updatePurchaseCountDisplay();
+          updateButtonStates();
+          if (isGameOver()) {
+            handleGameOver();
+          }
+          saveBalance();
+          savePurchaseCount();
+        }
+        function handleBet(betAmount) {
+          if (balance < betAmount) return;
+          const won = Math.random() < WIN_RATE;
+          if (won) {
             balance += betAmount;
-            resultEl.textContent = `🎉 恭喜中奖！投注${betAmount}元，奖励${betAmount}元`;
-            resultEl.className = "result-box win";
+            setResult("🎉 恭喜中奖！投注 " + betAmount.toFixed(0) + " 元，获得 " + betAmount.toFixed(0) + " 元奖励", "win");
           } else {
             balance -= betAmount;
-            resultEl.textContent = `😥 未中奖！扣除${betAmount}元`;
-            resultEl.className = "result-box lose";
+            setResult("😥 未中奖，扣除 " + betAmount.toFixed(0) + " 元", "lose");
           }
-          updateBalance();
-        });
-      });
-      resetBtn.addEventListener("click", () => {
-        balance = 200;
-        resultEl.textContent = "";
-        resultEl.className = "result-box";
-        resetBtn.style.display = "none";
-        updateBalance();
-      });
-      updateBalance();
+          purchaseCount++;
+          refreshUI(true);
+        }
+        function resetGame() {
+          balance = INITIAL_BALANCE;
+          purchaseCount = 0;
+          setResult("点击上方按钮开始投注", "neutral");
+          resetBtn.classList.remove("visible");
+          refreshUI(false);
+        }
+        function bindEvents() {
+          betGrid.addEventListener("click", (e) => {
+            const btn = e.target.closest(".bet-btn");
+            if (!btn) return;
+            if (btn.disabled) return;
+            const betAmount = parseFloat(btn.dataset.bet);
+            if (isNaN(betAmount)) return;
+            handleBet(betAmount);
+          });
+          resetBtn.addEventListener("click", resetGame);
+          newGameBtn.addEventListener("click", resetGame);
+          themeToggle.addEventListener("click", () => {
+            const current = html.getAttribute("data-theme");
+            const next = current === "dark" ? "light" : "dark";
+            applyTheme(next);
+          });
+        }
+        function init() {
+          const theme = loadTheme();
+          applyTheme(theme);
+          balance = loadBalance();
+          if (balance < 0 || !isFinite(balance)) balance = INITIAL_BALANCE;
+          purchaseCount = loadPurchaseCount();
+          if (purchaseCount < 0 || !isFinite(purchaseCount)) purchaseCount = 0;
+          collectBetButtons();
+          bindEvents();
+          if (isGameOver()) {
+            handleGameOver();
+          } else {
+            setResult("点击上方按钮开始投注", "neutral");
+          }
+          updateBalanceDisplay(false);
+          updatePurchaseCountDisplay();
+          updateButtonStates();
+          saveBalance();
+          savePurchaseCount();
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", init);
+        } else {
+          init();
+        }
+      })();
     </script>
   </body>
 </html>
