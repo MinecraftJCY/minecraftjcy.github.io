@@ -5,37 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitHub主页</title>
     <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #1a1d2e 0%, #252040 40%, #1e1b2e 100%);
+        --card-bg: rgba(255, 255, 255, 0.06);
+        --card-bg-hover: rgba(255, 255, 255, 0.12);
+        --card-border: rgba(255, 255, 255, 0.1);
+        --card-border-hover: rgba(255, 255, 255, 0.3);
+        --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        --card-shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.4);
+        --text-primary: #e8e6f0;
+        --text-secondary: rgba(220, 218, 230, 0.8);
+        --heading-gradient: linear-gradient(135deg, #f0eff8 0%, #d8d6e8 100%);
+        --footer-border: rgba(255, 255, 255, 0.08);
+        --footer-text: rgba(220, 218, 230, 0.55);
+        --glow-color-1: rgba(255, 255, 255, 0.05);
+        --glow-color-2: rgba(255, 255, 255, 0.04);
+        --toggle-bg: rgba(255, 255, 255, 0.12);
+        --toggle-text: #e8e6f0;
+        --toggle-border: rgba(255, 255, 255, 0.2);
+        --toggle-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        --card-icon-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+        --body-bg-fallback: #1a1d2e;
+        transition:
+          background 0.5s ease,
+          color 0.4s ease;
+      }
+      [data-theme="light"] {
+        --bg-gradient: linear-gradient(155deg, #fdf6f0 0%, #f8f1e8 35%, #f5eff8 70%, #fdf6f0 100%);
+        --card-bg: rgba(255, 255, 255, 0.72);
+        --card-bg-hover: rgba(255, 255, 255, 0.9);
+        --card-border: rgba(0, 0, 0, 0.08);
+        --card-border-hover: rgba(0, 0, 0, 0.18);
+        --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        --card-shadow-hover: 0 14px 36px rgba(0, 0, 0, 0.12);
+        --text-primary: #3d3a45;
+        --text-secondary: rgba(60, 55, 65, 0.7);
+        --heading-gradient: linear-gradient(135deg, #3d3a45 0%, #5c5668 100%);
+        --footer-border: rgba(0, 0, 0, 0.07);
+        --footer-text: rgba(60, 55, 65, 0.5);
+        --glow-color-1: rgba(180, 160, 140, 0.1);
+        --glow-color-2: rgba(170, 155, 180, 0.08);
+        --toggle-bg: rgba(255, 255, 255, 0.7);
+        --toggle-text: #3d3a45;
+        --toggle-border: rgba(0, 0, 0, 0.15);
+        --toggle-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        --card-icon-shadow: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.12));
+        --body-bg-fallback: #fdf6f0;
+      }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-      :root {
-        --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-        --card-bg: rgba(255, 255, 255, 0.1);
-        --card-bg-hover: rgba(255, 255, 255, 0.15);
-        --card-border: rgba(255, 255, 255, 0.2);
-        --card-border-hover: rgba(255, 255, 255, 0.4);
-        --text-primary: #ffffff;
-        --text-secondary: rgba(255, 255, 255, 0.9);
-        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
-        --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.2);
-        --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
-        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      html,
-      body {
+      html {
         height: 100%;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
       }
       body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
         background: var(--bg-gradient);
         background-attachment: fixed;
+        background-color: var(--body-bg-fallback);
         color: var(--text-primary);
         min-height: 100vh;
-        padding: 2rem 1rem;
+        padding: 2.5rem 1.25rem 2rem;
         position: relative;
         overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition:
+          background 0.5s ease,
+          color 0.4s ease;
       }
       body::before {
         content: "";
@@ -44,19 +83,62 @@
         left: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-        animation: bgMove 20s ease-in-out infinite;
+        background: radial-gradient(circle at 18% 45%, var(--glow-color-1) 0%, transparent 48%), radial-gradient(circle at 78% 75%, var(--glow-color-2) 0%, transparent 48%), radial-gradient(circle at 50% 20%, var(--glow-color-1) 0%, transparent 40%);
+        animation: bgDrift 32s ease-in-out infinite;
         pointer-events: none;
         z-index: 0;
+        will-change: transform;
       }
-      @keyframes bgMove {
+      @keyframes bgDrift {
         0%,
         100% {
-          transform: translate(0, 0) rotate(0deg);
+          transform: translate(0, 0);
         }
-        50% {
-          transform: translate(-50px, -50px) rotate(180deg);
+        33% {
+          transform: translate(-40px, -25px);
         }
+        66% {
+          transform: translate(20px, 30px);
+        }
+      }
+      .theme-toggle {
+        position: fixed;
+        top: 1.25rem;
+        right: 1.25rem;
+        z-index: 100;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: 1px solid var(--toggle-border);
+        background: var(--toggle-bg);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        color: var(--toggle-text);
+        font-size: 1.35rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--toggle-shadow);
+        transition:
+          background 0.35s ease,
+          border-color 0.35s ease,
+          box-shadow 0.35s ease,
+          transform 0.25s ease;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        outline: none;
+      }
+      .theme-toggle:hover {
+        transform: scale(1.08);
+      }
+      .theme-toggle:active {
+        transform: scale(0.94);
+        transition: transform 0.12s ease;
+      }
+      .theme-toggle:focus-visible {
+        outline: 2px solid var(--card-border-hover);
+        outline-offset: 4px;
       }
       .container {
         max-width: 1200px;
@@ -66,13 +148,13 @@
       }
       header {
         text-align: center;
-        margin-bottom: 4rem;
-        animation: fadeInDown 0.8s ease-out;
+        margin-bottom: 3.5rem;
+        animation: fadeSlideDown 0.7s ease-out;
       }
-      @keyframes fadeInDown {
+      @keyframes fadeSlideDown {
         from {
           opacity: 0;
-          transform: translateY(-30px);
+          transform: translateY(-24px);
         }
         to {
           opacity: 1;
@@ -80,131 +162,160 @@
         }
       }
       h1 {
-        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-size: clamp(2.2rem, 7vw, 3.8rem);
         font-weight: 800;
-        margin-bottom: 1rem;
-        background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+        margin-bottom: 0.75rem;
+        background: var(--heading-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        letter-spacing: -0.02em;
+        letter-spacing: -0.025em;
+        line-height: 1.2;
       }
       .subtitle {
-        font-size: clamp(1rem, 3vw, 1.25rem);
+        font-size: clamp(1rem, 2.8vw, 1.2rem);
         color: var(--text-secondary);
-        font-weight: 300;
-        letter-spacing: 0.5px;
+        font-weight: 350;
+        letter-spacing: 0.4px;
       }
       .projects-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
+        gap: 1.75rem;
+        margin-top: 1.5rem;
       }
       .project-card {
         background: var(--card-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid var(--card-border);
-        border-radius: 20px;
-        padding: 2rem;
+        border-radius: 18px;
+        padding: 1.75rem 1.5rem;
         text-decoration: none;
         color: var(--text-primary);
-        transition: var(--transition);
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--card-shadow);
         position: relative;
         overflow: hidden;
-        animation: fadeInUp 0.6s ease-out backwards;
+        animation: fadeSlideUp 0.55s ease-out backwards;
+        transition:
+          background 0.35s ease,
+          border-color 0.35s ease,
+          box-shadow 0.35s ease,
+          transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        -webkit-tap-highlight-color: transparent;
+        display: flex;
+        flex-direction: column;
       }
-      .project-card::before {
+      .project-card::after {
         content: "";
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+        inset: 0;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 55%);
         opacity: 0;
-        transition: var(--transition);
+        transition: opacity 0.35s ease;
+        pointer-events: none;
       }
-      .project-card:hover {
-        background: var(--card-bg-hover);
-        border-color: var(--card-border-hover);
-        transform: translateY(-10px);
-        box-shadow: var(--shadow-lg);
-      }
-      .project-card:hover::before {
+      .project-card:hover::after {
         opacity: 1;
       }
       .project-card:nth-child(1) {
-        animation-delay: 0.1s;
+        animation-delay: 0.05s;
       }
       .project-card:nth-child(2) {
-        animation-delay: 0.2s;
+        animation-delay: 0.1s;
       }
       .project-card:nth-child(3) {
-        animation-delay: 0.3s;
+        animation-delay: 0.15s;
       }
       .project-card:nth-child(4) {
-        animation-delay: 0.4s;
+        animation-delay: 0.2s;
       }
       .project-card:nth-child(5) {
-        animation-delay: 0.5s;
+        animation-delay: 0.25s;
       }
       .project-card:nth-child(6) {
-        animation-delay: 0.6s;
+        animation-delay: 0.3s;
       }
       .project-card:nth-child(7) {
-        animation-delay: 0.7s;
+        animation-delay: 0.35s;
       }
       .project-card:nth-child(8) {
-        animation-delay: 0.8s;
+        animation-delay: 0.4s;
       }
-      @keyframes fadeInUp {
+      .project-card:nth-child(9) {
+        animation-delay: 0.45s;
+      }
+      @keyframes fadeSlideUp {
         from {
           opacity: 0;
-          transform: translateY(30px);
+          transform: translateY(28px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
       }
+      @media (hover: hover) {
+        .project-card:hover {
+          background: var(--card-bg-hover);
+          border-color: var(--card-border-hover);
+          transform: translateY(-8px);
+          box-shadow: var(--card-shadow-hover);
+        }
+      }
+      @media (hover: none) {
+        .project-card:active {
+          background: var(--card-bg-hover);
+          border-color: var(--card-border-hover);
+          transform: scale(0.975);
+          box-shadow: var(--card-shadow-hover);
+          transition:
+            transform 0.12s ease,
+            background 0.2s ease,
+            border-color 0.2s ease;
+        }
+      }
       .card-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        gap: 0.7rem;
+        margin-bottom: 0.6rem;
       }
       .card-icon {
-        font-size: 2.5rem;
+        font-size: 2.3rem;
         display: block;
-        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-        transition: var(--transition);
+        filter: var(--card-icon-shadow);
+        transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         flex-shrink: 0;
+        line-height: 1;
       }
-      .project-card:hover .card-icon {
-        transform: scale(1.1) rotate(5deg);
+      @media (hover: hover) {
+        .project-card:hover .card-icon {
+          transform: scale(1.12) rotate(4deg);
+        }
       }
       .card-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         font-weight: 700;
         letter-spacing: -0.01em;
+        line-height: 1.25;
       }
       .card-description {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         color: var(--text-secondary);
-        line-height: 1.6;
+        line-height: 1.55;
+        margin-top: 0.15rem;
       }
       footer {
         text-align: center;
         margin-top: 4rem;
         padding-top: 2rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        animation: fadeIn 1s ease-out 1s backwards;
+        border-top: 1px solid var(--footer-border);
+        color: var(--footer-text);
+        font-size: 0.88rem;
+        animation: fadeIn 0.8s ease-out 0.9s backwards;
+        letter-spacing: 0.3px;
       }
       @keyframes fadeIn {
         from {
@@ -216,25 +327,56 @@
       }
       @media (max-width: 768px) {
         body {
-          padding: 1.5rem 1rem;
+          padding: 2rem 0.9rem 1.5rem;
         }
         header {
-          margin-bottom: 3rem;
+          margin-bottom: 2.5rem;
         }
         .projects-grid {
           grid-template-columns: 1fr;
-          gap: 1.5rem;
+          gap: 1.25rem;
         }
         .project-card {
-          padding: 1.5rem;
+          padding: 1.35rem 1.2rem;
+          border-radius: 16px;
+        }
+        .card-icon {
+          font-size: 2rem;
+        }
+        .card-title {
+          font-size: 1.25rem;
+        }
+        .card-description {
+          font-size: 0.88rem;
         }
         footer {
-          margin-top: 3rem;
+          margin-top: 2.5rem;
+          padding-top: 1.5rem;
+        }
+        .theme-toggle {
+          top: 0.9rem;
+          right: 0.9rem;
+          width: 42px;
+          height: 42px;
+          font-size: 1.2rem;
         }
       }
       @media (min-width: 769px) and (max-width: 1024px) {
         .projects-grid {
           grid-template-columns: repeat(2, 1fr);
+          gap: 1.5rem;
+        }
+        .project-card {
+          padding: 1.5rem 1.35rem;
+        }
+      }
+      @media (min-width: 1400px) {
+        .projects-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2rem;
+        }
+        .project-card {
+          padding: 2rem 1.75rem;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -245,10 +387,16 @@
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }
+        body::before {
+          animation: none !important;
+        }
       }
     </style>
   </head>
   <body>
+    <button class="theme-toggle" aria-label="切换主题" title="切换亮色/暗色主题">
+      <span class="theme-toggle-icon">☀️</span>
+    </button>
     <div class="container">
       <header>
         <h1>欢迎来到我的GitHub主页</h1>
@@ -323,5 +471,61 @@
         <p>Generated by AI</p>
       </footer>
     </div>
+    <script>
+      (function () {
+        var toggleBtn = document.querySelector(".theme-toggle");
+        var toggleIcon = document.querySelector(".theme-toggle-icon");
+        var htmlEl = document.documentElement;
+        function getSavedTheme() {
+          try {
+            return localStorage.getItem("theme");
+          } catch (e) {
+            return null;
+          }
+        }
+        function saveTheme(theme) {
+          try {
+            localStorage.setItem("theme", theme);
+          } catch (e) {}
+        }
+        function applyTheme(theme) {
+          if (theme === "light") {
+            htmlEl.setAttribute("data-theme", "light");
+            if (toggleIcon) toggleIcon.textContent = "🌙";
+          } else {
+            htmlEl.removeAttribute("data-theme");
+            if (toggleIcon) toggleIcon.textContent = "☀️";
+          }
+        }
+        function getCurrentTheme() {
+          return htmlEl.getAttribute("data-theme") === "light" ? "light" : "dark";
+        }
+        function toggleTheme() {
+          var current = getCurrentTheme();
+          var next = current === "light" ? "dark" : "light";
+          applyTheme(next);
+          saveTheme(next);
+        }
+        var savedTheme = getSavedTheme();
+        if (savedTheme === "light" || savedTheme === "dark") {
+          applyTheme(savedTheme);
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+          applyTheme("light");
+        } else {
+          applyTheme("dark");
+        }
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", toggleTheme);
+        }
+        if (window.matchMedia) {
+          var systemSchemeQuery = window.matchMedia("(prefers-color-scheme: light)");
+          systemSchemeQuery.addEventListener("change", function (e) {
+            if (!getSavedTheme()) {
+              applyTheme(e.matches ? "light" : "dark");
+            }
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
