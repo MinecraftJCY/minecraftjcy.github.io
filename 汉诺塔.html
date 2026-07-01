@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>汉诺塔</title>
+    <style>
+      :root {
+        --bg: #eaf3e8;
+        --surface: #f7faf6;
+        --surface-elevated: #ffffff;
+        --text: #2e3d34;
+        --text-dim: #5a6e61;
+        --accent: #8fa88a;
+        --accent-glow: #b6ccb0;
+        --danger: #c07a7a;
+        --success: #6b9e78;
+        --rod: #c1b0a0;
+        --rod-dark: #7b6e60;
+        --base: #9c8b7a;
+        --tower-width: clamp(95px, 29vw, 185px);
+        --tower-height: clamp(230px, 45vh, 360px);
+        --disk-thickness: clamp(20px, 3.6vh, 30px);
+        --disk-min-width: 32%;
+        --disk-max-width: 90%;
+        --border-radius-sm: 8px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 22px;
+        --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+        --transition-smooth: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        --shadow-card: 0 8px 24px rgba(46, 61, 52, 0.12), 0 2px 6px rgba(46, 61, 52, 0.08);
+        --shadow-disk: 0 3px 6px rgba(46, 61, 52, 0.15), 0 1px 2px rgba(255, 255, 255, 0.5) inset;
+        --shadow-disk-lift: 0 8px 18px rgba(46, 61, 52, 0.25), 0 0 12px rgba(143, 168, 138, 0.5);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: radial-gradient(ellipse at 50% 30%, #dce8d8 0%, var(--bg) 75%);
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px;
+        font-family: var(--font-sans);
+        color: var(--text);
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+      .game-container {
+        background: var(--surface);
+        border-radius: var(--border-radius-lg);
+        padding: clamp(20px, 3.5vw, 30px) clamp(16px, 2.8vw, 26px);
+        box-shadow: var(--shadow-card);
+        width: 100%;
+        max-width: 720px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        border: 1px solid rgba(143, 168, 138, 0.15);
+      }
+      .game-header {
+        text-align: center;
+        width: 100%;
+      }
+      .game-title {
+        font-size: clamp(22px, 5vw, 32px);
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        background: linear-gradient(180deg, #5a7a5e 0%, #3a523e 80%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 1px 2px rgba(46, 61, 52, 0.2));
+        margin-bottom: 4px;
+      }
+      .game-subtitle {
+        font-size: clamp(12px, 2vw, 15px);
+        color: var(--text-dim);
+        letter-spacing: 0.04em;
+        font-weight: 400;
+      }
+      .control-panel {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        width: 100%;
+      }
+      .layer-selector {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface-elevated);
+        border-radius: 40px;
+        padding: 5px 14px;
+        border: 1px solid rgba(143, 168, 138, 0.3);
+        box-shadow: 0 2px 8px rgba(46, 61, 52, 0.08);
+      }
+      .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(143, 168, 138, 0.12);
+        color: var(--text);
+        font-size: 1.4rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-smooth);
+        box-shadow: 0 2px 6px rgba(46, 61, 52, 0.1);
+        line-height: 1;
+      }
+      .btn-icon:hover:not(:disabled) {
+        background: rgba(143, 168, 138, 0.25);
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(46, 61, 52, 0.15);
+      }
+      .btn-icon:active:not(:disabled) {
+        transform: scale(0.92);
+        background: rgba(143, 168, 138, 0.35);
+      }
+      .btn-icon:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .layer-number {
+        font-size: 1.6rem;
+        font-weight: 700;
+        min-width: 28px;
+        text-align: center;
+        color: #4a6b4f;
+        letter-spacing: 0.04em;
+        text-shadow: 0 0 8px rgba(143, 168, 138, 0.3);
+      }
+      .stats {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        background: var(--surface-elevated);
+        border-radius: 40px;
+        padding: 8px 18px;
+        border: 1px solid rgba(143, 168, 138, 0.3);
+        box-shadow: 0 2px 8px rgba(46, 61, 52, 0.08);
+      }
+      .stat-item {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        font-size: 0.9rem;
+        color: var(--text-dim);
+        letter-spacing: 0.03em;
+      }
+      .stat-value {
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: #4a6b4f;
+        line-height: 1;
+        text-shadow: 0 0 6px rgba(143, 168, 138, 0.3);
+      }
+      .stat-optimal {
+        font-size: 0.75rem;
+        opacity: 0.8;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .btn {
+        border: none;
+        border-radius: 40px;
+        padding: 12px 22px;
+        font-weight: 600;
+        font-family: inherit;
+        font-size: 0.9rem;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: all var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(46, 61, 52, 0.1);
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn:active:not(:disabled) {
+        transform: scale(0.94);
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .btn-outline {
+        background: rgba(143, 168, 138, 0.08);
+        color: var(--text);
+        border: 1px solid rgba(143, 168, 138, 0.4);
+      }
+      .btn-outline:hover:not(:disabled) {
+        background: rgba(143, 168, 138, 0.18);
+        border-color: rgba(143, 168, 138, 0.6);
+        box-shadow: 0 6px 14px rgba(46, 61, 52, 0.15);
+      }
+      .btn-accent {
+        background: linear-gradient(135deg, #8fa88a 0%, #6b8566 100%);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        font-weight: 700;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      }
+      .btn-accent:hover:not(:disabled) {
+        background: linear-gradient(135deg, #a4be9f 0%, #7d9678 100%);
+        box-shadow: 0 8px 18px rgba(143, 168, 138, 0.35);
+        transform: translateY(-1px);
+      }
+      .game-area {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: clamp(10px, 2.5vw, 24px);
+        width: 100%;
+        padding: 8px 0 4px;
+      }
+      .tower {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: var(--tower-width);
+        cursor: pointer;
+        position: relative;
+        transition: filter 0.2s;
+      }
+      .tower:hover .tower-rod-bg {
+        filter: brightness(1.05);
+      }
+      .tower.tower-selected .tower-rod-bg {
+        filter: brightness(1.15) drop-shadow(0 0 8px rgba(143, 168, 138, 0.7));
+      }
+      .tower.tower-invalid {
+        animation: shake 0.45s ease;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20% {
+          transform: translateX(-7px);
+        }
+        40% {
+          transform: translateX(7px);
+        }
+        60% {
+          transform: translateX(-4px);
+        }
+        80% {
+          transform: translateX(4px);
+        }
+      }
+      .tower-rod-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .tower-rod-bg {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: clamp(7px, 1.6vw, 12px);
+        height: calc(var(--tower-height) - 8px);
+        background: linear-gradient(180deg, #cfc0b0 0%, #a09080 55%, #6b5d4e 100%);
+        border-radius: 6px 6px 0 0;
+        z-index: 0;
+        pointer-events: none;
+        box-shadow:
+          inset 2px 0 4px rgba(255, 255, 255, 0.25),
+          inset -2px 0 4px rgba(0, 0, 0, 0.25);
+        transition: filter var(--transition-smooth);
+      }
+      .tower-disks-wrapper {
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: center;
+        width: 100%;
+        min-height: var(--tower-height);
+        justify-content: flex-start;
+        padding-bottom: 6px;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .tower-base {
+        width: 100%;
+        height: clamp(10px, 1.8vh, 14px);
+        background: linear-gradient(180deg, #b8a898 0%, #7d6e5e 100%);
+        border-radius: 6px;
+        z-index: 1;
+        pointer-events: none;
+        box-shadow:
+          0 6px 14px rgba(46, 61, 52, 0.2),
+          inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+      }
+      .tower-label {
+        font-size: clamp(14px, 2.2vw, 17px);
+        font-weight: 700;
+        color: #5c6e5e;
+        margin-top: 10px;
+        letter-spacing: 0.08em;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+      }
+      .disk {
+        height: var(--disk-thickness);
+        border-radius: var(--border-radius-md);
+        flex-shrink: 0;
+        pointer-events: auto;
+        cursor: grab;
+        transition:
+          transform var(--transition-bounce),
+          box-shadow var(--transition-smooth),
+          filter var(--transition-smooth);
+        box-shadow: var(--shadow-disk);
+        z-index: 3;
+        position: relative;
+      }
+      .disk:active {
+        cursor: grabbing;
+      }
+      .disk.disk-selected {
+        filter: brightness(1.1) saturate(1.2);
+        box-shadow: var(--shadow-disk-lift);
+        z-index: 12;
+        transform: translateY(-8px) scale(1.02);
+      }
+      .disk:hover:not(.disk-selected) {
+        filter: brightness(1.05);
+        box-shadow:
+          0 5px 10px rgba(46, 61, 52, 0.2),
+          0 1px 3px rgba(255, 255, 255, 0.4) inset;
+      }
+      .disk-0 {
+        background: linear-gradient(180deg, #e0a0a0 0%, #c07878 55%, #9a5a5a 100%);
+      }
+      .disk-1 {
+        background: linear-gradient(180deg, #e0c0a0 0%, #c09870 55%, #9a7a50 100%);
+      }
+      .disk-2 {
+        background: linear-gradient(180deg, #d8d0a0 0%, #b8b070 55%, #908a50 100%);
+      }
+      .disk-3 {
+        background: linear-gradient(180deg, #a0b8d0 0%, #7090b0 55%, #506a80 100%);
+      }
+      .disk-4 {
+        background: linear-gradient(180deg, #b0a0c8 0%, #8878a8 55%, #605080 100%);
+      }
+      .disk-5 {
+        background: linear-gradient(180deg, #a0c8b0 0%, #70a080 55%, #507860 100%);
+      }
+      .disk-6 {
+        background: linear-gradient(180deg, #d8a0c0 0%, #b07098 55%, #885070 100%);
+      }
+      .disk-7 {
+        background: linear-gradient(180deg, #c0b0d0 0%, #9888b0 55%, #706090 100%);
+      }
+      .victory-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(46, 61, 52, 0.35);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        animation: fade-in 0.25s ease;
+      }
+      .victory-overlay.hidden {
+        display: none;
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .victory-card {
+        background: #ffffff;
+        border-radius: var(--border-radius-lg);
+        padding: 32px 28px;
+        text-align: center;
+        box-shadow:
+          0 12px 30px rgba(46, 61, 52, 0.2),
+          0 0 0 1px rgba(143, 168, 138, 0.2);
+        animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 92vw;
+        width: 340px;
+      }
+      @keyframes pop-in {
+        from {
+          transform: scale(0.7) translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+      .victory-emoji {
+        font-size: 3.2rem;
+        display: block;
+        margin-bottom: 8px;
+        animation: float 2s infinite ease-in-out;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .victory-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #4a6b4f;
+        letter-spacing: 0.04em;
+        margin-bottom: 10px;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+      }
+      .victory-detail {
+        font-size: 0.95rem;
+        color: var(--text-dim);
+        margin: 6px 0;
+        letter-spacing: 0.03em;
+      }
+      .victory-perfect {
+        color: #5a8a6a;
+        font-weight: 700;
+        font-size: 1rem;
+        text-shadow: 0 0 6px rgba(106, 158, 120, 0.3);
+      }
+      .victory-btn {
+        margin-top: 22px;
+        width: 100%;
+        justify-content: center;
+      }
+      @media (max-width: 500px) {
+        .control-panel {
+          gap: 8px;
+        }
+        .btn {
+          padding: 10px 16px;
+          font-size: 0.8rem;
+        }
+        .btn-icon {
+          width: 32px;
+          height: 32px;
+          font-size: 1.2rem;
+        }
+        .layer-number {
+          font-size: 1.3rem;
+          min-width: 22px;
+        }
+        .stats {
+          padding: 6px 12px;
+          gap: 8px;
+        }
+        .stat-value {
+          font-size: 1.2rem;
+        }
+        .tower-label {
+          font-size: 12px;
+          margin-top: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <div class="game-header">
+        <div class="game-title">汉 诺 塔</div>
+        <div class="game-subtitle">将所有圆盘从 A 柱移至 C 柱</div>
+      </div>
+      <div class="control-panel" id="controlPanel">
+        <div class="layer-selector">
+          <button class="btn-icon" id="btnDecrease" aria-label="减少层数">−</button>
+          <span class="layer-number" id="layerDisplay">3</span>
+          <button class="btn-icon" id="btnIncrease" aria-label="增加层数">+</button>
+        </div>
+        <div class="stats">
+          <div class="stat-item">
+            <span>步数</span>
+            <span class="stat-value" id="movesCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-optimal">最优</span>
+            <span class="stat-value" id="movesOptimal">7</span>
+          </div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-outline" id="btnReset">🔄 重置</button>
+          <button class="btn btn-accent" id="btnAutoSolve">⚡ 自动求解</button>
+        </div>
+      </div>
+      <div class="game-area" id="gameArea">
+        <div class="tower" data-tower="0" id="tower0">
+          <div class="tower-rod-container">
+            <div class="tower-rod-bg"></div>
+            <div class="tower-disks-wrapper" id="disksWrapper0"></div>
+          </div>
+          <div class="tower-base"></div>
+          <div class="tower-label">A</div>
+        </div>
+        <div class="tower" data-tower="1" id="tower1">
+          <div class="tower-rod-container">
+            <div class="tower-rod-bg"></div>
+            <div class="tower-disks-wrapper" id="disksWrapper1"></div>
+          </div>
+          <div class="tower-base"></div>
+          <div class="tower-label">B</div>
+        </div>
+        <div class="tower" data-tower="2" id="tower2">
+          <div class="tower-rod-container">
+            <div class="tower-rod-bg"></div>
+            <div class="tower-disks-wrapper" id="disksWrapper2"></div>
+          </div>
+          <div class="tower-base"></div>
+          <div class="tower-label">C</div>
+        </div>
+      </div>
+    </div>
+    <div class="victory-overlay hidden" id="victoryOverlay">
+      <div class="victory-card">
+        <span class="victory-emoji">🏆</span>
+        <div class="victory-title">完美通关</div>
+        <div class="victory-detail" id="victoryMovesDetail"></div>
+        <div class="victory-detail" id="victoryOptimalDetail"></div>
+        <button class="btn btn-accent victory-btn" id="btnVictoryRestart">✨ 再来一局</button>
+      </div>
+    </div>
+    <script>
+      class HanoiGame {
+        constructor() {
+          this.numDisks = 3;
+          this.towers = [[], [], []];
+          this.moves = 0;
+          this.selectedTowerIndex = null;
+          this.isAnimating = false;
+          this.animationAbortFlag = false;
+          this.diskWrappers = [document.getElementById("disksWrapper0"), document.getElementById("disksWrapper1"), document.getElementById("disksWrapper2")];
+          this.towerElements = [document.getElementById("tower0"), document.getElementById("tower1"), document.getElementById("tower2")];
+          this.movesCountEl = document.getElementById("movesCount");
+          this.movesOptimalEl = document.getElementById("movesOptimal");
+          this.layerDisplayEl = document.getElementById("layerDisplay");
+          this.victoryOverlay = document.getElementById("victoryOverlay");
+          this.victoryMovesDetail = document.getElementById("victoryMovesDetail");
+          this.victoryOptimalDetail = document.getElementById("victoryOptimalDetail");
+          this.controlPanel = document.getElementById("controlPanel");
+          this.bindEvents();
+          this.init(3);
+        }
+        bindEvents() {
+          document.getElementById("btnDecrease").addEventListener("click", () => this.changeLayers(-1));
+          document.getElementById("btnIncrease").addEventListener("click", () => this.changeLayers(1));
+          document.getElementById("btnReset").addEventListener("click", () => this.reset());
+          document.getElementById("btnAutoSolve").addEventListener("click", () => this.autoSolve());
+          document.getElementById("btnVictoryRestart").addEventListener("click", () => {
+            this.hideVictory();
+            this.reset();
+          });
+          this.victoryOverlay.addEventListener("click", (e) => {
+            if (e.target === this.victoryOverlay) {
+              this.hideVictory();
+              this.reset();
+            }
+          });
+          this.towerElements.forEach((towerEl, index) => {
+            towerEl.addEventListener("click", (e) => {
+              if (this.isAnimating) return;
+              if (e.target.closest(".disk") && e.target.closest(".disk").draggable) {
+                return;
+              }
+              this.handleTowerClick(index);
+            });
+            towerEl.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+            });
+            towerEl.addEventListener("drop", (e) => {
+              e.preventDefault();
+              if (this.isAnimating) return;
+              const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+              if (isNaN(fromIndex)) return;
+              this.handleTowerClick(fromIndex);
+              this.handleTowerClick(index);
+            });
+          });
+        }
+        init(numDisks) {
+          this.numDisks = Math.max(3, Math.min(8, numDisks));
+          this.towers = [[], [], []];
+          for (let i = this.numDisks; i >= 1; i--) {
+            this.towers[0].push(i);
+          }
+          this.moves = 0;
+          this.selectedTowerIndex = null;
+          this.animationAbortFlag = false;
+          this.isAnimating = false;
+          this.updateDisplay();
+          this.render();
+          this.hideVictory();
+          this.enableControls();
+          this.layerDisplayEl.textContent = this.numDisks;
+        }
+        reset() {
+          this.animationAbortFlag = true;
+          this.isAnimating = false;
+          this.init(this.numDisks);
+        }
+        changeLayers(delta) {
+          if (this.isAnimating) return;
+          const newNum = this.numDisks + delta;
+          if (newNum < 3 || newNum > 8) return;
+          this.init(newNum);
+        }
+        handleTowerClick(towerIndex) {
+          if (this.isAnimating) return;
+          if (this.selectedTowerIndex === null) {
+            if (this.towers[towerIndex].length > 0) {
+              this.selectedTowerIndex = towerIndex;
+              this.render();
+            }
+          } else if (this.selectedTowerIndex === towerIndex) {
+            this.selectedTowerIndex = null;
+            this.render();
+          } else {
+            const fromIndex = this.selectedTowerIndex;
+            const success = this.executeMove(fromIndex, towerIndex);
+            if (success) {
+              this.selectedTowerIndex = null;
+              this.moves++;
+              this.updateDisplay();
+              this.render();
+              if (this.checkWin()) {
+                this.showVictory();
+              }
+            } else {
+              this.flashInvalidTower(towerIndex);
+            }
+          }
+        }
+        executeMove(fromIndex, toIndex) {
+          if (this.towers[fromIndex].length === 0) return false;
+          const disk = this.towers[fromIndex][this.towers[fromIndex].length - 1];
+          const targetTop = this.towers[toIndex].length > 0 ? this.towers[toIndex][this.towers[toIndex].length - 1] : Infinity;
+          if (disk > targetTop) return false;
+          this.towers[fromIndex].pop();
+          this.towers[toIndex].push(disk);
+          return true;
+        }
+        flashInvalidTower(towerIndex) {
+          const el = this.towerElements[towerIndex];
+          el.classList.add("tower-invalid");
+          setTimeout(() => el.classList.remove("tower-invalid"), 450);
+        }
+        checkWin() {
+          return this.towers[2].length === this.numDisks;
+        }
+        getOptimalMoves() {
+          return Math.pow(2, this.numDisks) - 1;
+        }
+        updateDisplay() {
+          this.movesCountEl.textContent = this.moves;
+          this.movesOptimalEl.textContent = this.getOptimalMoves();
+          this.layerDisplayEl.textContent = this.numDisks;
+        }
+        showVictory() {
+          const optimal = this.getOptimalMoves();
+          this.victoryMovesDetail.textContent = `你完成了 ${this.numDisks} 层汉诺塔，共 ${this.moves} 步`;
+          if (this.moves === optimal) {
+            this.victoryOptimalDetail.textContent = "🌟 完美！你达到了最优解！";
+            this.victoryOptimalDetail.className = "victory-detail victory-perfect";
+          } else {
+            this.victoryOptimalDetail.textContent = `理论最优步数为 ${optimal} 步`;
+            this.victoryOptimalDetail.className = "victory-detail";
+          }
+          this.victoryOverlay.classList.remove("hidden");
+          this.disableControls();
+        }
+        hideVictory() {
+          this.victoryOverlay.classList.add("hidden");
+        }
+        disableControls() {
+          const buttons = this.controlPanel.querySelectorAll("button");
+          buttons.forEach((b) => (b.disabled = true));
+        }
+        enableControls() {
+          const buttons = this.controlPanel.querySelectorAll("button");
+          buttons.forEach((b) => (b.disabled = false));
+        }
+        render() {
+          for (let t = 0; t < 3; t++) {
+            const wrapper = this.diskWrappers[t];
+            wrapper.innerHTML = "";
+            const towerEl = this.towerElements[t];
+            towerEl.classList.remove("tower-selected");
+            if (this.selectedTowerIndex === t) {
+              towerEl.classList.add("tower-selected");
+            }
+            for (let d = 0; d < this.towers[t].length; d++) {
+              const diskSize = this.towers[t][d];
+              const diskEl = document.createElement("div");
+              diskEl.className = "disk";
+              const colorIndex = (diskSize - 1) % 8;
+              diskEl.classList.add("disk-" + colorIndex);
+              const widthPercent = 34 + (diskSize / this.numDisks) * 56;
+              diskEl.style.width = widthPercent + "%";
+              diskEl.setAttribute("data-disk-size", diskSize);
+              diskEl.setAttribute("data-tower", t);
+              const isTop = d === this.towers[t].length - 1;
+              const isSelected = this.selectedTowerIndex === t && isTop;
+              if (isSelected) {
+                diskEl.classList.add("disk-selected");
+              }
+              if (isTop && !this.isAnimating) {
+                diskEl.draggable = true;
+                diskEl.addEventListener("dragstart", (e) => {
+                  if (this.isAnimating) {
+                    e.preventDefault();
+                    return;
+                  }
+                  e.dataTransfer.setData("text/plain", t.toString());
+                  e.dataTransfer.effectAllowed = "move";
+                  this.selectedTowerIndex = t;
+                  setTimeout(() => this.render(), 0);
+                });
+                diskEl.addEventListener("dragend", () => {
+                  if (!this.isAnimating && this.selectedTowerIndex === t) {
+                    this.selectedTowerIndex = null;
+                    this.render();
+                  }
+                });
+              } else {
+                diskEl.draggable = false;
+              }
+              wrapper.appendChild(diskEl);
+            }
+          }
+        }
+        async autoSolve() {
+          if (this.isAnimating) return;
+          if (this.towers[2].length === this.numDisks) return;
+          if (this.towers[0].length !== this.numDisks && this.towers[1].length !== this.numDisks) {
+            this.reset();
+            await this.delay(180);
+          }
+          this.isAnimating = true;
+          this.animationAbortFlag = false;
+          this.selectedTowerIndex = null;
+          this.disableControls();
+          document.getElementById("btnReset").disabled = false;
+          const moves = [];
+          this.generateSolution(this.numDisks, 0, 2, 1, moves);
+          for (const [from, to] of moves) {
+            if (this.animationAbortFlag) break;
+            await this.delay(this.getAutoSolveDelay());
+            if (this.animationAbortFlag) break;
+            this.executeMove(from, to);
+            this.moves++;
+            this.updateDisplay();
+            this.render();
+            if (this.checkWin()) {
+              this.showVictory();
+              break;
+            }
+          }
+          this.isAnimating = false;
+          this.animationAbortFlag = false;
+          if (!this.checkWin()) {
+            this.enableControls();
+          }
+        }
+        getAutoSolveDelay() {
+          const totalSteps = Math.pow(2, this.numDisks) - 1;
+          if (totalSteps <= 15) return 300;
+          if (totalSteps <= 31) return 190;
+          if (totalSteps <= 63) return 130;
+          return 90;
+        }
+        generateSolution(n, from, to, aux, moves) {
+          if (n === 0) return;
+          this.generateSolution(n - 1, from, aux, to, moves);
+          moves.push([from, to]);
+          this.generateSolution(n - 1, aux, to, from, moves);
+        }
+        delay(ms) {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        new HanoiGame();
+      });
+    </script>
+  </body>
+</html>
