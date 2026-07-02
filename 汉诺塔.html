@@ -7,31 +7,85 @@
     <style>
       :root {
         --bg: #eaf3e8;
+        --bg-radial: #dce8d8;
         --surface: #f7faf6;
         --surface-elevated: #ffffff;
         --text: #2e3d34;
         --text-dim: #5a6e61;
+        --text-heading: #3a523e;
         --accent: #8fa88a;
+        --accent-hover: #a4be9f;
+        --accent-active: #6b8566;
         --accent-glow: #b6ccb0;
         --danger: #c07a7a;
         --success: #6b9e78;
-        --rod: #c1b0a0;
-        --rod-dark: #7b6e60;
-        --base: #9c8b7a;
+        --rod-light: #cfc0b0;
+        --rod-mid: #a09080;
+        --rod-dark: #6b5d4e;
+        --base-light: #b8a898;
+        --base-dark: #7d6e5e;
+        --border-subtle: rgba(143, 168, 138, 0.15);
+        --border-control: rgba(143, 168, 138, 0.3);
+        --border-outline: rgba(143, 168, 138, 0.4);
+        --border-outline-hover: rgba(143, 168, 138, 0.6);
+        --shadow-card: 0 8px 24px rgba(46, 61, 52, 0.12), 0 2px 6px rgba(46, 61, 52, 0.08);
+        --shadow-disk: 0 3px 6px rgba(46, 61, 52, 0.15), 0 1px 2px rgba(255, 255, 255, 0.5) inset;
+        --shadow-disk-lift: 0 8px 18px rgba(46, 61, 52, 0.25), 0 0 12px rgba(143, 168, 138, 0.5);
+        --shadow-btn: 0 4px 10px rgba(46, 61, 52, 0.1);
+        --shadow-btn-hover: 0 6px 14px rgba(46, 61, 52, 0.15);
+        --shadow-rod-inset: inset 2px 0 4px rgba(255, 255, 255, 0.25), inset -2px 0 4px rgba(0, 0, 0, 0.25);
+        --shadow-base: 0 6px 14px rgba(46, 61, 52, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        --disk-brightness: 1;
+        --disk-saturate: 1;
+        --overlay-bg: rgba(46, 61, 52, 0.35);
+        --victory-bg: #ffffff;
+        --victory-text: #4a6b4f;
         --tower-width: clamp(95px, 29vw, 185px);
         --tower-height: clamp(230px, 45vh, 360px);
         --disk-thickness: clamp(20px, 3.6vh, 30px);
-        --disk-min-width: 32%;
-        --disk-max-width: 90%;
         --border-radius-sm: 8px;
         --border-radius-md: 14px;
         --border-radius-lg: 22px;
         --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
         --transition-smooth: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        --shadow-card: 0 8px 24px rgba(46, 61, 52, 0.12), 0 2px 6px rgba(46, 61, 52, 0.08);
-        --shadow-disk: 0 3px 6px rgba(46, 61, 52, 0.15), 0 1px 2px rgba(255, 255, 255, 0.5) inset;
-        --shadow-disk-lift: 0 8px 18px rgba(46, 61, 52, 0.25), 0 0 12px rgba(143, 168, 138, 0.5);
+        --transition-theme: 0.35s ease;
+      }
+      [data-theme="dark"] {
+        --bg: #1b241e;
+        --bg-radial: #161f19;
+        --surface: #222c26;
+        --surface-elevated: #2a352e;
+        --text: #c5d1c8;
+        --text-dim: #8a9c8e;
+        --text-heading: #9ab89e;
+        --accent: #6b8a70;
+        --accent-hover: #7d9c82;
+        --accent-active: #557058;
+        --accent-glow: #4a634e;
+        --danger: #b07070;
+        --success: #5a8a68;
+        --rod-light: #5c5248;
+        --rod-mid: #4a4038;
+        --rod-dark: #332b24;
+        --base-light: #50463c;
+        --base-dark: #3a322a;
+        --border-subtle: rgba(120, 140, 125, 0.15);
+        --border-control: rgba(120, 140, 125, 0.3);
+        --border-outline: rgba(120, 140, 125, 0.4);
+        --border-outline-hover: rgba(120, 140, 125, 0.6);
+        --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+        --shadow-disk: 0 3px 6px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(255, 255, 255, 0.08) inset;
+        --shadow-disk-lift: 0 8px 18px rgba(0, 0, 0, 0.4), 0 0 12px rgba(107, 138, 112, 0.45);
+        --shadow-btn: 0 4px 10px rgba(0, 0, 0, 0.25);
+        --shadow-btn-hover: 0 6px 14px rgba(0, 0, 0, 0.35);
+        --shadow-rod-inset: inset 2px 0 4px rgba(255, 255, 255, 0.08), inset -2px 0 4px rgba(0, 0, 0, 0.4);
+        --shadow-base: 0 6px 14px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+        --disk-brightness: 0.72;
+        --disk-saturate: 0.65;
+        --overlay-bg: rgba(10, 16, 12, 0.55);
+        --victory-bg: #2a352e;
+        --victory-text: #9ab89e;
       }
       * {
         margin: 0;
@@ -39,32 +93,39 @@
         box-sizing: border-box;
       }
       body {
-        background: radial-gradient(ellipse at 50% 30%, #dce8d8 0%, var(--bg) 75%);
+        background: radial-gradient(ellipse at 50% 30%, var(--bg-radial) 0%, var(--bg) 75%);
         min-height: 100vh;
         min-height: 100dvh;
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 16px;
+        padding: clamp(10px, 2vw, 16px);
         font-family: var(--font-sans);
         color: var(--text);
         -webkit-tap-highlight-color: transparent;
         user-select: none;
         -webkit-user-select: none;
         touch-action: manipulation;
+        transition:
+          background var(--transition-theme),
+          color var(--transition-theme);
       }
       .game-container {
         background: var(--surface);
         border-radius: var(--border-radius-lg);
-        padding: clamp(20px, 3.5vw, 30px) clamp(16px, 2.8vw, 26px);
+        padding: clamp(18px, 3.5vw, 30px) clamp(14px, 2.8vw, 26px);
         box-shadow: var(--shadow-card);
         width: 100%;
         max-width: 720px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 24px;
-        border: 1px solid rgba(143, 168, 138, 0.15);
+        gap: clamp(18px, 2.5vh, 24px);
+        border: 1px solid var(--border-subtle);
+        transition:
+          background var(--transition-theme),
+          box-shadow var(--transition-theme),
+          border var(--transition-theme);
       }
       .game-header {
         text-align: center;
@@ -81,38 +142,49 @@
         filter: drop-shadow(0 1px 2px rgba(46, 61, 52, 0.2));
         margin-bottom: 4px;
       }
+      [data-theme="dark"] .game-title {
+        background: linear-gradient(180deg, #8aae8e 0%, #6a8e6e 80%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+      }
       .game-subtitle {
         font-size: clamp(12px, 2vw, 15px);
         color: var(--text-dim);
         letter-spacing: 0.04em;
         font-weight: 400;
+        transition: color var(--transition-theme);
       }
       .control-panel {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: center;
-        gap: 14px;
+        gap: clamp(8px, 1.5vw, 14px);
         width: 100%;
       }
       .layer-selector {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: clamp(4px, 0.8vw, 6px);
         background: var(--surface-elevated);
         border-radius: 40px;
-        padding: 5px 14px;
-        border: 1px solid rgba(143, 168, 138, 0.3);
+        padding: clamp(4px, 0.7vw, 5px) clamp(10px, 1.8vw, 14px);
+        border: 1px solid var(--border-control);
         box-shadow: 0 2px 8px rgba(46, 61, 52, 0.08);
+        transition:
+          background var(--transition-theme),
+          border var(--transition-theme),
+          box-shadow var(--transition-theme);
       }
       .btn-icon {
-        width: 36px;
-        height: 36px;
+        width: clamp(30px, 5vw, 36px);
+        height: clamp(30px, 5vw, 36px);
         border-radius: 50%;
         border: none;
         background: rgba(143, 168, 138, 0.12);
         color: var(--text);
-        font-size: 1.4rem;
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
         font-weight: 600;
         cursor: pointer;
         display: flex;
@@ -121,6 +193,7 @@
         transition: all var(--transition-smooth);
         box-shadow: 0 2px 6px rgba(46, 61, 52, 0.1);
         line-height: 1;
+        flex-shrink: 0;
       }
       .btn-icon:hover:not(:disabled) {
         background: rgba(143, 168, 138, 0.25);
@@ -137,56 +210,71 @@
         pointer-events: none;
       }
       .layer-number {
-        font-size: 1.6rem;
+        font-size: clamp(1.2rem, 2.4vw, 1.6rem);
         font-weight: 700;
-        min-width: 28px;
+        min-width: clamp(22px, 4vw, 28px);
         text-align: center;
         color: #4a6b4f;
         letter-spacing: 0.04em;
         text-shadow: 0 0 8px rgba(143, 168, 138, 0.3);
+        transition: color var(--transition-theme);
+      }
+      [data-theme="dark"] .layer-number {
+        color: #8aae8e;
+        text-shadow: 0 0 8px rgba(107, 138, 112, 0.3);
       }
       .stats {
         display: flex;
         align-items: baseline;
-        gap: 12px;
+        gap: clamp(6px, 1.2vw, 12px);
         background: var(--surface-elevated);
         border-radius: 40px;
-        padding: 8px 18px;
-        border: 1px solid rgba(143, 168, 138, 0.3);
+        padding: clamp(5px, 0.9vh, 8px) clamp(10px, 1.8vw, 18px);
+        border: 1px solid var(--border-control);
         box-shadow: 0 2px 8px rgba(46, 61, 52, 0.08);
+        transition:
+          background var(--transition-theme),
+          border var(--transition-theme),
+          box-shadow var(--transition-theme);
       }
       .stat-item {
         display: flex;
         align-items: baseline;
-        gap: 4px;
-        font-size: 0.9rem;
+        gap: clamp(2px, 0.4vw, 4px);
+        font-size: clamp(0.75rem, 1.4vw, 0.9rem);
         color: var(--text-dim);
         letter-spacing: 0.03em;
+        transition: color var(--transition-theme);
       }
       .stat-value {
         font-weight: 700;
-        font-size: 1.4rem;
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
         color: #4a6b4f;
         line-height: 1;
         text-shadow: 0 0 6px rgba(143, 168, 138, 0.3);
+        transition: color var(--transition-theme);
+      }
+      [data-theme="dark"] .stat-value {
+        color: #8aae8e;
+        text-shadow: 0 0 6px rgba(107, 138, 112, 0.3);
       }
       .stat-optimal {
-        font-size: 0.75rem;
+        font-size: clamp(0.65rem, 1.1vw, 0.75rem);
         opacity: 0.8;
       }
       .action-buttons {
         display: flex;
-        gap: 10px;
+        gap: clamp(6px, 1vw, 10px);
         flex-wrap: wrap;
         justify-content: center;
       }
       .btn {
         border: none;
         border-radius: 40px;
-        padding: 12px 22px;
+        padding: clamp(9px, 1.5vh, 12px) clamp(14px, 2.5vw, 22px);
         font-weight: 600;
         font-family: inherit;
-        font-size: 0.9rem;
+        font-size: clamp(0.75rem, 1.5vw, 0.9rem);
         letter-spacing: 0.04em;
         cursor: pointer;
         transition: all var(--transition-smooth);
@@ -194,7 +282,7 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        box-shadow: 0 4px 10px rgba(46, 61, 52, 0.1);
+        box-shadow: var(--shadow-btn);
         white-space: nowrap;
         -webkit-tap-highlight-color: transparent;
       }
@@ -209,12 +297,12 @@
       .btn-outline {
         background: rgba(143, 168, 138, 0.08);
         color: var(--text);
-        border: 1px solid rgba(143, 168, 138, 0.4);
+        border: 1px solid var(--border-outline);
       }
       .btn-outline:hover:not(:disabled) {
         background: rgba(143, 168, 138, 0.18);
-        border-color: rgba(143, 168, 138, 0.6);
-        box-shadow: 0 6px 14px rgba(46, 61, 52, 0.15);
+        border-color: var(--border-outline-hover);
+        box-shadow: var(--shadow-btn-hover);
       }
       .btn-accent {
         background: linear-gradient(135deg, #8fa88a 0%, #6b8566 100%);
@@ -227,6 +315,39 @@
         background: linear-gradient(135deg, #a4be9f 0%, #7d9678 100%);
         box-shadow: 0 8px 18px rgba(143, 168, 138, 0.35);
         transform: translateY(-1px);
+      }
+      [data-theme="dark"] .btn-accent {
+        background: linear-gradient(135deg, #6b8a70 0%, #557058 100%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      [data-theme="dark"] .btn-accent:hover:not(:disabled) {
+        background: linear-gradient(135deg, #7d9c82 0%, #638268 100%);
+        box-shadow: 0 8px 18px rgba(107, 138, 112, 0.35);
+      }
+      .theme-toggle {
+        width: clamp(34px, 5.5vw, 42px);
+        height: clamp(34px, 5.5vw, 42px);
+        border-radius: 50%;
+        border: 1px solid var(--border-outline);
+        background: var(--surface-elevated);
+        cursor: pointer;
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-smooth);
+        box-shadow: 0 2px 8px rgba(46, 61, 52, 0.08);
+        flex-shrink: 0;
+        line-height: 1;
+        padding: 0;
+      }
+      .theme-toggle:hover {
+        transform: scale(1.08);
+        box-shadow: var(--shadow-btn-hover);
+        border-color: var(--border-outline-hover);
+      }
+      .theme-toggle:active {
+        transform: scale(0.9);
       }
       .game-area {
         display: flex;
@@ -244,12 +365,16 @@
         cursor: pointer;
         position: relative;
         transition: filter 0.2s;
+        flex-shrink: 0;
       }
       .tower:hover .tower-rod-bg {
         filter: brightness(1.05);
       }
       .tower.tower-selected .tower-rod-bg {
         filter: brightness(1.15) drop-shadow(0 0 8px rgba(143, 168, 138, 0.7));
+      }
+      [data-theme="dark"] .tower.tower-selected .tower-rod-bg {
+        filter: brightness(1.25) drop-shadow(0 0 10px rgba(107, 138, 112, 0.7));
       }
       .tower.tower-invalid {
         animation: shake 0.45s ease;
@@ -278,6 +403,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        flex-shrink: 0;
       }
       .tower-rod-bg {
         position: absolute;
@@ -285,15 +411,15 @@
         left: 50%;
         transform: translateX(-50%);
         width: clamp(7px, 1.6vw, 12px);
-        height: calc(var(--tower-height) - 8px);
-        background: linear-gradient(180deg, #cfc0b0 0%, #a09080 55%, #6b5d4e 100%);
+        height: calc(var(--tower-height) - 4px);
+        background: linear-gradient(180deg, var(--rod-light) 0%, var(--rod-mid) 55%, var(--rod-dark) 100%);
         border-radius: 6px 6px 0 0;
         z-index: 0;
         pointer-events: none;
-        box-shadow:
-          inset 2px 0 4px rgba(255, 255, 255, 0.25),
-          inset -2px 0 4px rgba(0, 0, 0, 0.25);
-        transition: filter var(--transition-smooth);
+        box-shadow: var(--shadow-rod-inset);
+        transition:
+          filter var(--transition-smooth),
+          background var(--transition-theme);
       }
       .tower-disks-wrapper {
         display: flex;
@@ -302,30 +428,36 @@
         width: 100%;
         min-height: var(--tower-height);
         justify-content: flex-start;
-        padding-bottom: 6px;
+        padding-bottom: 0;
         z-index: 2;
         pointer-events: none;
       }
       .tower-base {
         width: 100%;
         height: clamp(10px, 1.8vh, 14px);
-        background: linear-gradient(180deg, #b8a898 0%, #7d6e5e 100%);
+        background: linear-gradient(180deg, var(--base-light) 0%, var(--base-dark) 100%);
         border-radius: 6px;
         z-index: 1;
         pointer-events: none;
-        box-shadow:
-          0 6px 14px rgba(46, 61, 52, 0.2),
-          inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        box-shadow: var(--shadow-base);
         flex-shrink: 0;
+        transition:
+          background var(--transition-theme),
+          box-shadow var(--transition-theme);
       }
       .tower-label {
-        font-size: clamp(14px, 2.2vw, 17px);
+        font-size: clamp(14px, 2.4vw, 17px);
         font-weight: 700;
         color: #5c6e5e;
-        margin-top: 10px;
+        margin-top: clamp(8px, 1.2vh, 10px);
         letter-spacing: 0.08em;
         pointer-events: none;
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+        transition: color var(--transition-theme);
+      }
+      [data-theme="dark"] .tower-label {
+        color: #8a9c8e;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       }
       .disk {
         height: var(--disk-thickness);
@@ -340,21 +472,27 @@
         box-shadow: var(--shadow-disk);
         z-index: 3;
         position: relative;
+        filter: brightness(var(--disk-brightness)) saturate(var(--disk-saturate));
       }
       .disk:active {
         cursor: grabbing;
       }
       .disk.disk-selected {
-        filter: brightness(1.1) saturate(1.2);
+        filter: brightness(calc(var(--disk-brightness) * 1.15)) saturate(calc(var(--disk-saturate) * 1.25));
         box-shadow: var(--shadow-disk-lift);
         z-index: 12;
         transform: translateY(-8px) scale(1.02);
       }
       .disk:hover:not(.disk-selected) {
-        filter: brightness(1.05);
+        filter: brightness(calc(var(--disk-brightness) * 1.08)) saturate(calc(var(--disk-saturate) * 1.05));
         box-shadow:
           0 5px 10px rgba(46, 61, 52, 0.2),
           0 1px 3px rgba(255, 255, 255, 0.4) inset;
+      }
+      [data-theme="dark"] .disk:hover:not(.disk-selected) {
+        box-shadow:
+          0 5px 10px rgba(0, 0, 0, 0.3),
+          0 1px 3px rgba(255, 255, 255, 0.06) inset;
       }
       .disk-0 {
         background: linear-gradient(180deg, #e0a0a0 0%, #c07878 55%, #9a5a5a 100%);
@@ -383,13 +521,14 @@
       .victory-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(46, 61, 52, 0.35);
+        background: var(--overlay-bg);
         backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 100;
         animation: fade-in 0.25s ease;
+        transition: background var(--transition-theme);
       }
       .victory-overlay.hidden {
         display: none;
@@ -403,9 +542,9 @@
         }
       }
       .victory-card {
-        background: #ffffff;
+        background: var(--victory-bg);
         border-radius: var(--border-radius-lg);
-        padding: 32px 28px;
+        padding: clamp(24px, 4vw, 32px) clamp(20px, 3.5vw, 28px);
         text-align: center;
         box-shadow:
           0 12px 30px rgba(46, 61, 52, 0.2),
@@ -413,6 +552,9 @@
         animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         max-width: 92vw;
         width: 340px;
+        transition:
+          background var(--transition-theme),
+          box-shadow var(--transition-theme);
       }
       @keyframes pop-in {
         from {
@@ -425,7 +567,7 @@
         }
       }
       .victory-emoji {
-        font-size: 3.2rem;
+        font-size: clamp(2.4rem, 5vw, 3.2rem);
         display: block;
         margin-bottom: 8px;
         animation: float 2s infinite ease-in-out;
@@ -440,24 +582,33 @@
         }
       }
       .victory-title {
-        font-size: 1.8rem;
+        font-size: clamp(1.4rem, 3vw, 1.8rem);
         font-weight: 700;
-        color: #4a6b4f;
+        color: var(--victory-text);
         letter-spacing: 0.04em;
         margin-bottom: 10px;
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+        transition: color var(--transition-theme);
+      }
+      [data-theme="dark"] .victory-title {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       }
       .victory-detail {
-        font-size: 0.95rem;
+        font-size: clamp(0.85rem, 1.6vw, 0.95rem);
         color: var(--text-dim);
         margin: 6px 0;
         letter-spacing: 0.03em;
+        transition: color var(--transition-theme);
       }
       .victory-perfect {
         color: #5a8a6a;
         font-weight: 700;
-        font-size: 1rem;
+        font-size: clamp(0.9rem, 1.7vw, 1rem);
         text-shadow: 0 0 6px rgba(106, 158, 120, 0.3);
+      }
+      [data-theme="dark"] .victory-perfect {
+        color: #7aae8a;
+        text-shadow: 0 0 6px rgba(122, 174, 138, 0.3);
       }
       .victory-btn {
         margin-top: 22px;
@@ -466,31 +617,90 @@
       }
       @media (max-width: 500px) {
         .control-panel {
-          gap: 8px;
+          gap: 6px;
         }
         .btn {
-          padding: 10px 16px;
-          font-size: 0.8rem;
+          padding: 9px 14px;
+          font-size: 0.78rem;
         }
         .btn-icon {
-          width: 32px;
-          height: 32px;
-          font-size: 1.2rem;
+          width: 30px;
+          height: 30px;
+          font-size: 1.1rem;
         }
         .layer-number {
-          font-size: 1.3rem;
-          min-width: 22px;
+          font-size: 1.2rem;
+          min-width: 20px;
         }
         .stats {
-          padding: 6px 12px;
-          gap: 8px;
+          padding: 5px 10px;
+          gap: 6px;
         }
         .stat-value {
-          font-size: 1.2rem;
+          font-size: 1.1rem;
         }
         .tower-label {
           font-size: 12px;
-          margin-top: 6px;
+          margin-top: 5px;
+        }
+        .theme-toggle {
+          width: 34px;
+          height: 34px;
+          font-size: 1.1rem;
+        }
+        .game-area {
+          gap: 6px;
+        }
+        .tower {
+          --tower-width: clamp(78px, 28vw, 120px);
+          width: var(--tower-width);
+        }
+      }
+      @media (max-width: 370px) {
+        .game-area {
+          gap: 3px;
+        }
+        .tower {
+          --tower-width: clamp(68px, 27vw, 90px);
+          width: var(--tower-width);
+        }
+        .tower-label {
+          font-size: 10px;
+          margin-top: 4px;
+        }
+        .btn {
+          padding: 7px 10px;
+          font-size: 0.7rem;
+        }
+        .btn-icon {
+          width: 26px;
+          height: 26px;
+          font-size: 1rem;
+        }
+        .layer-number {
+          font-size: 1rem;
+          min-width: 18px;
+        }
+        .stat-value {
+          font-size: 1rem;
+        }
+        .stat-item {
+          font-size: 0.7rem;
+        }
+        .theme-toggle {
+          width: 28px;
+          height: 28px;
+          font-size: 1rem;
+        }
+        .control-panel {
+          gap: 4px;
+        }
+        .stats {
+          padding: 4px 8px;
+          gap: 4px;
+        }
+        .layer-selector {
+          padding: 3px 8px;
         }
       }
     </style>
@@ -521,6 +731,7 @@
           <button class="btn btn-outline" id="btnReset">🔄 重置</button>
           <button class="btn btn-accent" id="btnAutoSolve">⚡ 自动求解</button>
         </div>
+        <button class="theme-toggle" id="btnThemeToggle" aria-label="切换深色/浅色模式" title="切换深色/浅色模式">🌙</button>
       </div>
       <div class="game-area" id="gameArea">
         <div class="tower" data-tower="0" id="tower0">
@@ -559,205 +770,204 @@
       </div>
     </div>
     <script>
-      class HanoiGame {
-        constructor() {
-          this.numDisks = 3;
-          this.towers = [[], [], []];
-          this.moves = 0;
-          this.selectedTowerIndex = null;
-          this.isAnimating = false;
-          this.animationAbortFlag = false;
-          this.diskWrappers = [document.getElementById("disksWrapper0"), document.getElementById("disksWrapper1"), document.getElementById("disksWrapper2")];
-          this.towerElements = [document.getElementById("tower0"), document.getElementById("tower1"), document.getElementById("tower2")];
-          this.movesCountEl = document.getElementById("movesCount");
-          this.movesOptimalEl = document.getElementById("movesOptimal");
-          this.layerDisplayEl = document.getElementById("layerDisplay");
-          this.victoryOverlay = document.getElementById("victoryOverlay");
-          this.victoryMovesDetail = document.getElementById("victoryMovesDetail");
-          this.victoryOptimalDetail = document.getElementById("victoryOptimalDetail");
-          this.controlPanel = document.getElementById("controlPanel");
-          this.bindEvents();
-          this.init(3);
+      (() => {
+        const THEME_KEY = "hanoi-theme-preference";
+        const DISK_MIN = 3;
+        const DISK_MAX = 8;
+        const TOWER_COUNT = 3;
+        const TARGET_TOWER = 2;
+        const dom = {
+          btnDecrease: document.getElementById("btnDecrease"),
+          btnIncrease: document.getElementById("btnIncrease"),
+          btnReset: document.getElementById("btnReset"),
+          btnAutoSolve: document.getElementById("btnAutoSolve"),
+          btnVictoryRestart: document.getElementById("btnVictoryRestart"),
+          btnThemeToggle: document.getElementById("btnThemeToggle"),
+          layerDisplay: document.getElementById("layerDisplay"),
+          movesCount: document.getElementById("movesCount"),
+          movesOptimal: document.getElementById("movesOptimal"),
+          victoryOverlay: document.getElementById("victoryOverlay"),
+          victoryMovesDetail: document.getElementById("victoryMovesDetail"),
+          victoryOptimalDetail: document.getElementById("victoryOptimalDetail"),
+          controlPanel: document.getElementById("controlPanel"),
+          gameArea: document.getElementById("gameArea"),
+          towerElements: [document.getElementById("tower0"), document.getElementById("tower1"), document.getElementById("tower2")],
+          diskWrappers: [document.getElementById("disksWrapper0"), document.getElementById("disksWrapper1"), document.getElementById("disksWrapper2")],
+        };
+        const state = {
+          numDisks: 3,
+          towers: [[], [], []],
+          moves: 0,
+          selectedTowerIndex: null,
+          isAnimating: false,
+          animationAbortFlag: false,
+          theme: "light",
+        };
+        function saveThemePreference(theme) {
+          try {
+            localStorage.setItem(THEME_KEY, theme);
+          } catch {}
         }
-        bindEvents() {
-          document.getElementById("btnDecrease").addEventListener("click", () => this.changeLayers(-1));
-          document.getElementById("btnIncrease").addEventListener("click", () => this.changeLayers(1));
-          document.getElementById("btnReset").addEventListener("click", () => this.reset());
-          document.getElementById("btnAutoSolve").addEventListener("click", () => this.autoSolve());
-          document.getElementById("btnVictoryRestart").addEventListener("click", () => {
-            this.hideVictory();
-            this.reset();
-          });
-          this.victoryOverlay.addEventListener("click", (e) => {
-            if (e.target === this.victoryOverlay) {
-              this.hideVictory();
-              this.reset();
-            }
-          });
-          this.towerElements.forEach((towerEl, index) => {
-            towerEl.addEventListener("click", (e) => {
-              if (this.isAnimating) return;
-              if (e.target.closest(".disk") && e.target.closest(".disk").draggable) {
-                return;
-              }
-              this.handleTowerClick(index);
-            });
-            towerEl.addEventListener("dragover", (e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-            });
-            towerEl.addEventListener("drop", (e) => {
-              e.preventDefault();
-              if (this.isAnimating) return;
-              const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
-              if (isNaN(fromIndex)) return;
-              this.handleTowerClick(fromIndex);
-              this.handleTowerClick(index);
-            });
-          });
-        }
-        init(numDisks) {
-          this.numDisks = Math.max(3, Math.min(8, numDisks));
-          this.towers = [[], [], []];
-          for (let i = this.numDisks; i >= 1; i--) {
-            this.towers[0].push(i);
-          }
-          this.moves = 0;
-          this.selectedTowerIndex = null;
-          this.animationAbortFlag = false;
-          this.isAnimating = false;
-          this.updateDisplay();
-          this.render();
-          this.hideVictory();
-          this.enableControls();
-          this.layerDisplayEl.textContent = this.numDisks;
-        }
-        reset() {
-          this.animationAbortFlag = true;
-          this.isAnimating = false;
-          this.init(this.numDisks);
-        }
-        changeLayers(delta) {
-          if (this.isAnimating) return;
-          const newNum = this.numDisks + delta;
-          if (newNum < 3 || newNum > 8) return;
-          this.init(newNum);
-        }
-        handleTowerClick(towerIndex) {
-          if (this.isAnimating) return;
-          if (this.selectedTowerIndex === null) {
-            if (this.towers[towerIndex].length > 0) {
-              this.selectedTowerIndex = towerIndex;
-              this.render();
-            }
-          } else if (this.selectedTowerIndex === towerIndex) {
-            this.selectedTowerIndex = null;
-            this.render();
-          } else {
-            const fromIndex = this.selectedTowerIndex;
-            const success = this.executeMove(fromIndex, towerIndex);
-            if (success) {
-              this.selectedTowerIndex = null;
-              this.moves++;
-              this.updateDisplay();
-              this.render();
-              if (this.checkWin()) {
-                this.showVictory();
-              }
-            } else {
-              this.flashInvalidTower(towerIndex);
-            }
+        function loadThemePreference() {
+          try {
+            return localStorage.getItem(THEME_KEY);
+          } catch {
+            return null;
           }
         }
-        executeMove(fromIndex, toIndex) {
-          if (this.towers[fromIndex].length === 0) return false;
-          const disk = this.towers[fromIndex][this.towers[fromIndex].length - 1];
-          const targetTop = this.towers[toIndex].length > 0 ? this.towers[toIndex][this.towers[toIndex].length - 1] : Infinity;
+        function applyTheme(theme) {
+          state.theme = theme;
+          document.documentElement.setAttribute("data-theme", theme);
+          dom.btnThemeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+          dom.btnThemeToggle.setAttribute("aria-label", theme === "dark" ? "切换浅色模式" : "切换深色模式");
+          dom.btnThemeToggle.title = theme === "dark" ? "切换浅色模式" : "切换深色模式";
+        }
+        function toggleTheme() {
+          const next = state.theme === "dark" ? "light" : "dark";
+          applyTheme(next);
+          saveThemePreference(next);
+        }
+        function initTheme() {
+          const saved = loadThemePreference();
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = saved || (prefersDark ? "dark" : "light");
+          applyTheme(theme);
+        }
+        function getOptimalMoves(n) {
+          return Math.pow(2, n) - 1;
+        }
+        function populateTowers(numDisks) {
+          const towers = [[], [], []];
+          for (let i = numDisks; i >= 1; i--) {
+            towers[0].push(i);
+          }
+          return towers;
+        }
+        function resetState(numDisks) {
+          state.numDisks = numDisks;
+          state.towers = populateTowers(numDisks);
+          state.moves = 0;
+          state.selectedTowerIndex = null;
+          state.animationAbortFlag = false;
+          state.isAnimating = false;
+        }
+        function updateDisplay() {
+          dom.movesCount.textContent = state.moves;
+          dom.movesOptimal.textContent = getOptimalMoves(state.numDisks);
+          dom.layerDisplay.textContent = state.numDisks;
+        }
+        function checkWin() {
+          return state.towers[TARGET_TOWER].length === state.numDisks;
+        }
+        function executeMove(fromIndex, toIndex) {
+          const fromTower = state.towers[fromIndex];
+          if (fromTower.length === 0) return false;
+          const disk = fromTower[fromTower.length - 1];
+          const toTower = state.towers[toIndex];
+          const targetTop = toTower.length > 0 ? toTower[toTower.length - 1] : Infinity;
           if (disk > targetTop) return false;
-          this.towers[fromIndex].pop();
-          this.towers[toIndex].push(disk);
+          fromTower.pop();
+          toTower.push(disk);
           return true;
         }
-        flashInvalidTower(towerIndex) {
-          const el = this.towerElements[towerIndex];
+        function handleTowerClick(towerIndex) {
+          if (state.isAnimating) return;
+          if (state.selectedTowerIndex === null) {
+            if (state.towers[towerIndex].length > 0) {
+              state.selectedTowerIndex = towerIndex;
+              render();
+            }
+          } else if (state.selectedTowerIndex === towerIndex) {
+            state.selectedTowerIndex = null;
+            render();
+          } else {
+            const fromIndex = state.selectedTowerIndex;
+            const success = executeMove(fromIndex, towerIndex);
+            if (success) {
+              state.selectedTowerIndex = null;
+              state.moves++;
+              updateDisplay();
+              render();
+              if (checkWin()) {
+                showVictory();
+              }
+            } else {
+              flashInvalidTower(towerIndex);
+            }
+          }
+        }
+        function flashInvalidTower(towerIndex) {
+          const el = dom.towerElements[towerIndex];
           el.classList.add("tower-invalid");
           setTimeout(() => el.classList.remove("tower-invalid"), 450);
         }
-        checkWin() {
-          return this.towers[2].length === this.numDisks;
-        }
-        getOptimalMoves() {
-          return Math.pow(2, this.numDisks) - 1;
-        }
-        updateDisplay() {
-          this.movesCountEl.textContent = this.moves;
-          this.movesOptimalEl.textContent = this.getOptimalMoves();
-          this.layerDisplayEl.textContent = this.numDisks;
-        }
-        showVictory() {
-          const optimal = this.getOptimalMoves();
-          this.victoryMovesDetail.textContent = `你完成了 ${this.numDisks} 层汉诺塔，共 ${this.moves} 步`;
-          if (this.moves === optimal) {
-            this.victoryOptimalDetail.textContent = "🌟 完美！你达到了最优解！";
-            this.victoryOptimalDetail.className = "victory-detail victory-perfect";
+        function showVictory() {
+          const optimal = getOptimalMoves(state.numDisks);
+          dom.victoryMovesDetail.textContent = `你完成了 ${state.numDisks} 层汉诺塔，共 ${state.moves} 步`;
+          if (state.moves === optimal) {
+            dom.victoryOptimalDetail.textContent = "🌟 完美！你达到了最优解！";
+            dom.victoryOptimalDetail.className = "victory-detail victory-perfect";
           } else {
-            this.victoryOptimalDetail.textContent = `理论最优步数为 ${optimal} 步`;
-            this.victoryOptimalDetail.className = "victory-detail";
+            dom.victoryOptimalDetail.textContent = `理论最优步数为 ${optimal} 步`;
+            dom.victoryOptimalDetail.className = "victory-detail";
           }
-          this.victoryOverlay.classList.remove("hidden");
-          this.disableControls();
+          dom.victoryOverlay.classList.remove("hidden");
+          setControlsEnabled(false);
         }
-        hideVictory() {
-          this.victoryOverlay.classList.add("hidden");
+        function hideVictory() {
+          dom.victoryOverlay.classList.add("hidden");
         }
-        disableControls() {
-          const buttons = this.controlPanel.querySelectorAll("button");
-          buttons.forEach((b) => (b.disabled = true));
+        function setControlsEnabled(enabled) {
+          const buttons = dom.controlPanel.querySelectorAll("button:not(#btnThemeToggle)");
+          buttons.forEach((b) => (b.disabled = !enabled));
         }
-        enableControls() {
-          const buttons = this.controlPanel.querySelectorAll("button");
-          buttons.forEach((b) => (b.disabled = false));
+        function enableControls() {
+          setControlsEnabled(true);
         }
-        render() {
-          for (let t = 0; t < 3; t++) {
-            const wrapper = this.diskWrappers[t];
+        function disableControls() {
+          setControlsEnabled(false);
+        }
+        function render() {
+          for (let t = 0; t < TOWER_COUNT; t++) {
+            const wrapper = dom.diskWrappers[t];
             wrapper.innerHTML = "";
-            const towerEl = this.towerElements[t];
+            const towerEl = dom.towerElements[t];
             towerEl.classList.remove("tower-selected");
-            if (this.selectedTowerIndex === t) {
+            if (state.selectedTowerIndex === t) {
               towerEl.classList.add("tower-selected");
             }
-            for (let d = 0; d < this.towers[t].length; d++) {
-              const diskSize = this.towers[t][d];
+            const towerDisks = state.towers[t];
+            for (let d = 0; d < towerDisks.length; d++) {
+              const diskSize = towerDisks[d];
               const diskEl = document.createElement("div");
               diskEl.className = "disk";
               const colorIndex = (diskSize - 1) % 8;
               diskEl.classList.add("disk-" + colorIndex);
-              const widthPercent = 34 + (diskSize / this.numDisks) * 56;
+              const widthPercent = 34 + (diskSize / state.numDisks) * 56;
               diskEl.style.width = widthPercent + "%";
               diskEl.setAttribute("data-disk-size", diskSize);
               diskEl.setAttribute("data-tower", t);
-              const isTop = d === this.towers[t].length - 1;
-              const isSelected = this.selectedTowerIndex === t && isTop;
+              const isTop = d === towerDisks.length - 1;
+              const isSelected = state.selectedTowerIndex === t && isTop;
               if (isSelected) {
                 diskEl.classList.add("disk-selected");
               }
-              if (isTop && !this.isAnimating) {
+              if (isTop && !state.isAnimating) {
                 diskEl.draggable = true;
                 diskEl.addEventListener("dragstart", (e) => {
-                  if (this.isAnimating) {
+                  if (state.isAnimating) {
                     e.preventDefault();
                     return;
                   }
-                  e.dataTransfer.setData("text/plain", t.toString());
+                  e.dataTransfer.setData("text/plain", String(t));
                   e.dataTransfer.effectAllowed = "move";
-                  this.selectedTowerIndex = t;
-                  setTimeout(() => this.render(), 0);
+                  state.selectedTowerIndex = t;
+                  setTimeout(() => render(), 0);
                 });
                 diskEl.addEventListener("dragend", () => {
-                  if (!this.isAnimating && this.selectedTowerIndex === t) {
-                    this.selectedTowerIndex = null;
-                    this.render();
+                  if (!state.isAnimating && state.selectedTowerIndex === t) {
+                    state.selectedTowerIndex = null;
+                    render();
                   }
                 });
               } else {
@@ -767,59 +977,141 @@
             }
           }
         }
-        async autoSolve() {
-          if (this.isAnimating) return;
-          if (this.towers[2].length === this.numDisks) return;
-          if (this.towers[0].length !== this.numDisks && this.towers[1].length !== this.numDisks) {
-            this.reset();
-            await this.delay(180);
-          }
-          this.isAnimating = true;
-          this.animationAbortFlag = false;
-          this.selectedTowerIndex = null;
-          this.disableControls();
-          document.getElementById("btnReset").disabled = false;
-          const moves = [];
-          this.generateSolution(this.numDisks, 0, 2, 1, moves);
-          for (const [from, to] of moves) {
-            if (this.animationAbortFlag) break;
-            await this.delay(this.getAutoSolveDelay());
-            if (this.animationAbortFlag) break;
-            this.executeMove(from, to);
-            this.moves++;
-            this.updateDisplay();
-            this.render();
-            if (this.checkWin()) {
-              this.showVictory();
-              break;
-            }
-          }
-          this.isAnimating = false;
-          this.animationAbortFlag = false;
-          if (!this.checkWin()) {
-            this.enableControls();
-          }
+        function init(numDisks) {
+          const n = Math.max(DISK_MIN, Math.min(DISK_MAX, numDisks));
+          resetState(n);
+          updateDisplay();
+          render();
+          hideVictory();
+          enableControls();
+          dom.btnReset.disabled = false;
         }
-        getAutoSolveDelay() {
-          const totalSteps = Math.pow(2, this.numDisks) - 1;
+        function reset() {
+          state.animationAbortFlag = true;
+          state.isAnimating = false;
+          init(state.numDisks);
+        }
+        function changeLayers(delta) {
+          if (state.isAnimating) return;
+          const newNum = state.numDisks + delta;
+          if (newNum < DISK_MIN || newNum > DISK_MAX) return;
+          init(newNum);
+        }
+        function generateSolution(n, from, to, aux, moves) {
+          if (n === 0) return;
+          generateSolution(n - 1, from, aux, to, moves);
+          moves.push([from, to]);
+          generateSolution(n - 1, aux, to, from, moves);
+        }
+        function getAutoSolveDelay(totalSteps) {
           if (totalSteps <= 15) return 300;
           if (totalSteps <= 31) return 190;
           if (totalSteps <= 63) return 130;
           return 90;
         }
-        generateSolution(n, from, to, aux, moves) {
-          if (n === 0) return;
-          this.generateSolution(n - 1, from, aux, to, moves);
-          moves.push([from, to]);
-          this.generateSolution(n - 1, aux, to, from, moves);
-        }
-        delay(ms) {
+        function delay(ms) {
           return new Promise((resolve) => setTimeout(resolve, ms));
         }
-      }
-      document.addEventListener("DOMContentLoaded", () => {
-        new HanoiGame();
-      });
+        async function autoSolve() {
+          if (state.isAnimating) return;
+          if (state.towers[TARGET_TOWER].length === state.numDisks) return;
+          if (state.towers[0].length !== state.numDisks && state.towers[1].length !== state.numDisks) {
+            reset();
+            await delay(180);
+          }
+          state.isAnimating = true;
+          state.animationAbortFlag = false;
+          state.selectedTowerIndex = null;
+          disableControls();
+          dom.btnReset.disabled = false;
+          const solutionMoves = [];
+          generateSolution(state.numDisks, 0, TARGET_TOWER, 1, solutionMoves);
+          const stepDelay = getAutoSolveDelay(solutionMoves.length);
+          for (const [from, to] of solutionMoves) {
+            if (state.animationAbortFlag) break;
+            await delay(stepDelay);
+            if (state.animationAbortFlag) break;
+            executeMove(from, to);
+            state.moves++;
+            updateDisplay();
+            render();
+            if (checkWin()) {
+              showVictory();
+              break;
+            }
+          }
+          state.isAnimating = false;
+          state.animationAbortFlag = false;
+          if (!checkWin()) {
+            enableControls();
+          }
+        }
+        function bindTowerEvents() {
+          dom.towerElements.forEach((towerEl, index) => {
+            towerEl.addEventListener("click", () => {
+              handleTowerClick(index);
+            });
+            towerEl.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+            });
+            towerEl.addEventListener("drop", (e) => {
+              e.preventDefault();
+              if (state.isAnimating) return;
+              const rawFrom = e.dataTransfer.getData("text/plain");
+              if (rawFrom === "") return;
+              const fromIndex = parseInt(rawFrom, 10);
+              if (isNaN(fromIndex) || fromIndex === index) {
+                state.selectedTowerIndex = null;
+                render();
+                return;
+              }
+              const success = executeMove(fromIndex, index);
+              if (success) {
+                state.selectedTowerIndex = null;
+                state.moves++;
+                updateDisplay();
+                render();
+                if (checkWin()) {
+                  showVictory();
+                }
+              } else {
+                state.selectedTowerIndex = null;
+                render();
+                flashInvalidTower(index);
+              }
+            });
+          });
+        }
+        function bindControlEvents() {
+          dom.btnDecrease.addEventListener("click", () => changeLayers(-1));
+          dom.btnIncrease.addEventListener("click", () => changeLayers(1));
+          dom.btnReset.addEventListener("click", () => reset());
+          dom.btnAutoSolve.addEventListener("click", () => autoSolve());
+          dom.btnVictoryRestart.addEventListener("click", () => {
+            hideVictory();
+            reset();
+          });
+          dom.btnThemeToggle.addEventListener("click", () => toggleTheme());
+          dom.victoryOverlay.addEventListener("click", (e) => {
+            if (e.target === dom.victoryOverlay) {
+              hideVictory();
+              reset();
+            }
+          });
+        }
+        function initAll() {
+          initTheme();
+          bindTowerEvents();
+          bindControlEvents();
+          init(state.numDisks);
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initAll);
+        } else {
+          initAll();
+        }
+      })();
     </script>
   </body>
 </html>
