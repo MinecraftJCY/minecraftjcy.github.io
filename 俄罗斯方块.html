@@ -2,32 +2,58 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>俄罗斯方块</title>
     <style>
       :root {
-        --bg-main: #0f172a;
-        --bg-card: #1e293b;
-        --bg-canvas: #1a1f35;
-        --border-line: #334155;
-        --text-main: #f8fafc;
-        --text-sub: #94a3b8;
-        --theme: #5eead4;
-        --points: #fbbf24;
-        --btn-normal: #5eead4;
-        --btn-hover: #2dd4bf;
-        --btn-disable: #475569;
-        --radius: 12px;
-        --gap-lg: 32px;
-        --gap-md: 18px;
-        --gap-sm: 10px;
-        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        --bg-main: #1a1d23;
+        --bg-card: #23262d;
+        --bg-canvas: #1c1f26;
+        --border: #363940;
+        --text-main: #e6e3df;
+        --text-sub: #9a9793;
+        --theme: #4fd1c5;
+        --theme-hover: #38b2a0;
+        --points: #e8b84b;
+        --btn-bg: #4fd1c5;
+        --btn-text: #1a1d23;
+        --btn-hover: #38b2a0;
+        --btn-disabled: #3a3d44;
+        --btn-disabled-text: #6b6b6b;
+        --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        --radius: 14px;
+        --radius-sm: 10px;
+        --gap: 28px;
+        --game-width: 300px;
+        --block-size: 30px;
+        --panel-width: 200px;
+        --transition-theme: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+      }
+      body.light {
+        --bg-main: #f2ede4;
+        --bg-card: #faf7f1;
+        --bg-canvas: #e6e0d4;
+        --border: #d5cec0;
+        --text-main: #3d3832;
+        --text-sub: #6b6560;
+        --theme: #2d8a6e;
+        --theme-hover: #236d57;
+        --points: #b87020;
+        --btn-bg: #2d8a6e;
+        --btn-text: #faf7f1;
+        --btn-hover: #236d57;
+        --btn-disabled: #d5cec0;
+        --btn-disabled-text: #9a9590;
+        --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
       }
       body {
         min-height: 100vh;
@@ -35,393 +61,949 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 24px;
+        padding: clamp(12px, 2.5vw, 28px);
         color: var(--text-main);
+        font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+        transition: var(--transition-theme);
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
-      h1 {
-        font-size: 36px;
-        color: var(--theme);
-        margin-bottom: var(--gap-lg);
-        font-weight: 500;
-        letter-spacing: 2px;
-      }
-      .game {
-        display: flex;
-        gap: var(--gap-lg);
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      #tetris {
-        border: 2px solid var(--border-line);
-        border-radius: var(--radius);
-        background: var(--bg-canvas);
-        width: 300px;
-        height: 600px;
-        box-shadow: var(--shadow);
-      }
-      .info {
-        width: 220px;
+      .game-wrapper {
         display: flex;
         flex-direction: column;
-        gap: var(--gap-md);
-      }
-      .next,
-      .score,
-      .level,
-      .controls {
-        background: var(--bg-card);
-        border-radius: var(--radius);
-        padding: var(--gap-md);
-        box-shadow: var(--shadow);
-      }
-      .next {
-        text-align: center;
-      }
-      .next h3 {
-        color: var(--theme);
-        margin-bottom: var(--gap-sm);
-        font-size: 18px;
-        font-weight: 500;
-      }
-      #nextCanvas {
-        border: 2px solid var(--border-line);
-        border-radius: 8px;
-        background: var(--bg-canvas);
+        align-items: center;
+        gap: var(--gap);
         width: 100%;
-        height: 130px;
+        max-width: 1000px;
       }
-      .score,
-      .level {
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(10px, 2vw, 20px);
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .header h1 {
+        font-size: clamp(22px, calc(var(--block-size) * 1.2), 40px);
+        color: var(--theme);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        transition: var(--transition-theme);
+        white-space: nowrap;
+      }
+      .theme-toggle {
+        width: clamp(38px, calc(var(--block-size) * 1.4), 52px);
+        height: clamp(38px, calc(var(--block-size) * 1.4), 52px);
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        background: var(--bg-card);
+        cursor: pointer;
+        font-size: clamp(18px, calc(var(--block-size) * 0.7), 24px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          var(--transition-theme),
+          transform 0.2s ease;
+        box-shadow: var(--shadow);
+        line-height: 1;
+      }
+      .theme-toggle:hover {
+        transform: scale(1.08);
+        border-color: var(--theme);
+      }
+      .theme-toggle:active {
+        transform: scale(0.94);
+      }
+      .main-row {
+        display: flex;
+        gap: var(--gap);
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .canvas-wrap {
+        flex-shrink: 0;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg-canvas);
+        box-shadow: var(--shadow);
+        transition: var(--transition-theme);
+        line-height: 0;
+        overflow: hidden;
+      }
+      .canvas-wrap canvas {
+        display: block;
+      }
+      .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: calc(var(--block-size) * 0.55);
+        width: var(--panel-width);
+        flex-shrink: 0;
+      }
+      .info-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 17px;
+        background: var(--bg-card);
+        border-radius: var(--radius-sm);
+        padding: calc(var(--block-size) * 0.45) calc(var(--block-size) * 0.6);
+        box-shadow: var(--shadow);
+        transition: var(--transition-theme);
+        font-size: clamp(13px, calc(var(--block-size) * 0.48), 17px);
       }
-      .score span:first-child,
-      .level span:first-child {
+      .info-row .label {
         color: var(--text-sub);
+        transition: var(--transition-theme);
       }
-      #score,
-      #level {
-        font-size: 22px;
-        font-weight: 600;
+      .info-row .value {
+        font-weight: 700;
+        font-size: clamp(18px, calc(var(--block-size) * 0.7), 28px);
         color: var(--points);
+        transition: var(--transition-theme);
+        font-variant-numeric: tabular-nums;
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        min-width: 50px;
+        text-align: right;
       }
-      .controls {
+      .btn-group {
         display: flex;
         flex-direction: column;
-        gap: var(--gap-sm);
+        gap: calc(var(--block-size) * 0.35);
+        background: var(--bg-card);
+        border-radius: var(--radius-sm);
+        padding: calc(var(--block-size) * 0.5);
+        box-shadow: var(--shadow);
+        transition: var(--transition-theme);
       }
       button {
-        padding: 14px;
+        padding: clamp(10px, calc(var(--block-size) * 0.4), 16px) clamp(10px, calc(var(--block-size) * 0.5), 18px);
         border: none;
-        border-radius: var(--radius);
-        font-size: 16px;
-        font-weight: 500;
+        border-radius: var(--radius-sm);
+        font-size: clamp(14px, calc(var(--block-size) * 0.5), 18px);
+        font-weight: 600;
         cursor: pointer;
-        background: var(--btn-normal);
-        color: #0f172a;
+        letter-spacing: 0.03em;
         transition: all 0.2s ease;
-        letter-spacing: 1px;
+        font-family: inherit;
+        white-space: nowrap;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
       }
-      button:hover {
+      button:focus-visible {
+        outline: 2px solid var(--theme);
+        outline-offset: 2px;
+      }
+      .btn-primary {
+        background: var(--btn-bg);
+        color: var(--btn-text);
+      }
+      .btn-primary:hover {
         background: var(--btn-hover);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(94, 234, 212, 0.2);
+        box-shadow: 0 6px 16px rgba(79, 209, 197, 0.25);
       }
-      button:disabled {
-        background: var(--btn-disable);
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+      .btn-primary:disabled {
+        background: var(--btn-disabled);
+        color: var(--btn-disabled-text);
         cursor: not-allowed;
         transform: none;
         box-shadow: none;
       }
-      .tips {
-        color: var(--text-sub);
-        font-size: 14px;
-        line-height: 1.6;
-        text-align: center;
-        padding: var(--gap-sm);
-        letter-spacing: 0.5px;
+      .btn-outline {
+        background: transparent;
+        color: var(--text-main);
+        border: 2px solid var(--border);
+      }
+      .btn-outline:hover {
+        border-color: var(--theme);
+        color: var(--theme);
+        transform: translateY(-2px);
+      }
+      .btn-outline:active {
+        transform: translateY(0);
+      }
+      .btn-outline:disabled {
+        border-color: var(--btn-disabled);
+        color: var(--btn-disabled-text);
+        cursor: not-allowed;
+        transform: none;
+      }
+      .mobile-panel {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        align-items: center;
+      }
+      .mobile-score-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: var(--game-width);
+        gap: 12px;
+      }
+      .mobile-score-row .info-row {
+        flex: 1;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        width: var(--game-width);
+        justify-content: space-between;
+      }
+      .action-buttons button {
+        flex: 1;
+        min-width: 0;
+        aspect-ratio: 1 / 1;
+        max-width: calc(var(--block-size) * 2.4);
+        border-radius: 50%;
+        font-size: clamp(16px, 3vw, 20px);
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 2px solid var(--border);
+        transition:
+          var(--transition-theme),
+          transform 0.15s ease;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+        min-width: 44px;
+        min-height: 44px;
+      }
+      .action-buttons button:active {
+        transform: scale(0.9);
+        background: var(--theme);
+        color: var(--btn-text);
+        border-color: var(--theme);
+      }
+      .action-buttons button.hard-drop-btn {
+        background: var(--theme);
+        color: var(--btn-text);
+        border-color: var(--theme);
+        font-weight: 700;
+      }
+      .action-buttons button.hard-drop-btn:active {
+        background: var(--theme-hover);
+        border-color: var(--theme-hover);
+        transform: scale(0.9);
+      }
+      .mobile-ctrl-row {
+        display: flex;
+        gap: 10px;
+        width: var(--game-width);
+      }
+      .mobile-ctrl-row button {
+        flex: 1;
+        padding: clamp(10px, 2vw, 14px) clamp(6px, 1vw, 10px);
+        font-size: clamp(13px, 2vw, 15px);
+      }
+      @media (max-width: 768px) {
+        .side-panel {
+          display: none;
+        }
+        .mobile-panel {
+          display: flex;
+        }
+        .main-row {
+          justify-content: center;
+        }
+        .game-wrapper {
+          max-width: 420px;
+          gap: 14px;
+        }
+        body {
+          padding: clamp(8px, 2vw, 16px);
+          justify-content: flex-start;
+          padding-top: clamp(10px, 2.5vw, 20px);
+        }
+      }
+      @media (min-width: 769px) {
+        .mobile-panel {
+          display: none;
+        }
+        .side-panel {
+          display: flex;
+        }
+        .game-wrapper {
+          max-width: 1000px;
+        }
+      }
+      @keyframes flash-row {
+        0%,
+        100% {
+          background-color: transparent;
+        }
+        50% {
+          background-color: rgba(255, 255, 255, 0.75);
+        }
+      }
+      .clearing-flash {
+        animation: flash-row 0.3s ease-in-out 3;
       }
     </style>
   </head>
   <body>
-    <h1>俄罗斯方块</h1>
-    <div class="game">
-      <canvas id="tetris"></canvas>
-      <div class="info">
-        <div class="next">
-          <h3>下一个</h3>
-          <canvas id="nextCanvas"></canvas>
+    <div class="game-wrapper">
+      <div class="header">
+        <h1>俄罗斯方块</h1>
+        <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">🌙</button>
+      </div>
+      <div class="main-row">
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="tetris"></canvas>
         </div>
-        <div class="score">
-          <span>当前得分</span>
-          <span id="score">0</span>
+        <div class="side-panel" id="sidePanel">
+          <div class="info-row">
+            <span class="label">当前得分</span>
+            <span class="value" id="scoreDesktop">0</span>
+          </div>
+          <div class="info-row">
+            <span class="label">游戏等级</span>
+            <span class="value" id="levelDesktop">1</span>
+          </div>
+          <div class="btn-group">
+            <button class="btn-primary" id="startBtn">开始游戏</button>
+            <button class="btn-outline" id="pauseBtn" disabled>暂停游戏</button>
+            <button class="btn-outline" id="resetBtn">重置游戏</button>
+          </div>
         </div>
-        <div class="level">
-          <span>游戏等级</span>
-          <span id="level">1</span>
+      </div>
+      <div class="mobile-panel" id="mobilePanel">
+        <div class="action-buttons" id="actionButtons">
+          <button id="btnLeft" title="左移">←</button>
+          <button id="btnRotate" title="旋转">↻</button>
+          <button class="hard-drop-btn" id="btnHardDrop" title="快速下落">⇩</button>
+          <button id="btnDown" title="下落">↓</button>
+          <button id="btnRight" title="右移">→</button>
         </div>
-        <div class="controls">
-          <button id="start">开始游戏</button>
-          <button id="pause" disabled>暂停游戏</button>
-          <button id="reset">重置游戏</button>
+        <div class="mobile-score-row">
+          <div class="info-row">
+            <span class="label">得分</span>
+            <span class="value" id="scoreMobile">0</span>
+          </div>
+          <div class="info-row">
+            <span class="label">等级</span>
+            <span class="value" id="levelMobile">1</span>
+          </div>
+        </div>
+        <div class="mobile-ctrl-row">
+          <button class="btn-primary" id="startBtnMobile">开始</button>
+          <button class="btn-outline" id="pauseBtnMobile" disabled>暂停</button>
+          <button class="btn-outline" id="resetBtnMobile">重置</button>
         </div>
       </div>
     </div>
     <script>
-      const GAME_CONFIG = {
-        blockSize: 30,
-        nextBlockSize: 24,
-        rows: 20,
-        cols: 10,
-        initSpeed: 1000,
-        minSpeed: 100,
-        speedStep: 100,
-        levelUpScore: 500,
-        scoreRules: [0, 100, 300, 500, 800],
-        shapes: [
-          { shape: [[1, 1, 1, 1]], color: "#67d8f1" },
-          {
-            shape: [
-              [1, 1],
-              [1, 1],
-            ],
-            color: "#fddc69",
-          },
-          {
-            shape: [
-              [0, 1, 0],
-              [1, 1, 1],
-            ],
-            color: "#c58af9",
-          },
-          {
-            shape: [
-              [0, 0, 1],
-              [1, 1, 1],
-            ],
-            color: "#fba169",
-          },
-          {
-            shape: [
-              [1, 0, 0],
-              [1, 1, 1],
-            ],
-            color: "#8ab4f8",
-          },
-          {
-            shape: [
-              [0, 1, 1],
-              [1, 1, 0],
-            ],
-            color: "#81e97d",
-          },
-          {
-            shape: [
-              [1, 1, 0],
-              [0, 1, 1],
-            ],
-            color: "#f88b8b",
-          },
-        ],
-      };
-      const pixelRatio = window.devicePixelRatio || 1;
-      const canvas = document.getElementById("tetris");
-      const nextCanvas = document.getElementById("nextCanvas");
-      const ctx = canvas.getContext("2d");
-      const nextCtx = nextCanvas.getContext("2d");
-      const scoreElement = document.getElementById("score");
-      const levelElement = document.getElementById("level");
-      const startButton = document.getElementById("start");
-      const pauseButton = document.getElementById("pause");
-      const resetButton = document.getElementById("reset");
-      canvas.width = 300 * pixelRatio;
-      canvas.height = 600 * pixelRatio;
-      nextCanvas.width = 160 * pixelRatio;
-      nextCanvas.height = 120 * pixelRatio;
-      ctx.scale(pixelRatio, pixelRatio);
-      nextCtx.scale(pixelRatio, pixelRatio);
-      const gameState = {
-        board: Array(GAME_CONFIG.rows)
-          .fill()
-          .map(() => Array(GAME_CONFIG.cols).fill(null)),
-        currentPiece: null,
-        nextPiece: null,
-        posX: 0,
-        posY: 0,
-        score: 0,
-        level: 1,
-        speed: GAME_CONFIG.initSpeed,
-        timer: null,
-        isPlaying: false,
-        isPaused: false,
-        isGameOver: false,
-      };
-      const drawBlock = (x, y, color, context, size) => {
-        context.fillStyle = color;
-        context.fillRect(x * size, y * size, size - 1, size - 1);
-        context.strokeStyle = "#333";
-        context.strokeRect(x * size, y * size, size - 1, size - 1);
-      };
-      const drawGameBoard = () => {
-        ctx.clearRect(0, 0, 300, 600);
-        gameState.board.forEach((row, rowIdx) => {
-          row.forEach((cell, colIdx) => {
-            cell && drawBlock(colIdx, rowIdx, cell, ctx, GAME_CONFIG.blockSize);
-          });
+      (() => {
+        const CONFIG = Object.freeze({
+          COLS: 10,
+          ROWS: 20,
+          INIT_SPEED: 1000,
+          MIN_SPEED: 80,
+          SPEED_STEP: 90,
+          LEVEL_UP_SCORE: 500,
+          SCORE_RULES: [0, 100, 300, 500, 800],
+          SHAPES: [
+            { shape: [[1, 1, 1, 1]], color: "#5ec4c4" },
+            {
+              shape: [
+                [1, 1],
+                [1, 1],
+              ],
+              color: "#e8b84b",
+            },
+            {
+              shape: [
+                [0, 1, 0],
+                [1, 1, 1],
+              ],
+              color: "#9b6ec5",
+            },
+            {
+              shape: [
+                [0, 0, 1],
+                [1, 1, 1],
+              ],
+              color: "#e8824b",
+            },
+            {
+              shape: [
+                [1, 0, 0],
+                [1, 1, 1],
+              ],
+              color: "#5b8ec5",
+            },
+            {
+              shape: [
+                [0, 1, 1],
+                [1, 1, 0],
+              ],
+              color: "#6bb85b",
+            },
+            {
+              shape: [
+                [1, 1, 0],
+                [0, 1, 1],
+              ],
+              color: "#d85b5b",
+            },
+          ],
+          CLEAR_ANIM_DURATION: 220,
+          FLASH_INTERVAL: 45,
         });
-      };
-      const drawCurrentPiece = () => {
-        gameState.currentPiece.shape.forEach((row, rowIdx) => {
-          row.forEach((cell, colIdx) => {
-            cell && drawBlock(gameState.posX + colIdx, gameState.posY + rowIdx, gameState.currentPiece.color, ctx, GAME_CONFIG.blockSize);
+        const canvas = document.getElementById("tetris");
+        const ctx = canvas.getContext("2d");
+        const canvasWrap = document.getElementById("canvasWrap");
+        const sidePanel = document.getElementById("sidePanel");
+        const mobilePanel = document.getElementById("mobilePanel");
+        const scoreDesktop = document.getElementById("scoreDesktop");
+        const levelDesktop = document.getElementById("levelDesktop");
+        const scoreMobile = document.getElementById("scoreMobile");
+        const levelMobile = document.getElementById("levelMobile");
+        const startBtn = document.getElementById("startBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const startBtnMobile = document.getElementById("startBtnMobile");
+        const pauseBtnMobile = document.getElementById("pauseBtnMobile");
+        const resetBtnMobile = document.getElementById("resetBtnMobile");
+        const themeToggle = document.getElementById("themeToggle");
+        const actionButtons = document.getElementById("actionButtons");
+        const state = {
+          board: [],
+          currentPiece: null,
+          posX: 0,
+          posY: 0,
+          score: 0,
+          level: 1,
+          speed: CONFIG.INIT_SPEED,
+          timer: null,
+          isPlaying: false,
+          isPaused: false,
+          isGameOver: false,
+          isClearing: false,
+          clearingRows: [],
+          clearStartTime: 0,
+          clearHighlight: false,
+          blockSize: 30,
+          gameWidth: 300,
+          gameHeight: 600,
+          isMobile: false,
+          panelWidth: 200,
+        };
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let clearAnimRafId = null;
+        const calcDimensions = () => {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const mobile = w <= 768;
+          if (mobile) {
+            const maxW = Math.min(w - 28, 400);
+            const bs = Math.floor(maxW / CONFIG.COLS);
+            const gw = bs * CONFIG.COLS;
+            const gh = bs * CONFIG.ROWS;
+            return { blockSize: bs, gameWidth: gw, gameHeight: gh, isMobile: true, panelWidth: 0 };
+          }
+          const minPanelWidth = 180;
+          const maxPanelWidth = 320;
+          const sidePadding = 40;
+          const maxTotalWidth = w - sidePadding;
+          const maxBsFromHeight = Math.floor((h * 0.85) / CONFIG.ROWS);
+          let bs = Math.floor((maxTotalWidth - minPanelWidth - 20) / CONFIG.COLS);
+          bs = Math.min(bs, maxBsFromHeight);
+          bs = Math.max(24, Math.min(42, bs));
+          const gw = bs * CONFIG.COLS;
+          const gh = bs * CONFIG.ROWS;
+          const gap = Math.round(bs * 0.95);
+          let panelW = maxTotalWidth - gw - gap;
+          panelW = Math.max(minPanelWidth, Math.min(maxPanelWidth, panelW));
+          if (gw + gap + panelW > maxTotalWidth) {
+            bs = Math.floor((maxTotalWidth - panelW - gap) / CONFIG.COLS);
+            bs = Math.max(24, bs);
+            const newGw = bs * CONFIG.COLS;
+            const newGh = bs * CONFIG.ROWS;
+            const newGap = Math.round(bs * 0.95);
+            return {
+              blockSize: bs,
+              gameWidth: newGw,
+              gameHeight: newGh,
+              isMobile: false,
+              panelWidth: panelW,
+            };
+          }
+          return { blockSize: bs, gameWidth: gw, gameHeight: gh, isMobile: false, panelWidth: panelW };
+        };
+        const applyDimensions = (dims) => {
+          state.blockSize = dims.blockSize;
+          state.gameWidth = dims.gameWidth;
+          state.gameHeight = dims.gameHeight;
+          state.isMobile = dims.isMobile;
+          state.panelWidth = dims.panelWidth;
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = dims.gameWidth * dpr;
+          canvas.height = dims.gameHeight * dpr;
+          canvas.style.width = dims.gameWidth + "px";
+          canvas.style.height = dims.gameHeight + "px";
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
+          const gap = Math.round(dims.blockSize * 0.95);
+          document.documentElement.style.setProperty("--game-width", dims.gameWidth + "px");
+          document.documentElement.style.setProperty("--block-size", dims.blockSize + "px");
+          document.documentElement.style.setProperty("--panel-width", dims.panelWidth ? dims.panelWidth + "px" : "200px");
+          document.documentElement.style.setProperty("--gap", gap + "px");
+          canvasWrap.style.width = dims.gameWidth + "px";
+          canvasWrap.style.height = dims.gameHeight + "px";
+        };
+        const syncScoreDisplay = () => {
+          const sc = String(state.score);
+          const lv = String(state.level);
+          scoreDesktop.textContent = sc;
+          levelDesktop.textContent = lv;
+          scoreMobile.textContent = sc;
+          levelMobile.textContent = lv;
+        };
+        const updateButtonStates = () => {
+          const playing = state.isPlaying && !state.isGameOver && !state.isClearing;
+          const paused = state.isPaused;
+          const canPause = playing;
+          startBtn.disabled = playing && !paused;
+          pauseBtn.disabled = !canPause;
+          pauseBtn.textContent = paused ? "继续游戏" : "暂停游戏";
+          startBtnMobile.disabled = playing && !paused;
+          pauseBtnMobile.disabled = !canPause;
+          pauseBtnMobile.textContent = paused ? "继续" : "暂停";
+          const actionDisabled = !playing || paused || state.isClearing;
+          const actionBtns = actionButtons.querySelectorAll("button");
+          actionBtns.forEach((b) => {
+            b.disabled = actionDisabled;
           });
-        });
-      };
-      const drawNextPiece = () => {
-        nextCtx.clearRect(0, 0, 160, 120);
-        const shapeWidth = gameState.nextPiece.shape[0].length;
-        const shapeHeight = gameState.nextPiece.shape.length;
-        const offsetX = (160 - shapeWidth * GAME_CONFIG.nextBlockSize) / 2 / GAME_CONFIG.nextBlockSize;
-        const offsetY = (120 - shapeHeight * GAME_CONFIG.nextBlockSize) / 2 / GAME_CONFIG.nextBlockSize;
-        gameState.nextPiece.shape.forEach((row, rowIdx) => {
-          row.forEach((cell, colIdx) => {
-            cell && drawBlock(offsetX + colIdx, offsetY + rowIdx, gameState.nextPiece.color, nextCtx, GAME_CONFIG.nextBlockSize);
-          });
-        });
-      };
-      const checkCollision = (piece, x, y) => {
-        for (let row = 0; row < piece.shape.length; row++) {
-          for (let col = 0; col < piece.shape[row].length; col++) {
-            if (!piece.shape[row][col]) continue;
-            const newX = x + col;
-            const newY = y + row;
-            if (newX < 0 || newX >= GAME_CONFIG.cols || newY >= GAME_CONFIG.rows || (newY >= 0 && gameState.board[newY][newX])) {
-              return true;
+        };
+        const resetBoard = () => {
+          state.board = Array.from({ length: CONFIG.ROWS }, () => Array(CONFIG.COLS).fill(null));
+        };
+        const getRandomPiece = () => {
+          const idx = (Math.random() * CONFIG.SHAPES.length) | 0;
+          const src = CONFIG.SHAPES[idx];
+          return { shape: src.shape.map((r) => [...r]), color: src.color };
+        };
+        const checkCollision = (piece, px, py) => {
+          for (let r = 0; r < piece.shape.length; r++) {
+            for (let c = 0; c < piece.shape[r].length; c++) {
+              if (!piece.shape[r][c]) continue;
+              const nx = px + c;
+              const ny = py + r;
+              if (nx < 0 || nx >= CONFIG.COLS || ny >= CONFIG.ROWS) return true;
+              if (ny >= 0 && state.board[ny][nx]) return true;
             }
           }
-        }
-        return false;
-      };
-      const getRandomPiece = () => GAME_CONFIG.shapes[(Math.random() * GAME_CONFIG.shapes.length) | 0];
-      const spawnPiece = () => {
-        gameState.currentPiece = gameState.nextPiece || getRandomPiece();
-        gameState.nextPiece = getRandomPiece();
-        gameState.posX = (GAME_CONFIG.cols - gameState.currentPiece.shape[0].length) >> 1;
-        gameState.posY = 0;
-        checkCollision(gameState.currentPiece, gameState.posX, gameState.posY) && handleGameOver();
-        drawNextPiece();
-      };
-      const mergePieceToBoard = () => {
-        gameState.currentPiece.shape.forEach((row, rowIdx) => {
-          row.forEach((cell, colIdx) => {
-            cell && (gameState.board[gameState.posY + rowIdx][gameState.posX + colIdx] = gameState.currentPiece.color);
-          });
-        });
-      };
-      const clearFullLines = () => {
-        let clearedLines = 0;
-        for (let row = GAME_CONFIG.rows - 1; row >= 0; row--) {
-          if (gameState.board[row].every(Boolean)) {
-            gameState.board.splice(row, 1);
-            gameState.board.unshift(Array(GAME_CONFIG.cols).fill(null));
-            row++;
-            clearedLines++;
-          }
-        }
-        if (!clearedLines) return;
-        gameState.score += GAME_CONFIG.scoreRules[clearedLines] * gameState.level;
-        gameState.level = ((gameState.score / GAME_CONFIG.levelUpScore) | 0) + 1;
-        gameState.speed = Math.max(GAME_CONFIG.minSpeed, GAME_CONFIG.initSpeed - (gameState.level - 1) * GAME_CONFIG.speedStep);
-        scoreElement.textContent = gameState.score;
-        levelElement.textContent = gameState.level;
-        resetTimer();
-      };
-      const moveDown = () => {
-        if (!gameState.isPlaying || gameState.isPaused || gameState.isGameOver) return;
-        checkCollision(gameState.currentPiece, gameState.posX, gameState.posY + 1) ? (mergePieceToBoard(), clearFullLines(), spawnPiece()) : gameState.posY++;
-        render();
-      };
-      const moveHorizontal = (direction) => {
-        if (!gameState.isPlaying || gameState.isPaused || gameState.isGameOver) return;
-        const newX = gameState.posX + direction;
-        !checkCollision(gameState.currentPiece, newX, gameState.posY) && (gameState.posX = newX);
-        render();
-      };
-      const rotatePiece = () => {
-        if (!gameState.isPlaying || gameState.isPaused || gameState.isGameOver) return;
-        const rotated = gameState.currentPiece.shape[0].map((_, idx) => gameState.currentPiece.shape.map((row) => row[idx]).reverse());
-        const originalShape = gameState.currentPiece.shape;
-        gameState.currentPiece.shape = rotated;
-        checkCollision(gameState.currentPiece, gameState.posX, gameState.posY) && (gameState.currentPiece.shape = originalShape);
-        render();
-      };
-      const render = () => {
-        drawGameBoard();
-        drawCurrentPiece();
-      };
-      const resetTimer = () => {
-        clearInterval(gameState.timer);
-        gameState.timer = setInterval(moveDown, gameState.speed);
-      };
-      const startGame = () => {
-        if (gameState.isGameOver) return;
-        gameState.isPlaying = true;
-        gameState.isPaused = false;
-        startButton.disabled = true;
-        pauseButton.disabled = false;
-        resetTimer();
-      };
-      const togglePause = () => {
-        gameState.isPaused = !gameState.isPaused;
-        pauseButton.textContent = gameState.isPaused ? "继续游戏" : "暂停游戏";
-        gameState.isPaused ? clearInterval(gameState.timer) : resetTimer();
-      };
-      const resetGame = () => {
-        clearInterval(gameState.timer);
-        gameState.board = Array(GAME_CONFIG.rows)
-          .fill()
-          .map(() => Array(GAME_CONFIG.cols).fill(null));
-        gameState.score = 0;
-        gameState.level = 1;
-        gameState.speed = GAME_CONFIG.initSpeed;
-        gameState.isPlaying = false;
-        gameState.isPaused = false;
-        gameState.isGameOver = false;
-        gameState.nextPiece = null;
-        scoreElement.textContent = 0;
-        levelElement.textContent = 1;
-        startButton.disabled = false;
-        pauseButton.disabled = true;
-        pauseButton.textContent = "暂停游戏";
-        spawnPiece();
-        render();
-      };
-      const handleGameOver = () => {
-        gameState.isGameOver = true;
-        gameState.isPlaying = false;
-        clearInterval(gameState.timer);
-        alert(`游戏结束！得分：${gameState.score}`);
-        startButton.disabled = true;
-        pauseButton.disabled = true;
-      };
-      document.addEventListener("keydown", (e) => {
-        const keyMap = {
-          ArrowLeft: () => moveHorizontal(-1),
-          ArrowRight: () => moveHorizontal(1),
-          ArrowUp: rotatePiece,
-          ArrowDown: moveDown,
+          return false;
         };
-        keyMap[e.key]?.();
-      });
-      startButton.addEventListener("click", startGame);
-      pauseButton.addEventListener("click", togglePause);
-      resetButton.addEventListener("click", resetGame);
-      spawnPiece();
-      render();
+        const spawnPiece = () => {
+          state.currentPiece = getRandomPiece();
+          state.posX = (CONFIG.COLS - state.currentPiece.shape[0].length) >> 1;
+          state.posY = 0;
+          if (checkCollision(state.currentPiece, state.posX, state.posY)) {
+            handleGameOver();
+          }
+        };
+        const mergePieceToBoard = () => {
+          const { shape, color } = state.currentPiece;
+          for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+              if (shape[r][c]) {
+                const by = state.posY + r;
+                const bx = state.posX + c;
+                if (by >= 0 && by < CONFIG.ROWS && bx >= 0 && bx < CONFIG.COLS) {
+                  state.board[by][bx] = color;
+                }
+              }
+            }
+          }
+        };
+        const findFullRows = () => {
+          const rows = [];
+          for (let r = 0; r < CONFIG.ROWS; r++) {
+            if (state.board[r].every((cell) => cell !== null)) {
+              rows.push(r);
+            }
+          }
+          return rows;
+        };
+        const executeClearRows = (rows) => {
+          const sorted = [...rows].sort((a, b) => b - a);
+          for (const r of sorted) {
+            state.board.splice(r, 1);
+            state.board.unshift(Array(CONFIG.COLS).fill(null));
+          }
+          const cleared = rows.length;
+          state.score += CONFIG.SCORE_RULES[cleared] * state.level;
+          state.level = Math.max(1, ((state.score / CONFIG.LEVEL_UP_SCORE) | 0) + 1);
+          state.speed = Math.max(CONFIG.MIN_SPEED, CONFIG.INIT_SPEED - (state.level - 1) * CONFIG.SPEED_STEP);
+          syncScoreDisplay();
+        };
+        const startClearAnimation = (rows) => {
+          state.isClearing = true;
+          state.clearingRows = [...rows];
+          state.clearStartTime = performance.now();
+          state.clearHighlight = true;
+          updateButtonStates();
+          stopTimer();
+          if (clearAnimRafId) cancelAnimationFrame(clearAnimRafId);
+          clearAnimLoop();
+        };
+        const clearAnimLoop = () => {
+          const elapsed = performance.now() - state.clearStartTime;
+          if (elapsed < CONFIG.CLEAR_ANIM_DURATION) {
+            state.clearHighlight = Math.floor(elapsed / CONFIG.FLASH_INTERVAL) % 2 === 0;
+            render();
+            clearAnimRafId = requestAnimationFrame(clearAnimLoop);
+          } else {
+            finishClearAnimation();
+          }
+        };
+        const finishClearAnimation = () => {
+          const rows = state.clearingRows;
+          executeClearRows(rows);
+          state.isClearing = false;
+          state.clearingRows = [];
+          state.clearHighlight = false;
+          clearAnimRafId = null;
+          spawnPiece();
+          render();
+          syncScoreDisplay();
+          updateButtonStates();
+          if (state.isPlaying && !state.isPaused && !state.isGameOver) {
+            startTimer();
+          }
+        };
+        const cancelClearAnimation = () => {
+          if (clearAnimRafId) {
+            cancelAnimationFrame(clearAnimRafId);
+            clearAnimRafId = null;
+          }
+          state.isClearing = false;
+          state.clearingRows = [];
+          state.clearHighlight = false;
+        };
+        const triggerClearCheck = () => {
+          const fullRows = findFullRows();
+          if (fullRows.length > 0) {
+            startClearAnimation(fullRows);
+          } else {
+            spawnPiece();
+            render();
+            syncScoreDisplay();
+            updateButtonStates();
+            if (state.isPlaying && !state.isPaused && !state.isGameOver) {
+              startTimer();
+            }
+          }
+        };
+        const moveDown = () => {
+          if (!state.isPlaying || state.isPaused || state.isGameOver || state.isClearing) return;
+          if (checkCollision(state.currentPiece, state.posX, state.posY + 1)) {
+            stopTimer();
+            mergePieceToBoard();
+            triggerClearCheck();
+          } else {
+            state.posY++;
+          }
+          render();
+          updateButtonStates();
+        };
+        const moveHorizontal = (dir) => {
+          if (!state.isPlaying || state.isPaused || state.isGameOver || state.isClearing) return;
+          const nx = state.posX + dir;
+          if (!checkCollision(state.currentPiece, nx, state.posY)) {
+            state.posX = nx;
+            render();
+          }
+        };
+        const rotatePiece = () => {
+          if (!state.isPlaying || state.isPaused || state.isGameOver || state.isClearing) return;
+          const original = state.currentPiece.shape.map((r) => [...r]);
+          const rows = original.length;
+          const cols = original[0].length;
+          const rotated = Array.from({ length: cols }, (_, i) => Array.from({ length: rows }, (_, j) => original[rows - 1 - j][i]));
+          state.currentPiece.shape = rotated;
+          if (checkCollision(state.currentPiece, state.posX, state.posY)) {
+            state.currentPiece.shape = original;
+          }
+          render();
+        };
+        const hardDrop = () => {
+          if (!state.isPlaying || state.isPaused || state.isGameOver || state.isClearing) return;
+          stopTimer();
+          while (!checkCollision(state.currentPiece, state.posX, state.posY + 1)) {
+            state.posY++;
+          }
+          mergePieceToBoard();
+          triggerClearCheck();
+          render();
+          updateButtonStates();
+        };
+        const drawBlock = (x, y, color, bs) => {
+          const px = x * bs;
+          const py = y * bs;
+          const size = bs - 1;
+          ctx.fillStyle = color;
+          ctx.fillRect(px, py, size, size);
+          const grad = ctx.createLinearGradient(px, py, px + size, py + size);
+          grad.addColorStop(0, "rgba(255,255,255,0.28)");
+          grad.addColorStop(0.5, "rgba(255,255,255,0.06)");
+          grad.addColorStop(1, "rgba(0,0,0,0.18)");
+          ctx.fillStyle = grad;
+          ctx.fillRect(px, py, size, size);
+          ctx.strokeStyle = "rgba(0,0,0,0.22)";
+          ctx.lineWidth = 0.8;
+          ctx.strokeRect(px + 0.5, py + 0.5, size - 1, size - 1);
+        };
+        const render = () => {
+          const bs = state.blockSize;
+          ctx.clearRect(0, 0, state.gameWidth, state.gameHeight);
+          for (let r = 0; r < CONFIG.ROWS; r++) {
+            for (let c = 0; c < CONFIG.COLS; c++) {
+              const cell = state.board[r][c];
+              if (cell) {
+                const isFlashing = state.isClearing && state.clearHighlight && state.clearingRows.includes(r);
+                drawBlock(c, r, isFlashing ? "#ffffff" : cell, bs);
+              } else if (state.isClearing && state.clearHighlight && state.clearingRows.includes(r)) {
+                drawBlock(c, r, "#ffffff", bs);
+              }
+            }
+          }
+          if (state.currentPiece && !state.isGameOver) {
+            const { shape, color } = state.currentPiece;
+            for (let r = 0; r < shape.length; r++) {
+              for (let c = 0; c < shape[r].length; c++) {
+                if (shape[r][c]) {
+                  drawBlock(state.posX + c, state.posY + r, color, bs);
+                }
+              }
+            }
+          }
+          if (state.isPaused && state.isPlaying && !state.isGameOver && !state.isClearing) {
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.fillRect(0, 0, state.gameWidth, state.gameHeight);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = `bold ${Math.max(bs * 1.1, 20)}px "PingFang SC","Microsoft YaHei",sans-serif`;
+            ctx.textAlign = "center";
+            ctx.fillText("暂停中", state.gameWidth / 2, state.gameHeight / 2);
+            ctx.textAlign = "start";
+          }
+        };
+        const stopTimer = () => {
+          if (state.timer) {
+            clearInterval(state.timer);
+            state.timer = null;
+          }
+        };
+        const startTimer = () => {
+          stopTimer();
+          state.timer = setInterval(moveDown, state.speed);
+        };
+        const startGame = () => {
+          if (state.isGameOver) {
+            resetGameInternal();
+          }
+          if (state.isClearing) return;
+          state.isPlaying = true;
+          state.isPaused = false;
+          state.isGameOver = false;
+          updateButtonStates();
+          startTimer();
+          render();
+        };
+        const togglePause = () => {
+          if (!state.isPlaying || state.isGameOver || state.isClearing) return;
+          state.isPaused = !state.isPaused;
+          if (state.isPaused) {
+            stopTimer();
+          } else {
+            startTimer();
+          }
+          updateButtonStates();
+          render();
+        };
+        const resetGameInternal = () => {
+          stopTimer();
+          cancelClearAnimation();
+          resetBoard();
+          state.score = 0;
+          state.level = 1;
+          state.speed = CONFIG.INIT_SPEED;
+          state.isPlaying = false;
+          state.isPaused = false;
+          state.isGameOver = false;
+          state.isClearing = false;
+          state.clearingRows = [];
+          state.clearHighlight = false;
+          state.currentPiece = null;
+          syncScoreDisplay();
+          spawnPiece();
+          render();
+          updateButtonStates();
+        };
+        const resetGame = () => {
+          resetGameInternal();
+        };
+        const handleGameOver = () => {
+          state.isGameOver = true;
+          state.isPlaying = false;
+          state.isPaused = false;
+          stopTimer();
+          cancelClearAnimation();
+          state.isClearing = false;
+          state.clearingRows = [];
+          updateButtonStates();
+          render();
+          setTimeout(() => {
+            alert(`游戏结束！\n最终得分：${state.score}\n等级：${state.level}`);
+          }, 150);
+        };
+        const handleKeyDown = (e) => {
+          if (e.repeat && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+            e.preventDefault();
+            if (e.key === "ArrowDown") {
+              moveDown();
+              return;
+            }
+            if (e.key === "ArrowLeft") {
+              moveHorizontal(-1);
+              return;
+            }
+            if (e.key === "ArrowRight") {
+              moveHorizontal(1);
+              return;
+            }
+            return;
+          }
+          const key = e.key;
+          const map = {
+            ArrowLeft: () => moveHorizontal(-1),
+            ArrowRight: () => moveHorizontal(1),
+            ArrowUp: rotatePiece,
+            ArrowDown: moveDown,
+            a: () => moveHorizontal(-1),
+            A: () => moveHorizontal(-1),
+            d: () => moveHorizontal(1),
+            D: () => moveHorizontal(1),
+            w: rotatePiece,
+            W: rotatePiece,
+            s: moveDown,
+            S: moveDown,
+            " ": hardDrop,
+          };
+          if (map[key]) {
+            e.preventDefault();
+            map[key]();
+          }
+          if (key === "p" || key === "P") {
+            e.preventDefault();
+            togglePause();
+          }
+          if (key === "Escape") {
+            e.preventDefault();
+            if (state.isPlaying && !state.isPaused && !state.isGameOver && !state.isClearing) {
+              togglePause();
+            }
+          }
+        };
+        const handleResize = () => {
+          const dims = calcDimensions();
+          const prevBs = state.blockSize;
+          const prevMobile = state.isMobile;
+          applyDimensions(dims);
+          if (prevBs !== dims.blockSize || prevMobile !== dims.isMobile) {
+            mobilePanel.style.display = dims.isMobile ? "flex" : "none";
+            sidePanel.style.display = dims.isMobile ? "none" : "flex";
+            if (dims.isMobile) {
+              mobilePanel.style.width = dims.gameWidth + "px";
+            }
+            updateButtonStates();
+          }
+          render();
+        };
+        const setupTheme = () => {
+          const saved = localStorage.getItem("tetris-theme");
+          if (saved === "light") {
+            document.body.classList.add("light");
+            themeToggle.textContent = "☀️";
+          } else {
+            document.body.classList.remove("light");
+            themeToggle.textContent = "🌙";
+          }
+        };
+        const toggleTheme = () => {
+          const isLight = document.body.classList.toggle("light");
+          themeToggle.textContent = isLight ? "☀️" : "🌙";
+          localStorage.setItem("tetris-theme", isLight ? "light" : "dark");
+        };
+        const bindEvents = () => {
+          document.addEventListener("keydown", handleKeyDown);
+          window.addEventListener("resize", () => {
+            clearTimeout(window._resizeTid);
+            window._resizeTid = setTimeout(handleResize, 200);
+          });
+          themeToggle.addEventListener("click", toggleTheme);
+          startBtn.addEventListener("click", startGame);
+          pauseBtn.addEventListener("click", togglePause);
+          resetBtn.addEventListener("click", resetGame);
+          startBtnMobile.addEventListener("click", startGame);
+          pauseBtnMobile.addEventListener("click", togglePause);
+          resetBtnMobile.addEventListener("click", resetGame);
+          document.getElementById("btnLeft").addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            moveHorizontal(-1);
+          });
+          document.getElementById("btnRotate").addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            rotatePiece();
+          });
+          document.getElementById("btnHardDrop").addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            hardDrop();
+          });
+          document.getElementById("btnDown").addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            moveDown();
+          });
+          document.getElementById("btnRight").addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            moveHorizontal(1);
+          });
+          canvasWrap.addEventListener("contextmenu", (e) => e.preventDefault());
+        };
+        const init = () => {
+          const dims = calcDimensions();
+          applyDimensions(dims);
+          mobilePanel.style.display = dims.isMobile ? "flex" : "none";
+          sidePanel.style.display = dims.isMobile ? "none" : "flex";
+          if (dims.isMobile) {
+            mobilePanel.style.width = dims.gameWidth + "px";
+          }
+          setupTheme();
+          resetBoard();
+          spawnPiece();
+          render();
+          syncScoreDisplay();
+          updateButtonStates();
+          bindEvents();
+        };
+        init();
+      })();
     </script>
   </body>
 </html>
