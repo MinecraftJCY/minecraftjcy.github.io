@@ -163,7 +163,7 @@
       }
       h1 {
         font-size: clamp(2.2rem, 7vw, 3.8rem);
-        font-weight: 800;
+        font-weight: 700;
         margin-bottom: 0.75rem;
         background: var(--heading-gradient);
         -webkit-background-clip: text;
@@ -196,7 +196,10 @@
         box-shadow: var(--card-shadow);
         position: relative;
         overflow: hidden;
-        animation: fadeSlideUp 0.55s ease-out backwards;
+        animation-name: fadeSlideUp;
+        animation-duration: 0.55s;
+        animation-timing-function: ease-out;
+        animation-fill-mode: backwards;
         transition:
           background 0.35s ease,
           border-color 0.35s ease,
@@ -218,33 +221,6 @@
       }
       .project-card:hover::after {
         opacity: 1;
-      }
-      .project-card:nth-child(1) {
-        animation-delay: 0.05s;
-      }
-      .project-card:nth-child(2) {
-        animation-delay: 0.1s;
-      }
-      .project-card:nth-child(3) {
-        animation-delay: 0.15s;
-      }
-      .project-card:nth-child(4) {
-        animation-delay: 0.2s;
-      }
-      .project-card:nth-child(5) {
-        animation-delay: 0.25s;
-      }
-      .project-card:nth-child(6) {
-        animation-delay: 0.3s;
-      }
-      .project-card:nth-child(7) {
-        animation-delay: 0.35s;
-      }
-      .project-card:nth-child(8) {
-        animation-delay: 0.4s;
-      }
-      .project-card:nth-child(9) {
-        animation-delay: 0.45s;
       }
       @keyframes fadeSlideUp {
         from {
@@ -314,8 +290,12 @@
         border-top: 1px solid var(--footer-border);
         color: var(--footer-text);
         font-size: 0.88rem;
-        animation: fadeIn 0.8s ease-out 0.9s backwards;
         letter-spacing: 0.3px;
+        animation-name: fadeIn;
+        animation-duration: 0.8s;
+        animation-timing-function: ease-out;
+        animation-fill-mode: backwards;
+        animation-delay: 0.9s;
       }
       @keyframes fadeIn {
         from {
@@ -399,8 +379,7 @@
     </button>
     <div class="container">
       <header>
-        <h1>欢迎来到我的GitHub主页</h1>
-        <p class="subtitle">点击卡片开始探索吧</p>
+        <h1>Code is cheap. Show me the talk.</h1>
       </header>
       <main class="projects-grid">
         <a href="贪吃蛇.html" class="project-card">
@@ -417,6 +396,13 @@
           </div>
           <p class="card-description">移动方块，按顺序排列数字</p>
         </a>
+        <a href="数独.html" class="project-card">
+          <div class="card-header">
+            <span class="card-icon">🧩</span>
+            <h2 class="card-title">数独</h2>
+          </div>
+          <p class="card-description">逻辑推理，用数字填满九宫格</p>
+        </a>
         <a href="汉诺塔.html" class="project-card">
           <div class="card-header">
             <span class="card-icon">🗼</span>
@@ -431,12 +417,12 @@
           </div>
           <p class="card-description">模拟彩票抽奖，试试你的运气</p>
         </a>
-        <a href="星际大战.html" class="project-card">
+        <a href="大球吃小球.html" class="project-card">
           <div class="card-header">
-            <span class="card-icon">🚀</span>
-            <h2 class="card-title">星际大战</h2>
+            <span class="card-icon">🔮</span>
+            <h2 class="card-title">大球吃小球</h2>
           </div>
-          <p class="card-description">驾驶太空战机，消灭敌人，拯救宇宙</p>
+          <p class="card-description">吃掉比你小的球，躲避比你大的球</p>
         </a>
         <a href="爱心.html" class="project-card">
           <div class="card-header">
@@ -459,12 +445,12 @@
           </div>
           <p class="card-description">调整下落方块，消除整行得分</p>
         </a>
-        <a href="大球吃小球.html" class="project-card">
+        <a href="星际大战.html" class="project-card">
           <div class="card-header">
-            <span class="card-icon">🔮</span>
-            <h2 class="card-title">大球吃小球</h2>
+            <span class="card-icon">🚀</span>
+            <h2 class="card-title">星际大战</h2>
           </div>
-          <p class="card-description">吃掉比你小的球，躲避比你大的球</p>
+          <p class="card-description">驾驶太空战机，消灭敌人，拯救宇宙</p>
         </a>
       </main>
       <footer>
@@ -524,6 +510,36 @@
               applyTheme(e.matches ? "light" : "dark");
             }
           });
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        var cards = document.querySelectorAll(".project-card");
+        var footer = document.querySelector("footer");
+        var prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReducedMotion) {
+          cards.forEach(function (card) {
+            card.style.animationDelay = "0s";
+          });
+          if (footer) {
+            footer.style.animationDelay = "0s";
+          }
+          return;
+        }
+        var delayIncrement = 0.05;
+        var cardAnimationDuration = 0.55;
+        var footerBuffer = 0.2;
+        cards.forEach(function (card, index) {
+          var delay = index * delayIncrement;
+          card.style.animationDelay = delay + "s";
+        });
+        if (footer && cards.length > 0) {
+          var lastCardDelay = (cards.length - 1) * delayIncrement;
+          var footerDelay = lastCardDelay + cardAnimationDuration + footerBuffer;
+          footer.style.animationDelay = footerDelay + "s";
+        } else if (footer) {
+          footer.style.animationDelay = "0.5s";
         }
       })();
     </script>
