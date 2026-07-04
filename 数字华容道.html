@@ -5,256 +5,714 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>数字华容道</title>
     <style>
+      :root {
+        --bg: #f5f0e9;
+        --surface: #e8e0d5;
+        --tile-bg: #faf7f2;
+        --tile-text: #4a3728;
+        --tile-shadow: 0 2px 8px rgba(74, 55, 40, 0.12);
+        --tile-hover: #f0e8d8;
+        --text: #4a3728;
+        --text-secondary: #8b7b6b;
+        --primary: #8b7355;
+        --primary-hover: #6b5a43;
+        --accent: #5b8c6f;
+        --accent-hover: #4a7360;
+        --danger: #c4665a;
+        --btn-bg: #e0d5c5;
+        --btn-text: #4a3728;
+        --btn-active-bg: #8b7355;
+        --btn-active-text: #faf7f2;
+        --empty-indicator: rgba(139, 115, 85, 0);
+        --message-success: #5b8c6f;
+        --shadow-lg: 0 8px 32px rgba(74, 55, 40, 0.12);
+        --shadow-sm: 0 2px 6px rgba(74, 55, 40, 0.08);
+        --radius: 12px;
+        --radius-sm: 10px;
+        --transition-theme: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+        color-scheme: light;
+      }
+      [data-theme="dark"] {
+        --bg: #1a1d23;
+        --surface: #242730;
+        --tile-bg: #2d3039;
+        --tile-text: #e4ddd2;
+        --tile-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        --tile-hover: #363a44;
+        --text: #e4ddd2;
+        --text-secondary: #9a948a;
+        --primary: #6b9b8a;
+        --primary-hover: #5a8a7a;
+        --accent: #7eb8a0;
+        --accent-hover: #6ba890;
+        --danger: #d4827a;
+        --btn-bg: #2d3039;
+        --btn-text: #e4ddd2;
+        --btn-active-bg: #6b9b8a;
+        --btn-active-text: #1a1d23;
+        --empty-indicator: rgba(107, 155, 138, 0);
+        --message-success: #7eb8a0;
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35);
+        --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+        color-scheme: dark;
+      }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
       body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #1e293b;
-        padding: 20px;
-        gap: 24px;
+        background: var(--bg);
+        padding: clamp(12px, 3vw, 24px);
+        gap: clamp(16px, 3vh, 28px);
+        transition: var(--transition-theme);
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
-      .level-container {
-        display: flex;
-        gap: 12px;
-      }
-      .level-btn {
-        padding: 12px 24px;
-        font-size: 16px;
-        border: none;
-        border-radius: 12px;
-        background: #334155;
-        color: #e2e8f0;
+      .theme-toggle {
+        position: fixed;
+        top: clamp(12px, 2.5vw, 20px);
+        right: clamp(12px, 2.5vw, 20px);
+        width: clamp(40px, 7vw, 48px);
+        height: clamp(40px, 7vw, 48px);
+        border-radius: 50%;
+        border: 2px solid var(--btn-bg);
+        background: var(--surface);
         cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      }
-      .level-btn:hover {
-        transform: translateY(-2px);
-        background: #475569;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-      }
-      .level-btn.active {
-        background: #30aea6;
-        color: #fff;
-        box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
-      }
-      #board {
-        display: grid;
-        gap: 8px;
-        background: #334155;
-        padding: 12px;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      }
-      .tile {
+        font-size: clamp(18px, 3.5vw, 22px);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #475569;
-        color: #e9f4ff;
+        transition:
+          var(--transition-theme),
+          transform 0.2s ease;
+        box-shadow: var(--shadow-sm);
+        z-index: 10;
+        line-height: 1;
+      }
+      .theme-toggle:hover {
+        transform: scale(1.08);
+        box-shadow: var(--shadow-lg);
+      }
+      .theme-toggle:active {
+        transform: scale(0.94);
+      }
+      .level-container {
+        display: flex;
+        gap: clamp(6px, 1.5vw, 12px);
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .level-btn {
+        padding: clamp(8px, 1.6vw, 12px) clamp(16px, 3vw, 26px);
+        font-size: clamp(13px, 2.2vw, 16px);
         font-weight: 600;
-        border-radius: 12px;
+        border: 2px solid transparent;
+        border-radius: var(--radius-sm);
+        background: var(--btn-bg);
+        color: var(--btn-text);
         cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition:
+          var(--transition-theme),
+          transform 0.2s ease,
+          border-color 0.2s ease;
+        box-shadow: var(--shadow-sm);
+        white-space: nowrap;
+        letter-spacing: 0.02em;
       }
-      .tile:hover:not(.empty) {
-        background: #64748b;
-        transform: scale(0.96);
+      .level-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
       }
-      .tile.empty {
-        background: transparent;
+      .level-btn:active {
+        transform: translateY(0);
+      }
+      .level-btn.active {
+        background: var(--btn-active-bg);
+        color: var(--btn-active-text);
+        border-color: transparent;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      }
+      .board-wrapper {
+        position: relative;
+        background: var(--surface);
+        border-radius: clamp(14px, 3vw, 20px);
+        box-shadow: var(--shadow-lg);
+        transition:
+          var(--transition-theme),
+          box-shadow 0.4s ease;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .board-wrapper.victory {
+        box-shadow:
+          0 0 0 4px var(--message-success),
+          0 12px 40px rgba(0, 0, 0, 0.2);
+      }
+      #board {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+      }
+      .tile {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--tile-bg);
+        color: var(--tile-text);
+        font-weight: 700;
+        border-radius: clamp(6px, 1.2vw, 12px);
         cursor: default;
-        box-shadow: none;
+        transition:
+          transform 0.16s cubic-bezier(0.4, 0, 0.2, 1),
+          background-color 0.35s ease,
+          color 0.35s ease,
+          box-shadow 0.35s ease;
+        box-shadow: var(--tile-shadow);
+        will-change: transform;
+        letter-spacing: 0.01em;
+      }
+      .tile.movable {
+        cursor: pointer;
+      }
+      .tile.movable:hover {
+        background: var(--tile-hover);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      }
+      .tile.movable:active {
+        transform: scale(0.93);
+        transition: transform 0.08s ease;
+      }
+      .tile.no-transition {
+        transition: none;
+      }
+      .empty-indicator {
+        position: absolute;
+        border-radius: clamp(6px, 1.2vw, 12px);
+        background: transparent;
+        border: none;
+        transition: transform 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+        pointer-events: none;
+      }
+      .empty-indicator.no-transition {
+        transition: none;
       }
       .control-container {
         display: flex;
         align-items: center;
-        gap: 32px;
+        gap: clamp(16px, 3vw, 28px);
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: clamp(13px, 2.2vw, 16px);
+        color: var(--text-secondary);
+        font-weight: 500;
+        transition: var(--transition-theme);
+        min-width: 60px;
+        justify-content: center;
+      }
+      .stat-value {
+        color: var(--text);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+        transition: var(--transition-theme);
       }
       #startBtn {
-        padding: 14px 36px;
-        font-size: 16px;
-        font-weight: 500;
+        padding: clamp(10px, 2vw, 14px) clamp(24px, 5vw, 38px);
+        font-size: clamp(14px, 2.3vw, 17px);
+        font-weight: 600;
         border: none;
-        border-radius: 12px;
-        background: #3b82f6;
+        border-radius: var(--radius-sm);
+        background: var(--accent);
         color: #fff;
         cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        transition:
+          var(--transition-theme),
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+        letter-spacing: 0.03em;
       }
       #startBtn:hover {
-        background: #2563eb;
+        background: var(--accent-hover);
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
       }
-      #timer {
-        font-size: 18px;
-        color: #94a3b8;
-        font-weight: 500;
-        display: none;
+      #startBtn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
       #message {
-        font-size: 24px;
-        color: #10b981;
-        font-weight: 600;
-        min-height: 32px;
+        font-size: clamp(16px, 3vw, 22px);
+        color: var(--message-success);
+        font-weight: 700;
+        min-height: clamp(24px, 4vw, 32px);
+        text-align: center;
+        transition:
+          var(--transition-theme),
+          opacity 0.3s ease;
+        letter-spacing: 0.04em;
+      }
+      #message.pulse {
+        animation: messagePulse 0.6s ease-out;
+      }
+      @keyframes messagePulse {
+        0% {
+          transform: scale(0.7);
+          opacity: 0;
+        }
+        60% {
+          transform: scale(1.08);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @media (max-width: 480px) {
+        .control-container {
+          gap: 10px;
+          flex-direction: column;
+          align-items: center;
+        }
+        .stat-item {
+          min-width: auto;
+        }
+        .level-btn {
+          padding: 8px 14px;
+          font-size: 13px;
+          border-radius: 8px;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="level-container">
-      <button class="level-btn" data-level="2">2阶</button>
-      <button class="level-btn" data-level="3">3阶</button>
-      <button class="level-btn" data-level="4">4阶</button>
-      <button class="level-btn" data-level="5">5阶</button>
+    <button class="theme-toggle" id="themeToggle" aria-label="切换主题">🌙</button>
+    <div class="level-container" id="levelContainer">
+      <button class="level-btn active" data-level="2">2 阶</button>
+      <button class="level-btn" data-level="3">3 阶</button>
+      <button class="level-btn" data-level="4">4 阶</button>
+      <button class="level-btn" data-level="5">5 阶</button>
     </div>
-    <div id="board"></div>
+    <div class="board-wrapper" id="boardWrapper">
+      <div id="board"></div>
+    </div>
     <div class="control-container">
+      <div class="stat-item">
+        <span>步数</span>
+        <span class="stat-value" id="stepCount">0</span>
+      </div>
       <button id="startBtn">开始游戏</button>
-      <div id="timer">用时：0.00s</div>
+      <div class="stat-item">
+        <span>用时</span>
+        <span class="stat-value" id="timerDisplay">0.0s</span>
+      </div>
     </div>
     <div id="message"></div>
     <script>
-      const DOM = {
-        levelBtns: document.querySelectorAll(".level-btn"),
-        board: document.getElementById("board"),
-        startBtn: document.getElementById("startBtn"),
-        timer: document.getElementById("timer"),
-        message: document.getElementById("message"),
-      };
-      let size, board, target, emptyPos, startTime, isPlaying, isFinished;
-      const updateEmptyPos = () => {
-        const index = board.flat().findIndex((val) => val === 0);
-        emptyPos = { row: Math.floor(index / size), col: index % size };
-      };
-      const checkBoardEqual = (a, b) => {
-        return a.every((row, i) => row.every((val, j) => val === b[i][j]));
-      };
-      const checkSolvable = (puzzle) => {
-        const flat = puzzle.flat();
-        const emptyIndex = flat.findIndex((val) => val === 0);
-        const emptyRow = Math.floor(emptyIndex / size);
-        const nums = flat.filter((val) => val !== 0);
-        let inversions = 0;
-        for (let i = 0; i < nums.length; i++) {
-          for (let j = i + 1; j < nums.length; j++) {
-            nums[i] > nums[j] && inversions++;
-          }
+      (function () {
+        const DOM = {
+          themeToggle: document.getElementById("themeToggle"),
+          levelContainer: document.getElementById("levelContainer"),
+          boardWrapper: document.getElementById("boardWrapper"),
+          board: document.getElementById("board"),
+          startBtn: document.getElementById("startBtn"),
+          stepCount: document.getElementById("stepCount"),
+          timerDisplay: document.getElementById("timerDisplay"),
+          message: document.getElementById("message"),
+        };
+        const STORAGE_THEME = "numpuz-theme";
+        const MAX_BOARD_PX = 520;
+        const MIN_BOARD_PX = 260;
+        const GAP_TILE_RATIO = 0.07;
+        const PAD_TILE_RATIO = 0.12;
+        let state = {
+          size: 2,
+          board: [],
+          target: [],
+          emptyPos: { row: 0, col: 0 },
+          isPlaying: false,
+          isFinished: false,
+          startTime: null,
+          steps: 0,
+          timerInterval: null,
+        };
+        let tileElements = new Map();
+        let emptyIndicatorEl = null;
+        let boardPixelSize = 0;
+        let tilePixelSize = 0;
+        let gapPx = 0;
+        let paddingPx = 0;
+        let currentTheme = "light";
+        function detectSystemTheme() {
+          return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
-        const emptyDistance = size - emptyRow;
-        return size % 2 ? inversions % 2 === 0 : (inversions + emptyDistance) % 2 === 1;
-      };
-      const shufflePuzzle = () => {
-        let temp;
-        do {
-          const arr = [...Array(size * size - 1)].map((_, i) => i + 1).concat(0);
-          for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-          }
-          temp = Array.from({ length: size }, (_, i) => arr.slice(i * size, (i + 1) * size));
-        } while (!checkSolvable(temp) || checkBoardEqual(board, temp));
-        board = temp;
-        updateEmptyPos();
-      };
-      const initGameBoard = () => {
-        let num = 1;
-        board = [];
-        target = [];
-        for (let i = 0; i < size; i++) {
-          const row = [];
-          const targetRow = [];
-          for (let j = 0; j < size; j++) {
-            const val = i === size - 1 && j === size - 1 ? 0 : num++;
-            row.push(val);
-            targetRow.push(val);
-          }
-          board.push(row);
-          target.push(targetRow);
+        function loadTheme() {
+          const stored = localStorage.getItem(STORAGE_THEME);
+          if (stored === "dark" || stored === "light") return stored;
+          return detectSystemTheme();
         }
-        updateEmptyPos();
-        renderBoard();
-      };
-      const moveTile = (row, col) => {
-        if (!isPlaying || isFinished) return;
-        const distance = Math.abs(row - emptyPos.row) + Math.abs(col - emptyPos.col);
-        if (distance !== 1) return;
-        [board[emptyPos.row][emptyPos.col], board[row][col]] = [board[row][col], board[emptyPos.row][emptyPos.col]];
-        emptyPos = { row, col };
-        checkWin();
-        renderBoard();
-      };
-      const checkWin = () => {
-        if (!checkBoardEqual(board, target)) return;
-        isPlaying = false;
-        isFinished = true;
-        DOM.timer.textContent = `用时：${((Date.now() - startTime) / 1000).toFixed(2)}s`;
-        DOM.timer.style.display = "block";
-        DOM.message.textContent = "挑战成功！";
-      };
-      const resetGameState = () => {
-        isPlaying = false;
-        isFinished = false;
-        startTime = null;
-        DOM.timer.style.display = "none";
-        DOM.message.textContent = "";
-      };
-      const startGame = () => {
-        shufflePuzzle();
-        isPlaying = true;
-        isFinished = false;
-        startTime = Date.now();
-        DOM.message.textContent = "";
-        DOM.timer.style.display = "none";
-        renderBoard();
-      };
-      const switchLevel = (level) => {
-        size = Number(level);
-        DOM.levelBtns.forEach((btn) => btn.classList.remove("active"));
-        document.querySelector(`[data-level="${level}"]`).classList.add("active");
-        resetGameState();
-        initGameBoard();
-      };
-      const renderBoard = () => {
-        DOM.board.innerHTML = "";
-        DOM.board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-        const boardSize = Math.min(600, window.innerWidth - 40);
-        DOM.board.style.width = `${boardSize}px`;
-        DOM.board.style.height = `${boardSize}px`;
-        const padding = 12;
-        const gap = 8;
-        const innerSize = boardSize - padding * 2;
-        const tileSize = (innerSize - (size - 1) * gap) / size;
-        const fontSize = `${tileSize * 0.5}px`;
-        board.forEach((row, i) => {
-          row.forEach((val, j) => {
-            const tile = document.createElement("div");
-            tile.className = "tile";
-            tile.style.fontSize = fontSize;
-            if (val === 0) {
-              tile.classList.add("empty");
-            } else {
-              tile.textContent = val;
-              tile.onclick = () => moveTile(i, j);
+        function saveTheme(theme) {
+          localStorage.setItem(STORAGE_THEME, theme);
+        }
+        function applyTheme(theme) {
+          currentTheme = theme;
+          document.documentElement.setAttribute("data-theme", theme);
+          DOM.themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+          saveTheme(theme);
+        }
+        function toggleTheme() {
+          applyTheme(currentTheme === "dark" ? "light" : "dark");
+        }
+        function updateEmptyPos() {
+          const flat = state.board.flat();
+          const idx = flat.indexOf(0);
+          state.emptyPos = {
+            row: Math.floor(idx / state.size),
+            col: idx % state.size,
+          };
+        }
+        function boardsEqual(a, b) {
+          return a.every((row, i) => row.every((val, j) => val === b[i][j]));
+        }
+        function isSolvable(puzzle) {
+          const flat = puzzle.flat();
+          const emptyIdx = flat.indexOf(0);
+          const emptyRow = Math.floor(emptyIdx / state.size);
+          const nums = flat.filter((v) => v !== 0);
+          let inversions = 0;
+          for (let i = 0; i < nums.length; i++) {
+            for (let j = i + 1; j < nums.length; j++) {
+              if (nums[i] > nums[j]) inversions++;
             }
-            DOM.board.appendChild(tile);
+          }
+          const emptyDist = state.size - emptyRow;
+          return state.size % 2 === 1 ? inversions % 2 === 0 : (inversions + emptyDist) % 2 === 1;
+        }
+        function buildOrderedBoard() {
+          const s = state.size;
+          const total = s * s;
+          const board = [];
+          const target = [];
+          let num = 1;
+          for (let i = 0; i < s; i++) {
+            const row = [];
+            const tRow = [];
+            for (let j = 0; j < s; j++) {
+              const val = i === s - 1 && j === s - 1 ? 0 : num++;
+              row.push(val);
+              tRow.push(val);
+            }
+            board.push(row);
+            target.push(tRow);
+          }
+          return { board, target };
+        }
+        function shuffleBoard() {
+          const s = state.size;
+          const total = s * s;
+          let shuffled;
+          do {
+            const arr = [];
+            for (let i = 1; i < total; i++) arr.push(i);
+            arr.push(0);
+            for (let i = arr.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            shuffled = [];
+            for (let i = 0; i < s; i++) {
+              shuffled.push(arr.slice(i * s, (i + 1) * s));
+            }
+          } while (!isSolvable(shuffled) || boardsEqual(shuffled, state.target));
+          return shuffled;
+        }
+        function calcSizes() {
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          const available = Math.min(vw - 32, vh - 340, MAX_BOARD_PX);
+          boardPixelSize = Math.max(MIN_BOARD_PX, available);
+          const s = state.size;
+          const idealTile = (boardPixelSize - 10) / s;
+          gapPx = Math.max(2, Math.round(idealTile * GAP_TILE_RATIO));
+          paddingPx = Math.max(4, Math.round(idealTile * PAD_TILE_RATIO));
+          const inner = boardPixelSize - paddingPx * 2;
+          tilePixelSize = Math.floor((inner - (s - 1) * gapPx) / s);
+        }
+        function tileTransform(row, col) {
+          const left = paddingPx + col * (tilePixelSize + gapPx);
+          const top = paddingPx + row * (tilePixelSize + gapPx);
+          return { left, top };
+        }
+        function createTileElement(value) {
+          const el = document.createElement("div");
+          el.className = "tile";
+          el.textContent = value;
+          el.style.width = `${tilePixelSize}px`;
+          el.style.height = `${tilePixelSize}px`;
+          el.style.fontSize = `${Math.round(tilePixelSize * 0.42)}px`;
+          el.style.lineHeight = `${tilePixelSize}px`;
+          el.addEventListener("click", () => handleTileClick(value));
+          return el;
+        }
+        function createEmptyIndicator() {
+          const el = document.createElement("div");
+          el.className = "empty-indicator";
+          el.style.width = `${tilePixelSize}px`;
+          el.style.height = `${tilePixelSize}px`;
+          return el;
+        }
+        function findTilePosition(value) {
+          const s = state.size;
+          for (let r = 0; r < s; r++) {
+            for (let c = 0; c < s; c++) {
+              if (state.board[r][c] === value) return { row: r, col: c };
+            }
+          }
+          return null;
+        }
+        function isAdjacentToEmpty(row, col) {
+          const dr = Math.abs(row - state.emptyPos.row);
+          const dc = Math.abs(col - state.emptyPos.col);
+          return dr + dc === 1;
+        }
+        function renderBoard(fullRebuild = false) {
+          calcSizes();
+          DOM.board.style.width = `${boardPixelSize}px`;
+          DOM.board.style.height = `${boardPixelSize}px`;
+          DOM.boardWrapper.style.width = `${boardPixelSize}px`;
+          DOM.boardWrapper.style.height = `${boardPixelSize}px`;
+          const totalTiles = state.size * state.size - 1;
+          if (fullRebuild || tileElements.size !== totalTiles) {
+            DOM.board.innerHTML = "";
+            tileElements.clear();
+            emptyIndicatorEl = null;
+            for (let v = 1; v <= totalTiles; v++) {
+              const el = createTileElement(v);
+              tileElements.set(v, el);
+              DOM.board.appendChild(el);
+            }
+            emptyIndicatorEl = createEmptyIndicator();
+            DOM.board.appendChild(emptyIndicatorEl);
+          }
+          const allTiles = DOM.board.querySelectorAll(".tile");
+          allTiles.forEach((t) => {
+            t.style.width = `${tilePixelSize}px`;
+            t.style.height = `${tilePixelSize}px`;
+            t.style.fontSize = `${Math.round(tilePixelSize * 0.42)}px`;
+            t.style.lineHeight = `${tilePixelSize}px`;
           });
+          for (let v = 1; v <= totalTiles; v++) {
+            const pos = findTilePosition(v);
+            const el = tileElements.get(v);
+            if (!pos || !el) continue;
+            const { left, top } = tileTransform(pos.row, pos.col);
+            el.style.transform = `translate(${left}px, ${top}px)`;
+            if (state.isPlaying && !state.isFinished && isAdjacentToEmpty(pos.row, pos.col)) {
+              el.classList.add("movable");
+            } else {
+              el.classList.remove("movable");
+            }
+          }
+          if (emptyIndicatorEl) {
+            emptyIndicatorEl.style.width = `${tilePixelSize}px`;
+            emptyIndicatorEl.style.height = `${tilePixelSize}px`;
+            const { left, top } = tileTransform(state.emptyPos.row, state.emptyPos.col);
+            emptyIndicatorEl.style.transform = `translate(${left}px, ${top}px)`;
+          }
+        }
+        function setTileTransitions(enabled) {
+          const tiles = DOM.board.querySelectorAll(".tile");
+          tiles.forEach((t) => {
+            if (enabled) {
+              t.classList.remove("no-transition");
+            } else {
+              t.classList.add("no-transition");
+            }
+          });
+          if (emptyIndicatorEl) {
+            if (enabled) {
+              emptyIndicatorEl.classList.remove("no-transition");
+            } else {
+              emptyIndicatorEl.classList.add("no-transition");
+            }
+          }
+        }
+        function handleTileClick(value) {
+          if (!state.isPlaying || state.isFinished) return;
+          const pos = findTilePosition(value);
+          if (!pos) return;
+          if (!isAdjacentToEmpty(pos.row, pos.col)) return;
+          const er = state.emptyPos.row;
+          const ec = state.emptyPos.col;
+          state.board[er][ec] = value;
+          state.board[pos.row][pos.col] = 0;
+          state.emptyPos = { row: pos.row, col: pos.col };
+          state.steps++;
+          DOM.stepCount.textContent = state.steps;
+          renderBoard();
+          checkWin();
+        }
+        function checkWin() {
+          if (!boardsEqual(state.board, state.target)) return;
+          finishGame(true);
+        }
+        function finishGame(won) {
+          state.isPlaying = false;
+          state.isFinished = true;
+          if (state.timerInterval) {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null;
+          }
+          const elapsed = state.startTime ? ((Date.now() - state.startTime) / 1000).toFixed(1) : "0.0";
+          DOM.timerDisplay.textContent = `${elapsed}s`;
+          if (won) {
+            DOM.message.textContent = "🎉 挑战成功！";
+            DOM.message.classList.remove("pulse");
+            void DOM.message.offsetWidth;
+            DOM.message.classList.add("pulse");
+            DOM.boardWrapper.classList.add("victory");
+          }
+          updateMovableClasses();
+        }
+        function updateMovableClasses() {
+          const tiles = DOM.board.querySelectorAll(".tile");
+          tiles.forEach((t) => t.classList.remove("movable"));
+        }
+        function resetGameState() {
+          if (state.timerInterval) {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null;
+          }
+          state.isPlaying = false;
+          state.isFinished = false;
+          state.startTime = null;
+          state.steps = 0;
+          DOM.stepCount.textContent = "0";
+          DOM.timerDisplay.textContent = "0.0s";
+          DOM.message.textContent = "";
+          DOM.message.classList.remove("pulse");
+          DOM.boardWrapper.classList.remove("victory");
+        }
+        function startGame() {
+          resetGameState();
+          state.board = shuffleBoard();
+          updateEmptyPos();
+          state.isPlaying = true;
+          state.startTime = Date.now();
+          state.timerInterval = setInterval(updateTimer, 120);
+          setTileTransitions(false);
+          renderBoard(true);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setTileTransitions(true);
+            });
+          });
+        }
+        function updateTimer() {
+          if (!state.isPlaying || !state.startTime) return;
+          const elapsed = ((Date.now() - state.startTime) / 1000).toFixed(1);
+          DOM.timerDisplay.textContent = `${elapsed}s`;
+        }
+        function switchLevel(level) {
+          const newSize = Number(level);
+          if (state.size === newSize && tileElements.size > 0) return;
+          state.size = newSize;
+          resetGameState();
+          const { board, target } = buildOrderedBoard();
+          state.board = board;
+          state.target = target;
+          updateEmptyPos();
+          tileElements.clear();
+          emptyIndicatorEl = null;
+          DOM.board.innerHTML = "";
+          DOM.boardWrapper.classList.remove("victory");
+          renderBoard(true);
+          updateLevelButtons();
+        }
+        function updateLevelButtons() {
+          const buttons = DOM.levelContainer.querySelectorAll(".level-btn");
+          buttons.forEach((btn) => {
+            btn.classList.toggle("active", Number(btn.dataset.level) === state.size);
+          });
+        }
+        function handleKeyDown(e) {
+          if (!state.isPlaying || state.isFinished) return;
+          const { row, col } = state.emptyPos;
+          let targetRow = row;
+          let targetCol = col;
+          switch (e.key) {
+            case "ArrowUp":
+              targetRow = row + 1;
+              break;
+            case "ArrowDown":
+              targetRow = row - 1;
+              break;
+            case "ArrowLeft":
+              targetCol = col + 1;
+              break;
+            case "ArrowRight":
+              targetCol = col - 1;
+              break;
+            default:
+              return;
+          }
+          if (targetRow < 0 || targetRow >= state.size || targetCol < 0 || targetCol >= state.size) return;
+          const value = state.board[targetRow][targetCol];
+          if (value === 0) return;
+          e.preventDefault();
+          state.board[row][col] = value;
+          state.board[targetRow][targetCol] = 0;
+          state.emptyPos = { row: targetRow, col: targetCol };
+          state.steps++;
+          DOM.stepCount.textContent = state.steps;
+          renderBoard();
+          checkWin();
+        }
+        function handleResize() {
+          if (tileElements.size === 0) return;
+          renderBoard();
+        }
+        let resizeDebounce = null;
+        function debouncedResize() {
+          if (resizeDebounce) clearTimeout(resizeDebounce);
+          resizeDebounce = setTimeout(handleResize, 150);
+        }
+        DOM.themeToggle.addEventListener("click", toggleTheme);
+        DOM.startBtn.addEventListener("click", startGame);
+        DOM.levelContainer.addEventListener("click", (e) => {
+          const btn = e.target.closest(".level-btn");
+          if (!btn) return;
+          switchLevel(btn.dataset.level);
         });
-      };
-      window.addEventListener("resize", renderBoard);
-      DOM.levelBtns.forEach((btn) => btn.addEventListener("click", () => switchLevel(btn.dataset.level)));
-      DOM.startBtn.addEventListener("click", startGame);
-      switchLevel(2);
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("resize", debouncedResize);
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+          if (!localStorage.getItem(STORAGE_THEME)) {
+            applyTheme(detectSystemTheme());
+          }
+        });
+        applyTheme(loadTheme());
+        switchLevel(2);
+      })();
     </script>
   </body>
 </html>
