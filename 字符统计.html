@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>字符统计</title>
+    <style>
+      :root {
+        --bg-primary: #f2f2f7;
+        --bg-secondary: #ffffff;
+        --text-primary: #1c1c1e;
+        --text-secondary: #6e6e73;
+        --text-tertiary: #aeaeb2;
+        --accent: #007aff;
+        --accent-light: rgba(0, 122, 255, 0.1);
+        --accent-hover: rgba(0, 122, 255, 0.15);
+        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        --border: rgba(0, 0, 0, 0.05);
+        --toggle-bg: #e5e5ea;
+        --toggle-knob: #ffffff;
+        --color-han: #34c759;
+        --color-alpha: #007aff;
+        --color-digit: #ff9500;
+        --color-other: #af52de;
+        --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+      [data-theme="dark"] {
+        --bg-primary: #000000;
+        --bg-secondary: #1c1c1e;
+        --text-primary: #f5f5f7;
+        --text-secondary: #98989d;
+        --text-tertiary: #636366;
+        --accent: #0a84ff;
+        --accent-light: rgba(10, 132, 255, 0.15);
+        --accent-hover: rgba(10, 132, 255, 0.25);
+        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+        --border: rgba(255, 255, 255, 0.08);
+        --toggle-bg: #48484a;
+        --color-han: #30d158;
+        --color-alpha: #0a84ff;
+        --color-digit: #ff9f0a;
+        --color-other: #bf5af2;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: var(--font-stack);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition:
+          background 0.3s var(--ease-smooth),
+          color 0.3s var(--ease-smooth);
+      }
+      .app {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 24px;
+        flex-shrink: 0;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), #5856d6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
+      }
+      .logo svg {
+        width: 22px;
+        height: 22px;
+        fill: #fff;
+      }
+      .title-group h1 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0;
+        line-height: 1.2;
+      }
+      .title-group p {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin: 2px 0 0;
+      }
+      .theme-toggle {
+        position: relative;
+        width: 52px;
+        height: 32px;
+        border-radius: 16px;
+        background: var(--toggle-bg);
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s;
+      }
+      .theme-toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--toggle-knob);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        transition: transform 0.4s var(--ease-spring);
+      }
+      [data-theme="dark"] .theme-toggle::after {
+        transform: translateX(20px);
+      }
+      .toggle-icon {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        fill: var(--text-secondary);
+        transition: opacity 0.2s;
+        pointer-events: none;
+      }
+      .icon-sun {
+        left: 8px;
+        opacity: 1;
+      }
+      .icon-moon {
+        right: 8px;
+        opacity: 0.4;
+      }
+      [data-theme="dark"] .icon-sun {
+        opacity: 0.4;
+      }
+      [data-theme="dark"] .icon-moon {
+        opacity: 1;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-shrink: 0;
+      }
+      .stat-card {
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        padding: 16px 8px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border);
+        text-align: center;
+        transition:
+          transform 0.2s var(--ease-smooth),
+          box-shadow 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      }
+      .stat-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+      }
+      .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat-card.han .stat-value {
+        color: var(--color-han);
+      }
+      .stat-card.alpha .stat-value {
+        color: var(--color-alpha);
+      }
+      .stat-card.digit .stat-value {
+        color: var(--color-digit);
+      }
+      .stat-card.other .stat-value {
+        color: var(--color-other);
+      }
+      .input-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .input-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+      }
+      .label-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .input-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+      .total-badge {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-tertiary);
+        background: var(--bg-secondary);
+        padding: 4px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .action-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .btn svg {
+        width: 14px;
+        height: 14px;
+      }
+      .btn-ghost {
+        background: var(--accent-light);
+        color: var(--accent);
+      }
+      .btn-ghost:hover {
+        background: var(--accent-hover);
+      }
+      .btn-ghost:active {
+        transform: scale(0.96);
+      }
+      .btn-danger {
+        background: rgba(255, 59, 48, 0.1);
+        color: #ff3b30;
+      }
+      .btn-danger:hover {
+        background: rgba(255, 59, 48, 0.18);
+      }
+      .btn-danger:active {
+        transform: scale(0.96);
+      }
+      .textarea-wrap {
+        flex: 1;
+        position: relative;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+      }
+      textarea {
+        width: 100%;
+        flex: 1;
+        min-height: 200px;
+        padding: 18px 20px;
+        border-radius: 18px;
+        border: 1.5px solid var(--border);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: none;
+        outline: none;
+        font-family: inherit;
+        box-shadow: var(--card-shadow);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      textarea::placeholder {
+        color: var(--text-tertiary);
+      }
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-light);
+      }
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        opacity: 0;
+        transition: all 0.3s var(--ease-spring);
+        pointer-events: none;
+        z-index: 100;
+        white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(0.9);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .animate-pop {
+        animation: pop 0.3s var(--ease-spring);
+      }
+      @media (max-width: 600px) {
+        .stats-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .app {
+          padding: 16px;
+        }
+        header {
+          padding-bottom: 16px;
+        }
+        .stat-value {
+          font-size: 1.5rem;
+        }
+        textarea {
+          padding: 14px;
+          font-size: 16px;
+        }
+        .input-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .action-btns {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="header-left">
+          <div class="logo">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h6v1.5H8V16zm0-6h3v1.5H8V10z" /></svg>
+          </div>
+          <div class="title-group">
+            <h1>字符统计</h1>
+            <p>实时分析文本内容</p>
+          </div>
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+          <svg class="toggle-icon icon-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-3a1 1 0 01-1-1V1a1 1 0 112 0v2a1 1 0 01-1 1zm0 18a1 1 0 01-1-1v-2a1 1 0 112 0v2a1 1 0 01-1 1zm9-9a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM5 12a1 1 0 01-1 1H2a1 1 0 110-2h2a1 1 0 011 1zm14.07-6.36a1 1 0 01-.7.3 1 1 0 01-.71-.3l-1.41-1.41a1 1 0 111.41-1.41l1.41 1.41a1 1 0 010 1.41zM6.34 18.37a1 1 0 01-.7.29 1 1 0 01-.71-.3l-1.41-1.4a1 1 0 111.41-1.42l1.41 1.41a1 1 0 010 1.42zM19.07 18.37a1 1 0 010-1.42l1.41-1.41a1 1 0 111.41 1.42l-1.41 1.4a1 1 0 01-1.41.01zM6.34 6.34a1 1 0 010-1.41L7.75 3.52a1 1 0 011.41 1.41L7.75 6.34a1 1 0 01-1.41 0z" /></svg>
+          <svg class="toggle-icon icon-moon" viewBox="0 0 24 24"><path d="M21.64 13a1 1 0 00-1.05-.14 8.05 8.05 0 01-3.37.73A8.15 8.15 0 019.08 5.49a8.59 8.59 0 01.25-2 1 1 0 00-.35-1A1 1 0 008 2.36a10.14 10.14 0 1014 11.69 1 1 0 00-.36-1.05z" /></svg>
+        </button>
+      </header>
+      <div class="stats-grid">
+        <div class="stat-card han">
+          <div class="stat-label">汉字</div>
+          <div class="stat-value" id="hanCount">0</div>
+        </div>
+        <div class="stat-card alpha">
+          <div class="stat-label">字母</div>
+          <div class="stat-value" id="alphaCount">0</div>
+        </div>
+        <div class="stat-card digit">
+          <div class="stat-label">数字</div>
+          <div class="stat-value" id="digitCount">0</div>
+        </div>
+        <div class="stat-card other">
+          <div class="stat-label">其他符号</div>
+          <div class="stat-value" id="otherCount">0</div>
+        </div>
+      </div>
+      <div class="input-section">
+        <div class="input-header">
+          <div class="label-group">
+            <span class="input-title">输入文本</span>
+            <span class="total-badge" id="totalBadge">共 0 字符</span>
+          </div>
+          <div class="action-btns">
+            <button class="btn btn-ghost" id="pasteBtn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z" /></svg>
+              粘贴
+            </button>
+            <button class="btn btn-danger" id="clearBtn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
+              清空
+            </button>
+          </div>
+        </div>
+        <div class="textarea-wrap">
+          <textarea id="textInput" placeholder="在此输入或粘贴文本…" spellcheck="false" autofocus></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script>
+      (function () {
+        const els = {
+          html: document.documentElement,
+          toggle: document.getElementById("themeToggle"),
+          input: document.getElementById("textInput"),
+          han: document.getElementById("hanCount"),
+          alpha: document.getElementById("alphaCount"),
+          digit: document.getElementById("digitCount"),
+          other: document.getElementById("otherCount"),
+          total: document.getElementById("totalBadge"),
+          toast: document.getElementById("toast"),
+          pasteBtn: document.getElementById("pasteBtn"),
+          clearBtn: document.getElementById("clearBtn"),
+        };
+        const getPreferredTheme = () => {
+          const saved = localStorage.getItem("theme");
+          if (saved) return saved;
+          return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        };
+        const setTheme = (theme) => {
+          els.html.setAttribute("data-theme", theme);
+          localStorage.setItem("theme", theme);
+        };
+        setTheme(getPreferredTheme());
+        els.toggle.addEventListener("click", () => {
+          const current = els.html.getAttribute("data-theme");
+          setTheme(current === "light" ? "dark" : "light");
+        });
+        const updateStats = () => {
+          const text = els.input.value;
+          const len = text.length;
+          const han = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
+          const alpha = (text.match(/[a-zA-Z]/g) || []).length;
+          const digit = (text.match(/[0-9]/g) || []).length;
+          const other = len - han - alpha - digit;
+          els.han.textContent = han;
+          els.alpha.textContent = alpha;
+          els.digit.textContent = digit;
+          els.other.textContent = other;
+          els.total.textContent = `共 ${len} 字符`;
+          [els.han, els.alpha, els.digit, els.other].forEach((el) => {
+            el.classList.remove("animate-pop");
+            void el.offsetWidth;
+            el.classList.add("animate-pop");
+          });
+        };
+        els.input.addEventListener("input", updateStats);
+        const showToast = (msg) => {
+          els.toast.textContent = msg;
+          els.toast.classList.add("show");
+          setTimeout(() => els.toast.classList.remove("show"), 2000);
+        };
+        els.pasteBtn.addEventListener("click", async () => {
+          try {
+            const text = await navigator.clipboard.readText();
+            els.input.value = text;
+            updateStats();
+            els.input.focus();
+            showToast("已粘贴");
+          } catch (err) {
+            showToast("无法访问剪贴板");
+          }
+        });
+        els.clearBtn.addEventListener("click", () => {
+          if (!els.input.value) return;
+          els.input.value = "";
+          updateStats();
+          els.input.focus();
+          showToast("已清空");
+        });
+        updateStats();
+      })();
+    </script>
+  </body>
+</html>
