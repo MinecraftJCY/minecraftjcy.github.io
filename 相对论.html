@@ -158,13 +158,31 @@
           border-color 0.45s ease,
           box-shadow 0.45s ease;
       }
-      .panel > label {
-        display: block;
+      .panel-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px 14px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+      }
+      .panel-head label {
         font-size: 13px;
         font-weight: 500;
         color: var(--text-secondary);
         letter-spacing: 0.02em;
-        margin-bottom: 4px;
+      }
+      .panel-head label .sym {
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: 0;
+      }
+      .panel-head .range {
+        font-size: 12.5px;
+        color: var(--text-tertiary);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
       }
       .velocity-row {
         display: flex;
@@ -191,33 +209,13 @@
         font-weight: 500;
         color: var(--text-tertiary);
       }
-      .field-line {
-        position: relative;
-        height: 2px;
-        margin-top: 6px;
-        border-radius: 2px;
-        background: var(--border);
-        overflow: hidden;
-      }
-      .field-line::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--accent);
-        transform: scaleX(0);
-        transform-origin: left center;
-        transition: transform 0.4s var(--ease);
-      }
-      .panel.is-focused .field-line::after {
-        transform: scaleX(1);
-      }
       input[type="range"].slider {
         -webkit-appearance: none;
         appearance: none;
         display: block;
         width: 100%;
         height: 28px;
-        margin: 20px 0 0;
+        margin: -6px 0 0;
         background: transparent;
         cursor: pointer;
       }
@@ -263,14 +261,49 @@
           0 3px 10px rgba(0, 0, 0, 0.16);
       }
       .hint {
-        margin: 16px 0 0;
+        display: none;
+        margin: 12px 0 0;
         font-size: 13px;
         line-height: 1.5;
-        color: var(--text-tertiary);
-        transition: color 0.25s ease;
+        color: var(--danger);
       }
       .hint.error {
-        color: var(--danger);
+        display: block;
+      }
+      .ratio {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+      .ratio-label {
+        flex: none;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        letter-spacing: 0.02em;
+      }
+      .ratio-value {
+        min-width: 0;
+        font-size: clamp(17px, 1.2vw + 11px, 21px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+      }
+      .ratio-value::-webkit-scrollbar {
+        display: none;
+      }
+      .ratio-value sup {
+        font-size: 0.62em;
+        vertical-align: super;
       }
       .chips {
         display: flex;
@@ -304,10 +337,11 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
       }
       .card {
+        min-width: 0;
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 22px;
@@ -338,12 +372,6 @@
       }
       .card:nth-child(4) {
         animation-delay: 0.18s;
-      }
-      .card:nth-child(5) {
-        animation-delay: 0.23s;
-      }
-      .card:nth-child(6) {
-        animation-delay: 0.28s;
       }
       .card-head {
         display: flex;
@@ -405,6 +433,12 @@
           padding: 22px 22px 20px;
         }
       }
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+      }
       @media (max-width: 720px) {
         .app {
           padding: 22px 16px 56px;
@@ -416,10 +450,6 @@
         .card {
           padding: 20px 20px 22px;
           border-radius: 20px;
-        }
-        .grid {
-          grid-template-columns: 1fr;
-          gap: 14px;
         }
         .brand h1 {
           font-size: 18px;
@@ -448,6 +478,11 @@
         }
         .card-formula {
           font-size: 11px;
+        }
+        .ratio {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -483,14 +518,20 @@
       </header>
       <main>
         <section class="panel" id="inputPanel">
-          <label for="velocityInput">物体速度</label>
+          <div class="panel-head">
+            <label for="velocityInput">物体速度 <span class="sym">v</span></label>
+            <span class="range">0 – 299792458 m/s</span>
+          </div>
           <div class="velocity-row">
             <input id="velocityInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="149896229" aria-label="速度，单位米每秒" />
             <span class="velocity-unit">m/s</span>
           </div>
-          <div class="field-line"></div>
           <input id="speedSlider" class="slider" type="range" min="0" max="1000" step="0.1" value="0" aria-label="速度调节滑块" />
-          <p class="hint" id="hint">请输入 0 至 299792458 m/s 之间的速度</p>
+          <p class="hint" id="hint" role="alert"></p>
+          <div class="ratio">
+            <span class="ratio-label">速度比 β = v / c</span>
+            <span class="ratio-value" id="betaValue">—</span>
+          </div>
           <div class="chips" id="chips">
             <button type="button" data-beta="0.1">0.1c</button>
             <button type="button" data-beta="0.5">0.5c</button>
@@ -503,14 +544,6 @@
           </div>
         </section>
         <section class="grid">
-          <article class="card">
-            <div class="card-head">
-              <span class="card-title">速度比</span>
-              <span class="card-formula">β = v / c</span>
-            </div>
-            <div class="card-value" id="betaValue">—</div>
-            <p class="card-note" id="betaNote">—</p>
-          </article>
           <article class="card">
             <div class="card-head">
               <span class="card-title">洛伦兹因子</span>
@@ -543,62 +576,59 @@
             <div class="card-value" id="massValue">—</div>
             <p class="card-note" id="massNote">—</p>
           </article>
-          <article class="card">
-            <div class="card-head">
-              <span class="card-title">相对论动能</span>
-              <span class="card-formula">Eₖ = (γ − 1) m c²</span>
-            </div>
-            <div class="card-value" id="energyValue">—</div>
-            <p class="card-note" id="energyNote">—</p>
-          </article>
         </section>
       </main>
     </div>
     <script>
       (function () {
         "use strict";
-        const C = 299792458;
+        const LIGHT_SPEED = 299792458;
         const SLIDER_MAX = 1000;
         const SLIDER_SCALE = 100;
         const PRECISION = 17;
         const SCI_UPPER = 1e16;
         const SCI_LOWER = 1e-5;
-        const DEFAULT_HINT = "请输入 0 至 299792458 m/s 之间的速度";
+        const INITIAL_VELOCITY = 149896229;
+        const THEME_KEY = "relativity-theme";
+        const THEME_DARK = "dark";
+        const THEME_LIGHT = "light";
         const $ = (id) => document.getElementById(id);
         const root = document.documentElement;
-        const inputPanel = $("inputPanel");
-        const velocityInput = $("velocityInput");
-        const slider = $("speedSlider");
-        const hint = $("hint");
-        const themeToggle = $("themeToggle");
-        const chips = $("chips");
-        const cards = {
-          beta: { value: $("betaValue"), note: $("betaNote") },
+        const dom = {
+          velocityInput: $("velocityInput"),
+          slider: $("speedSlider"),
+          hint: $("hint"),
+          themeToggle: $("themeToggle"),
+          chips: $("chips"),
+          betaValue: $("betaValue"),
+        };
+        const resultCards = {
           gamma: { value: $("gammaValue"), note: $("gammaNote") },
           time: { value: $("timeValue"), note: $("timeNote") },
           length: { value: $("lengthValue"), note: $("lengthNote") },
           mass: { value: $("massValue"), note: $("massNote") },
-          energy: { value: $("energyValue"), note: $("energyNote") },
         };
-        const trimZeros = (str) => (str.includes(".") ? str.replace(/0+$/, "").replace(/\.$/, "") : str);
-        function toSciHTML(value) {
-          const str = value.toExponential(PRECISION - 1);
-          const eIndex = str.indexOf("e");
-          const mantissa = trimZeros(str.slice(0, eIndex));
-          const exponent = Number(str.slice(eIndex + 1));
-          return mantissa + "×10<sup>" + exponent + "</sup>";
+        function trimZeros(str) {
+          if (!str.includes(".")) return str;
+          return str.replace(/0+$/, "").replace(/\.$/, "");
+        }
+        function formatScientific(value) {
+          const [mantissa, exponent] = value.toExponential(PRECISION - 1).split("e");
+          return trimZeros(mantissa) + "×10<sup>" + Number(exponent) + "</sup>";
         }
         function formatNumber(value) {
           if (!Number.isFinite(value)) return "∞";
           if (value === 0) return "0";
           const abs = Math.abs(value);
-          if (abs >= SCI_UPPER || abs < SCI_LOWER) return toSciHTML(value);
+          if (abs >= SCI_UPPER || abs < SCI_LOWER) return formatScientific(value);
           return trimZeros(value.toPrecision(PRECISION));
         }
         function formatBeta(beta) {
           return beta > 1 - 1e-10 ? "1 − " + formatNumber(1 - beta) : formatNumber(beta);
         }
-        const formatInput = (value) => (value > 0 ? String(value) : "0");
+        function formatVelocityInput(value) {
+          return value > 0 ? String(value) : "0";
+        }
         function betaToSlider(beta) {
           if (!(beta > 0)) return 0;
           if (beta >= 1 - 1e-10) return SLIDER_MAX;
@@ -607,109 +637,102 @@
         function sliderToBeta(sliderValue) {
           return sliderValue > 0 ? 1 - Math.pow(10, -sliderValue / SLIDER_SCALE) : 0;
         }
-        function updateSliderFill() {
-          const percent = (Number(slider.value) / SLIDER_MAX) * 100;
-          slider.style.setProperty("--fill", percent + "%");
-        }
-        function setCard(card, html, note) {
-          card.value.innerHTML = html;
-          card.note.textContent = note;
-        }
-        function render(velocity) {
-          const beta = velocity / C;
+        function computeResults(velocity) {
+          const beta = velocity / LIGHT_SPEED;
           const gamma = 1 / Math.sqrt((1 - beta) * (1 + beta));
-          const invGamma = 1 / gamma;
-          const kinetic = (gamma - 1) * C * C;
-          setCard(cards.beta, formatBeta(beta), "物体速度与真空中光速的比值");
-          setCard(cards.gamma, formatNumber(gamma), "时间变慢、长度缩短与质量增大的共同倍数");
-          setCard(cards.time, formatNumber(gamma) + '<span class="unit">s</span>', "物体自身钟走过 1 秒时，静止观察者测得的时间");
-          setCard(cards.length, formatNumber(invGamma) + '<span class="unit">m</span>', "固有长度为 1 米的物体，沿运动方向测得的长度");
-          setCard(cards.mass, formatNumber(gamma) + '<span class="unit">kg</span>', "静止质量 1 千克的物体，运动时具有的惯性质量");
-          setCard(cards.energy, formatNumber(kinetic) + '<span class="unit">J</span>', "静止质量 1 千克的物体在该速度下具有的动能");
+          return { beta, gamma, lengthFactor: 1 / gamma };
         }
-        function showHint(text, isError) {
-          hint.textContent = text;
-          hint.classList.toggle("error", Boolean(isError));
+        function renderCard(slot, valueHTML, note) {
+          slot.value.innerHTML = valueHTML;
+          slot.note.textContent = note;
         }
-        function setVelocity(velocity) {
-          slider.value = String(betaToSlider(velocity / C));
-          updateSliderFill();
-          showHint(DEFAULT_HINT, false);
-          render(velocity);
+        function setHint(message) {
+          dom.hint.textContent = message || "";
+          dom.hint.classList.toggle("error", Boolean(message));
         }
-        function parseInput() {
-          return Number(velocityInput.value.trim().replace(/[,\s]/g, ""));
+        function syncSliderFill() {
+          const percent = (Number(dom.slider.value) / SLIDER_MAX) * 100;
+          dom.slider.style.setProperty("--fill", percent + "%");
         }
-        function handleInputEvent() {
-          const raw = velocityInput.value.trim().replace(/[,\s]/g, "");
-          if (raw === "") {
-            showHint("请输入一个速度值", true);
+        function renderAll(velocity) {
+          const { beta, gamma, lengthFactor } = computeResults(velocity);
+          dom.betaValue.innerHTML = formatBeta(beta);
+          renderCard(resultCards.gamma, formatNumber(gamma), "时间变慢、长度缩短与质量增大的共同倍数");
+          renderCard(resultCards.time, formatNumber(gamma) + '<span class="unit">s</span>', "物体自身钟走过 1 秒时，静止观察者测得的时间");
+          renderCard(resultCards.length, formatNumber(lengthFactor) + '<span class="unit">m</span>', "固有长度为 1 米的物体，沿运动方向测得的长度");
+          renderCard(resultCards.mass, formatNumber(gamma) + '<span class="unit">kg</span>', "静止质量 1 千克的物体，运动时具有的惯性质量");
+        }
+        function applyVelocity(velocity) {
+          dom.slider.value = String(betaToSlider(velocity / LIGHT_SPEED));
+          syncSliderFill();
+          setHint("");
+          renderAll(velocity);
+        }
+        function parseVelocity(raw) {
+          const cleaned = raw.trim().replace(/[,\s]/g, "");
+          if (cleaned === "") return { error: "请输入一个速度值" };
+          const value = Number(cleaned);
+          if (!Number.isFinite(value)) return { error: "请输入有效的数字" };
+          if (value <= 0) return { error: "速度必须大于 0" };
+          if (value >= LIGHT_SPEED) return { error: "速度不能达到或超过光速（299792458 m/s）" };
+          return { value };
+        }
+        function handleInput() {
+          const { value, error } = parseVelocity(dom.velocityInput.value);
+          if (error) {
+            setHint(error);
             return;
           }
-          const value = Number(raw);
-          if (!Number.isFinite(value)) {
-            showHint("请输入有效的数字", true);
-            return;
-          }
-          if (value <= 0) {
-            showHint("速度必须大于 0", true);
-            return;
-          }
-          if (value >= C) {
-            showHint("速度不能达到或超过光速（299792458 m/s）", true);
-            return;
-          }
-          setVelocity(value);
+          applyVelocity(value);
         }
-        function handleSliderEvent() {
-          const velocity = sliderToBeta(Number(slider.value)) * C;
-          updateSliderFill();
-          velocityInput.value = formatInput(velocity);
-          showHint(DEFAULT_HINT, false);
-          render(velocity);
+        function handleInputBlur() {
+          const { value } = parseVelocity(dom.velocityInput.value);
+          if (value !== undefined) {
+            dom.velocityInput.value = formatVelocityInput(value);
+          }
+        }
+        function handleSliderInput() {
+          const velocity = sliderToBeta(Number(dom.slider.value)) * LIGHT_SPEED;
+          syncSliderFill();
+          dom.velocityInput.value = formatVelocityInput(velocity);
+          setHint("");
+          renderAll(velocity);
+        }
+        function handleChipClick(event) {
+          const button = event.target.closest("button[data-beta]");
+          if (!button) return;
+          const velocity = Number(button.dataset.beta) * LIGHT_SPEED;
+          dom.velocityInput.value = formatVelocityInput(velocity);
+          applyVelocity(velocity);
         }
         function applyTheme(theme) {
           root.setAttribute("data-theme", theme);
           try {
-            localStorage.setItem("relativity-theme", theme);
+            localStorage.setItem(THEME_KEY, theme);
           } catch (_) {}
         }
-        function loadSavedTheme() {
+        function loadStoredTheme() {
           try {
-            return localStorage.getItem("relativity-theme");
+            return localStorage.getItem(THEME_KEY);
           } catch (_) {
             return null;
           }
         }
-        velocityInput.addEventListener("input", handleInputEvent);
-        velocityInput.addEventListener("focus", () => {
-          inputPanel.classList.add("is-focused");
-        });
-        velocityInput.addEventListener("blur", () => {
-          inputPanel.classList.remove("is-focused");
-          const value = parseInput();
-          if (value > 0 && value < C) {
-            velocityInput.value = formatInput(value);
-          }
-        });
-        slider.addEventListener("input", handleSliderEvent);
-        chips.addEventListener("click", ({ target }) => {
-          const button = target.closest("button[data-beta]");
-          if (!button) return;
-          const velocity = Number(button.dataset.beta) * C;
-          velocityInput.value = formatInput(velocity);
-          setVelocity(velocity);
-        });
-        themeToggle.addEventListener("click", () => {
-          const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          applyTheme(next);
-        });
-        (function init() {
-          applyTheme(loadSavedTheme() === "dark" ? "dark" : "light");
-          const INITIAL_VELOCITY = 149896229;
-          velocityInput.value = formatInput(INITIAL_VELOCITY);
-          setVelocity(INITIAL_VELOCITY);
-        })();
+        function handleThemeToggle() {
+          const current = root.getAttribute("data-theme");
+          applyTheme(current === THEME_DARK ? THEME_LIGHT : THEME_DARK);
+        }
+        function init() {
+          applyTheme(loadStoredTheme() === THEME_DARK ? THEME_DARK : THEME_LIGHT);
+          dom.velocityInput.value = formatVelocityInput(INITIAL_VELOCITY);
+          applyVelocity(INITIAL_VELOCITY);
+          dom.velocityInput.addEventListener("input", handleInput);
+          dom.velocityInput.addEventListener("blur", handleInputBlur);
+          dom.slider.addEventListener("input", handleSliderInput);
+          dom.chips.addEventListener("click", handleChipClick);
+          dom.themeToggle.addEventListener("click", handleThemeToggle);
+        }
+        init();
       })();
     </script>
   </body>
