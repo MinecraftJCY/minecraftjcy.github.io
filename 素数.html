@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>素数</title>
+    <style>
+      :root {
+        --bg: #f5f5f7;
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --text-primary: #1d1d1f;
+        --text-secondary: #86868b;
+        --accent: #007aff;
+        --success: #34c759;
+        --error: #ff3b30;
+        --input-bg: rgba(118, 118, 128, 0.12);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        --border: rgba(0, 0, 0, 0.05);
+      }
+      [data-theme="dark"] {
+        --bg: #000000;
+        --card-bg: rgba(28, 28, 30, 0.8);
+        --text-primary: #f5f5f7;
+        --text-secondary: #98989d;
+        --input-bg: rgba(118, 118, 128, 0.24);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        --border: rgba(255, 255, 255, 0.1);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        background-color: var(--bg);
+        color: var(--text-primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition:
+          background-color 0.4s ease,
+          color 0.4s ease;
+        padding: 20px;
+      }
+      .card {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        width: 100%;
+        max-width: 520px;
+        padding: 32px;
+        position: relative;
+        transition:
+          background 0.4s ease,
+          box-shadow 0.4s ease,
+          border-color 0.4s ease;
+        max-height: calc(100vh - 40px);
+        max-height: calc(100dvh - 40px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .theme-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--input-bg);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        z-index: 10;
+      }
+      .theme-toggle:active {
+        transform: scale(0.9);
+      }
+      .theme-toggle svg {
+        width: 20px;
+        height: 20px;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+        flex-shrink: 0;
+      }
+      .subtitle {
+        font-size: 15px;
+        color: var(--text-secondary);
+        margin-bottom: 28px;
+        flex-shrink: 0;
+      }
+      .input-group {
+        display: flex;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .input-field {
+        flex: 1;
+        background: var(--input-bg);
+        border: none;
+        border-radius: 14px;
+        padding: 16px 20px;
+        font-size: 17px;
+        color: var(--text-primary);
+        outline: none;
+        transition: all 0.3s ease;
+      }
+      .input-field::placeholder {
+        color: var(--text-secondary);
+      }
+      .input-field:focus {
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+      }
+      .btn {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        padding: 16px 28px;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+      .btn:active {
+        transform: scale(0.96);
+        opacity: 0.9;
+      }
+      .result-container {
+        margin-top: 28px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      .result-container::-webkit-scrollbar {
+        width: 6px;
+      }
+      .result-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .result-container::-webkit-scrollbar-thumb {
+        background: var(--text-secondary);
+        border-radius: 3px;
+        opacity: 0.5;
+      }
+      .result {
+        animation: fadeInUp 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+      }
+      .status {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: -0.3px;
+      }
+      .status.prime {
+        color: var(--success);
+      }
+      .status.composite {
+        color: var(--text-primary);
+      }
+      .status.error {
+        color: var(--error);
+      }
+      .factors-label {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+      }
+      .factor-pair-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        gap: 10px;
+      }
+      .factor-item {
+        flex: 1;
+        background: var(--input-bg);
+        border-radius: 12px;
+        padding: 14px 8px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-primary);
+        transition: transform 0.2s ease;
+        user-select: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .factor-item.single {
+        flex: 0 0 auto;
+        width: 50%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .factor-item:active {
+        transform: scale(0.98);
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (max-width: 480px) {
+        .card {
+          padding: 24px;
+          border-radius: 20px;
+        }
+        .title {
+          font-size: 24px;
+        }
+        .status {
+          font-size: 20px;
+        }
+        .input-group {
+          flex-direction: column;
+        }
+        .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <button class="theme-toggle" id="themeToggle">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <h1 class="title">素数与因数</h1>
+      <p class="subtitle">输入一个自然数，判断其是否为素数并找出所有因数</p>
+      <div class="input-group">
+        <input type="text" class="input-field" id="numberInput" placeholder="请输入数字" inputmode="numeric" autocomplete="off" />
+        <button class="btn" id="calcBtn">验证</button>
+      </div>
+      <div class="result-container" id="resultContainer"></div>
+    </div>
+    <script>
+      const input = document.getElementById("numberInput");
+      const btn = document.getElementById("calcBtn");
+      const resultContainer = document.getElementById("resultContainer");
+      const themeToggle = document.getElementById("themeToggle");
+      const iconSun = document.querySelector(".icon-sun");
+      const iconMoon = document.querySelector(".icon-moon");
+      function calculate() {
+        const val = input.value.trim();
+        if (!/^\d+$/.test(val)) {
+          renderError("请输入有效的正整数");
+          return;
+        }
+        const number = parseInt(val, 10);
+        if (number <= 1) {
+          renderError("请输入大于1的自然数");
+          return;
+        }
+        if (number > Number.MAX_SAFE_INTEGER) {
+          renderError("数值过大，请输入较小的数");
+          return;
+        }
+        const factors = [];
+        const limit = Math.floor(Math.sqrt(number));
+        for (let i = 1; i <= limit; i++) {
+          if (number % i === 0) {
+            factors.push([i, number / i]);
+          }
+        }
+        const isPrime = factors.length === 1 && factors[0][0] === 1;
+        renderResult(isPrime, factors);
+      }
+      function renderError(msg) {
+        resultContainer.innerHTML = `
+                <div class="result">
+                    <div class="status error">${msg}</div>
+                </div>
+            `;
+      }
+      function renderResult(isPrime, factorPairs) {
+        const statusClass = isPrime ? "prime" : "composite";
+        const statusText = isPrime ? "是素数" : "不是素数";
+        let pairsHtml = "";
+        if (!isPrime) {
+          pairsHtml = `
+                    <div class="factors-label">因数对</div>
+                    <div class="factors-list">
+                        ${factorPairs
+                          .map((pair) => {
+                            const [a, b] = pair;
+                            if (a === b) {
+                              return `
+                                    <div class="factor-pair-row">
+                                        <div class="factor-item single">${a}</div>
+                                    </div>
+                                `;
+                            }
+                            return `
+                                <div class="factor-pair-row">
+                                    <div class="factor-item">${a}</div>
+                                    <div class="factor-item">${b}</div>
+                                </div>
+                            `;
+                          })
+                          .join("")}
+                    </div>
+                `;
+        }
+        resultContainer.innerHTML = `
+                <div class="result">
+                    <div class="status ${statusClass}">${statusText}</div>
+                    ${pairsHtml}
+                </div>
+            `;
+      }
+      btn.addEventListener("click", calculate);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          calculate();
+        }
+      });
+      input.addEventListener("input", () => {
+        input.value = input.value.replace(/\D/g, "");
+      });
+      themeToggle.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme");
+        const next = current === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        updateThemeIcon(next);
+      });
+      function updateThemeIcon(theme) {
+        if (theme === "dark") {
+          iconSun.style.display = "none";
+          iconMoon.style.display = "block";
+        } else {
+          iconSun.style.display = "block";
+          iconMoon.style.display = "none";
+        }
+      }
+      const savedTheme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      updateThemeIcon(savedTheme);
+    </script>
+  </body>
+</html>
