@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>末地传送门定位器</title>
+    <style>
+      :root {
+        --bg-color: #f5f5f7;
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --text-primary: #1d1d1f;
+        --text-secondary: #86868b;
+        --accent-color: #007aff;
+        --border-color: rgba(0, 0, 0, 0.1);
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        --input-bg: rgba(0, 0, 0, 0.05);
+        --error-color: #ff3b30;
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      [data-theme="dark"] {
+        --bg-color: #000000;
+        --card-bg: rgba(28, 28, 30, 0.8);
+        --text-primary: #f5f5f7;
+        --text-secondary: #86868b;
+        --accent-color: #0a84ff;
+        --border-color: rgba(255, 255, 255, 0.15);
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        --input-bg: rgba(255, 255, 255, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        line-height: 1.5;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        transition: background-color 0.3s ease;
+      }
+      .container {
+        width: 100%;
+        max-width: 800px;
+        margin-top: 40px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 0 10px;
+      }
+      h1 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      .theme-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        background-color: var(--input-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.05);
+      }
+      .theme-toggle svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--text-primary);
+      }
+      .card {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+      }
+      .section-title {
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-title + .section-title {
+        margin-top: 24px;
+      }
+      .section-title::before {
+        content: "";
+        display: block;
+        width: 4px;
+        height: 16px;
+        background-color: var(--accent-color);
+        border-radius: 2px;
+      }
+      .input-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      @media (max-width: 600px) {
+        .input-group {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mc-input {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+        font-size: 16px;
+        outline: none;
+        transition: var(--transition);
+      }
+      .mc-input::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.8;
+      }
+      .mc-input:focus {
+        background-color: var(--card-bg);
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+      }
+      .btn-calculate {
+        width: 100%;
+        padding: 16px;
+        border-radius: 14px;
+        border: none;
+        background-color: var(--accent-color);
+        color: white;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 10px;
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+      }
+      .btn-calculate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+      }
+      .btn-calculate:active {
+        transform: translateY(0);
+      }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal-content {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 28px 24px 24px;
+        width: min(90%, 360px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        transform: scale(0.9) translateY(20px);
+        transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        text-align: center;
+      }
+      .modal-overlay.active .modal-content {
+        transform: scale(1) translateY(0);
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+      }
+      .modal-coords {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--accent-color);
+        margin-bottom: 24px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.5px;
+        word-break: break-all;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+      }
+      .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+      .modal-btn.secondary {
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+      }
+      .modal-btn.secondary:hover {
+        background-color: var(--border-color);
+      }
+      .modal-btn.primary {
+        background-color: var(--accent-color);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+      }
+      .modal-btn.primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+      }
+      .modal-btn:active {
+        transform: scale(0.98);
+      }
+      .toast {
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-20px);
+        background: var(--error-color);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+      }
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>一键定位末地传送门</h1>
+        <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+          </svg>
+        </button>
+      </header>
+      <div class="card">
+        <div class="section-title">第一次投掷末影之眼的位置</div>
+        <div class="input-group">
+          <input type="number" id="p1x" placeholder="X 坐标" step="any" class="mc-input" />
+          <input type="number" id="p1z" placeholder="Z 坐标" step="any" class="mc-input" />
+        </div>
+        <div class="section-title">第一次末影之眼飞向的位置</div>
+        <div class="input-group">
+          <input type="number" id="p1tx" placeholder="X 坐标" step="any" class="mc-input" />
+          <input type="number" id="p1tz" placeholder="Z 坐标" step="any" class="mc-input" />
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">第二次投掷末影之眼的位置</div>
+        <div class="input-group">
+          <input type="number" id="p2x" placeholder="X 坐标" step="any" class="mc-input" />
+          <input type="number" id="p2z" placeholder="Z 坐标" step="any" class="mc-input" />
+        </div>
+        <div class="section-title">第二次末影之眼飞向的位置</div>
+        <div class="input-group">
+          <input type="number" id="p2tx" placeholder="X 坐标" step="any" class="mc-input" />
+          <input type="number" id="p2tz" placeholder="Z 坐标" step="any" class="mc-input" />
+        </div>
+      </div>
+      <button class="btn-calculate" id="calculateBtn">计算传送门位置</button>
+    </div>
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-content">
+        <div class="modal-title">末地传送门大概位置</div>
+        <div class="modal-coords" id="modalCoords">0, 0</div>
+        <div class="modal-actions">
+          <button class="modal-btn secondary" id="modalClose">关闭</button>
+          <button class="modal-btn primary" id="modalCopy">复制坐标</button>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script>
+      const themeToggle = document.getElementById("themeToggle");
+      const calculateBtn = document.getElementById("calculateBtn");
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalCoords = document.getElementById("modalCoords");
+      const modalClose = document.getElementById("modalClose");
+      const modalCopy = document.getElementById("modalCopy");
+      const toast = document.getElementById("toast");
+      const savedTheme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      updateThemeIcon(savedTheme);
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = document.documentElement.getAttribute("data-theme");
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        updateThemeIcon(newTheme);
+      });
+      function updateThemeIcon(theme) {
+        const svg = themeToggle.querySelector("svg");
+        if (theme === "dark") {
+          svg.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0 1.41.996.996 0 0 0 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06z"/>';
+        } else {
+          svg.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+        }
+      }
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("visible");
+        setTimeout(() => {
+          toast.classList.remove("visible");
+        }, 2000);
+      }
+      function openModal(x, z) {
+        modalCoords.textContent = `${x.toFixed(2)}, ${z.toFixed(2)}`;
+        modalOverlay.classList.add("active");
+      }
+      function closeModal() {
+        modalOverlay.classList.remove("active");
+      }
+      calculateBtn.addEventListener("click", () => {
+        const p1x = parseFloat(document.getElementById("p1x").value);
+        const p1z = parseFloat(document.getElementById("p1z").value);
+        const p1tx = parseFloat(document.getElementById("p1tx").value);
+        const p1tz = parseFloat(document.getElementById("p1tz").value);
+        const p2x = parseFloat(document.getElementById("p2x").value);
+        const p2z = parseFloat(document.getElementById("p2z").value);
+        const p2tx = parseFloat(document.getElementById("p2tx").value);
+        const p2tz = parseFloat(document.getElementById("p2tz").value);
+        if ([p1x, p1z, p1tx, p1tz, p2x, p2z, p2tx, p2tz].some(isNaN)) {
+          showToast("请填写所有坐标字段");
+          return;
+        }
+        const dx1 = p1tx - p1x;
+        const dz1 = p1tz - p1z;
+        const A1 = -dz1;
+        const B1 = dx1;
+        const C1 = -(A1 * p1x + B1 * p1z);
+        const dx2 = p2tx - p2x;
+        const dz2 = p2tz - p2z;
+        const A2 = -dz2;
+        const B2 = dx2;
+        const C2 = -(A2 * p2x + B2 * p2z);
+        const D = A1 * B2 - A2 * B1;
+        if (Math.abs(D) < 1e-9) {
+          showToast("视线平行，请移动后重新投掷");
+          return;
+        }
+        const x = (B1 * C2 - B2 * C1) / D;
+        const z = (A2 * C1 - A1 * C2) / D;
+        openModal(x, z);
+      });
+      modalClose.addEventListener("click", closeModal);
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) {
+          closeModal();
+        }
+      });
+      modalCopy.addEventListener("click", () => {
+        const text = modalCoords.textContent;
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            modalCopy.textContent = "已复制";
+            setTimeout(() => {
+              modalCopy.textContent = "复制坐标";
+              closeModal();
+            }, 800);
+          })
+          .catch(() => {
+            showToast("复制失败，请手动复制");
+          });
+      });
+    </script>
+  </body>
+</html>
