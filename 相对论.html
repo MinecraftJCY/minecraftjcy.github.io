@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>相对论效应</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #f5f5f7;
+        --card: #ffffff;
+        --text: #1d1d1f;
+        --text-secondary: #6e6e73;
+        --text-tertiary: #a1a1a6;
+        --border: rgba(0, 0, 0, 0.07);
+        --accent: #0071e3;
+        --track: rgba(120, 120, 128, 0.16);
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+        --glow: rgba(0, 113, 227, 0.1);
+        --danger: #d70015;
+        --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      [data-theme="dark"] {
+        --bg: #0e0e10;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --text-secondary: #98989d;
+        --text-tertiary: #6e6e73;
+        --border: rgba(255, 255, 255, 0.09);
+        --accent: #0a84ff;
+        --track: rgba(120, 120, 128, 0.32);
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.28);
+        --glow: rgba(10, 132, 255, 0.16);
+        --danger: #ff453a;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition:
+          background-color 0.45s ease,
+          color 0.45s ease;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(1200px 620px at 50% -12%, var(--glow), transparent 68%);
+        transition: background 0.45s ease;
+      }
+      sup {
+        line-height: 0;
+      }
+      .app {
+        position: relative;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 24px 72px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+      }
+      .brand-mark {
+        flex: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 21px;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(150deg, #4aa8ff 0%, #0071e3 100%);
+        box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3);
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .brand p {
+        margin: 3px 0 0;
+        font-size: 13px;
+        color: var(--text-tertiary);
+        letter-spacing: 0.01em;
+      }
+      .theme-toggle {
+        flex: none;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text-secondary);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.22s var(--ease),
+          color 0.25s ease,
+          background-color 0.45s ease,
+          border-color 0.45s ease;
+      }
+      .theme-toggle:hover {
+        color: var(--text);
+        transform: scale(1.06);
+      }
+      .theme-toggle:active {
+        transform: scale(0.92);
+      }
+      .theme-toggle svg {
+        width: 20px;
+        height: 20px;
+      }
+      .icon-sun {
+        display: none;
+      }
+      [data-theme="dark"] .icon-sun {
+        display: block;
+      }
+      [data-theme="dark"] .icon-moon {
+        display: none;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 26px 28px 24px;
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        transition:
+          background-color 0.45s ease,
+          border-color 0.45s ease,
+          box-shadow 0.45s ease;
+      }
+      .panel > label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        letter-spacing: 0.02em;
+        margin-bottom: 4px;
+      }
+      .velocity-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+      #velocityInput {
+        flex: 1 1 auto;
+        min-width: 0;
+        font: inherit;
+        font-size: clamp(24px, 4.4vw, 38px);
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+        background: transparent;
+        border: none;
+        outline: none;
+        padding: 2px 0;
+      }
+      .velocity-unit {
+        flex: none;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--text-tertiary);
+      }
+      .field-line {
+        position: relative;
+        height: 2px;
+        margin-top: 6px;
+        border-radius: 2px;
+        background: var(--border);
+        overflow: hidden;
+      }
+      .field-line::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--accent);
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 0.4s var(--ease);
+      }
+      .panel.is-focused .field-line::after {
+        transform: scaleX(1);
+      }
+      input[type="range"].slider {
+        -webkit-appearance: none;
+        appearance: none;
+        display: block;
+        width: 100%;
+        height: 28px;
+        margin: 20px 0 0;
+        background: transparent;
+        cursor: pointer;
+      }
+      input[type="range"].slider::-webkit-slider-runnable-track {
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill, 0%), var(--track) var(--fill, 0%), var(--track) 100%);
+      }
+      input[type="range"].slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        margin-top: -8px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.18),
+          0 3px 10px rgba(0, 0, 0, 0.16);
+        transition: transform 0.18s var(--ease);
+      }
+      input[type="range"].slider:active::-webkit-slider-thumb {
+        transform: scale(1.16);
+      }
+      input[type="range"].slider::-moz-range-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--track);
+      }
+      input[type="range"].slider::-moz-range-progress {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+      input[type="range"].slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.18),
+          0 3px 10px rgba(0, 0, 0, 0.16);
+      }
+      .hint {
+        margin: 16px 0 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-tertiary);
+        transition: color 0.25s ease;
+      }
+      .hint.error {
+        color: var(--danger);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .chips button {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--track);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition:
+          transform 0.18s var(--ease),
+          background-color 0.22s ease,
+          color 0.22s ease,
+          border-color 0.22s ease;
+      }
+      .chips button:hover {
+        background: var(--accent);
+        border-color: transparent;
+        color: #ffffff;
+      }
+      .chips button:active {
+        transform: scale(0.93);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 22px 24px 24px;
+        box-shadow: var(--shadow);
+        opacity: 0;
+        transform: translateY(12px);
+        animation: cardIn 0.55s var(--ease) forwards;
+        transition:
+          background-color 0.45s ease,
+          border-color 0.45s ease,
+          box-shadow 0.45s ease;
+      }
+      @keyframes cardIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .card:nth-child(1) {
+        animation-delay: 0.03s;
+      }
+      .card:nth-child(2) {
+        animation-delay: 0.08s;
+      }
+      .card:nth-child(3) {
+        animation-delay: 0.13s;
+      }
+      .card:nth-child(4) {
+        animation-delay: 0.18s;
+      }
+      .card:nth-child(5) {
+        animation-delay: 0.23s;
+      }
+      .card:nth-child(6) {
+        animation-delay: 0.28s;
+      }
+      .card-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .card-title {
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        letter-spacing: 0.02em;
+      }
+      .card-formula {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        white-space: nowrap;
+        letter-spacing: 0.01em;
+      }
+      .card-value {
+        margin: 14px 0 10px;
+        font-size: clamp(17px, 1.4vw + 8px, 20px);
+        font-weight: 600;
+        letter-spacing: -0.022em;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+      }
+      .card-value::-webkit-scrollbar {
+        display: none;
+      }
+      .card-value sup,
+      .card-note sup {
+        font-size: 0.62em;
+        vertical-align: super;
+      }
+      .card-value .unit {
+        font-size: 0.52em;
+        font-weight: 500;
+        color: var(--text-tertiary);
+        margin-left: 5px;
+        letter-spacing: 0;
+      }
+      .card-note {
+        margin: 0;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--text-tertiary);
+        overflow-wrap: anywhere;
+      }
+      @media (max-width: 900px) {
+        .app {
+          padding: 26px 20px 64px;
+        }
+        .panel {
+          padding: 22px 22px 20px;
+        }
+      }
+      @media (max-width: 720px) {
+        .app {
+          padding: 22px 16px 56px;
+        }
+        .panel {
+          padding: 20px 18px 18px;
+          border-radius: 22px;
+        }
+        .card {
+          padding: 20px 20px 22px;
+          border-radius: 20px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+        .brand h1 {
+          font-size: 18px;
+        }
+        .brand-mark {
+          width: 40px;
+          height: 40px;
+          font-size: 19px;
+        }
+        .card-value {
+          font-size: 18px;
+        }
+      }
+      @media (max-width: 420px) {
+        .app {
+          padding: 20px 12px 48px;
+        }
+        .panel {
+          padding: 18px 16px 16px;
+        }
+        .card {
+          padding: 18px 16px 20px;
+        }
+        .card-value {
+          font-size: 17px;
+        }
+        .card-formula {
+          font-size: 11px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">c</div>
+          <div>
+            <h1>相对论效应</h1>
+            <p>狭义相对论 · 洛伦兹变换</p>
+          </div>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深浅色主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </svg>
+        </button>
+      </header>
+      <main>
+        <section class="panel" id="inputPanel">
+          <label for="velocityInput">物体速度</label>
+          <div class="velocity-row">
+            <input id="velocityInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="149896229" aria-label="速度，单位米每秒" />
+            <span class="velocity-unit">m/s</span>
+          </div>
+          <div class="field-line"></div>
+          <input id="speedSlider" class="slider" type="range" min="0" max="1000" step="0.1" value="0" aria-label="速度调节滑块" />
+          <p class="hint" id="hint">请输入 0 至 299792458 m/s 之间的速度</p>
+          <div class="chips" id="chips">
+            <button type="button" data-beta="0.1">0.1c</button>
+            <button type="button" data-beta="0.5">0.5c</button>
+            <button type="button" data-beta="0.9">0.9c</button>
+            <button type="button" data-beta="0.99">0.99c</button>
+            <button type="button" data-beta="0.999">0.999c</button>
+            <button type="button" data-beta="0.9999">0.9999c</button>
+            <button type="button" data-beta="0.99999">0.99999c</button>
+            <button type="button" data-beta="0.999999">0.999999c</button>
+          </div>
+        </section>
+        <section class="grid">
+          <article class="card">
+            <div class="card-head">
+              <span class="card-title">速度比</span>
+              <span class="card-formula">β = v / c</span>
+            </div>
+            <div class="card-value" id="betaValue">—</div>
+            <p class="card-note" id="betaNote">—</p>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <span class="card-title">洛伦兹因子</span>
+              <span class="card-formula">γ = 1 / √(1 − β²)</span>
+            </div>
+            <div class="card-value" id="gammaValue">—</div>
+            <p class="card-note" id="gammaNote">—</p>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <span class="card-title">时间膨胀</span>
+              <span class="card-formula">Δt = γ · Δτ</span>
+            </div>
+            <div class="card-value" id="timeValue">—</div>
+            <p class="card-note" id="timeNote">—</p>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <span class="card-title">长度收缩</span>
+              <span class="card-formula">L = L₀ / γ</span>
+            </div>
+            <div class="card-value" id="lengthValue">—</div>
+            <p class="card-note" id="lengthNote">—</p>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <span class="card-title">相对论质量</span>
+              <span class="card-formula">m = γ · m₀</span>
+            </div>
+            <div class="card-value" id="massValue">—</div>
+            <p class="card-note" id="massNote">—</p>
+          </article>
+          <article class="card">
+            <div class="card-head">
+              <span class="card-title">相对论动能</span>
+              <span class="card-formula">Eₖ = (γ − 1) m c²</span>
+            </div>
+            <div class="card-value" id="energyValue">—</div>
+            <p class="card-note" id="energyNote">—</p>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+        const C = 299792458;
+        const SLIDER_MAX = 1000;
+        const SLIDER_SCALE = 100;
+        const PRECISION = 17;
+        const SCI_UPPER = 1e16;
+        const SCI_LOWER = 1e-5;
+        const DEFAULT_HINT = "请输入 0 至 299792458 m/s 之间的速度";
+        const $ = (id) => document.getElementById(id);
+        const root = document.documentElement;
+        const inputPanel = $("inputPanel");
+        const velocityInput = $("velocityInput");
+        const slider = $("speedSlider");
+        const hint = $("hint");
+        const themeToggle = $("themeToggle");
+        const chips = $("chips");
+        const cards = {
+          beta: { value: $("betaValue"), note: $("betaNote") },
+          gamma: { value: $("gammaValue"), note: $("gammaNote") },
+          time: { value: $("timeValue"), note: $("timeNote") },
+          length: { value: $("lengthValue"), note: $("lengthNote") },
+          mass: { value: $("massValue"), note: $("massNote") },
+          energy: { value: $("energyValue"), note: $("energyNote") },
+        };
+        const trimZeros = (str) => (str.includes(".") ? str.replace(/0+$/, "").replace(/\.$/, "") : str);
+        function toSciHTML(value) {
+          const str = value.toExponential(PRECISION - 1);
+          const eIndex = str.indexOf("e");
+          const mantissa = trimZeros(str.slice(0, eIndex));
+          const exponent = Number(str.slice(eIndex + 1));
+          return mantissa + "×10<sup>" + exponent + "</sup>";
+        }
+        function formatNumber(value) {
+          if (!Number.isFinite(value)) return "∞";
+          if (value === 0) return "0";
+          const abs = Math.abs(value);
+          if (abs >= SCI_UPPER || abs < SCI_LOWER) return toSciHTML(value);
+          return trimZeros(value.toPrecision(PRECISION));
+        }
+        function formatBeta(beta) {
+          return beta > 1 - 1e-10 ? "1 − " + formatNumber(1 - beta) : formatNumber(beta);
+        }
+        const formatInput = (value) => (value > 0 ? String(value) : "0");
+        function betaToSlider(beta) {
+          if (!(beta > 0)) return 0;
+          if (beta >= 1 - 1e-10) return SLIDER_MAX;
+          return Math.min(SLIDER_MAX, -SLIDER_SCALE * Math.log10(1 - beta));
+        }
+        function sliderToBeta(sliderValue) {
+          return sliderValue > 0 ? 1 - Math.pow(10, -sliderValue / SLIDER_SCALE) : 0;
+        }
+        function updateSliderFill() {
+          const percent = (Number(slider.value) / SLIDER_MAX) * 100;
+          slider.style.setProperty("--fill", percent + "%");
+        }
+        function setCard(card, html, note) {
+          card.value.innerHTML = html;
+          card.note.textContent = note;
+        }
+        function render(velocity) {
+          const beta = velocity / C;
+          const gamma = 1 / Math.sqrt((1 - beta) * (1 + beta));
+          const invGamma = 1 / gamma;
+          const kinetic = (gamma - 1) * C * C;
+          setCard(cards.beta, formatBeta(beta), "物体速度与真空中光速的比值");
+          setCard(cards.gamma, formatNumber(gamma), "时间变慢、长度缩短与质量增大的共同倍数");
+          setCard(cards.time, formatNumber(gamma) + '<span class="unit">s</span>', "物体自身钟走过 1 秒时，静止观察者测得的时间");
+          setCard(cards.length, formatNumber(invGamma) + '<span class="unit">m</span>', "固有长度为 1 米的物体，沿运动方向测得的长度");
+          setCard(cards.mass, formatNumber(gamma) + '<span class="unit">kg</span>', "静止质量 1 千克的物体，运动时具有的惯性质量");
+          setCard(cards.energy, formatNumber(kinetic) + '<span class="unit">J</span>', "静止质量 1 千克的物体在该速度下具有的动能");
+        }
+        function showHint(text, isError) {
+          hint.textContent = text;
+          hint.classList.toggle("error", Boolean(isError));
+        }
+        function setVelocity(velocity) {
+          slider.value = String(betaToSlider(velocity / C));
+          updateSliderFill();
+          showHint(DEFAULT_HINT, false);
+          render(velocity);
+        }
+        function parseInput() {
+          return Number(velocityInput.value.trim().replace(/[,\s]/g, ""));
+        }
+        function handleInputEvent() {
+          const raw = velocityInput.value.trim().replace(/[,\s]/g, "");
+          if (raw === "") {
+            showHint("请输入一个速度值", true);
+            return;
+          }
+          const value = Number(raw);
+          if (!Number.isFinite(value)) {
+            showHint("请输入有效的数字", true);
+            return;
+          }
+          if (value <= 0) {
+            showHint("速度必须大于 0", true);
+            return;
+          }
+          if (value >= C) {
+            showHint("速度不能达到或超过光速（299792458 m/s）", true);
+            return;
+          }
+          setVelocity(value);
+        }
+        function handleSliderEvent() {
+          const velocity = sliderToBeta(Number(slider.value)) * C;
+          updateSliderFill();
+          velocityInput.value = formatInput(velocity);
+          showHint(DEFAULT_HINT, false);
+          render(velocity);
+        }
+        function applyTheme(theme) {
+          root.setAttribute("data-theme", theme);
+          try {
+            localStorage.setItem("relativity-theme", theme);
+          } catch (_) {}
+        }
+        function loadSavedTheme() {
+          try {
+            return localStorage.getItem("relativity-theme");
+          } catch (_) {
+            return null;
+          }
+        }
+        velocityInput.addEventListener("input", handleInputEvent);
+        velocityInput.addEventListener("focus", () => {
+          inputPanel.classList.add("is-focused");
+        });
+        velocityInput.addEventListener("blur", () => {
+          inputPanel.classList.remove("is-focused");
+          const value = parseInput();
+          if (value > 0 && value < C) {
+            velocityInput.value = formatInput(value);
+          }
+        });
+        slider.addEventListener("input", handleSliderEvent);
+        chips.addEventListener("click", ({ target }) => {
+          const button = target.closest("button[data-beta]");
+          if (!button) return;
+          const velocity = Number(button.dataset.beta) * C;
+          velocityInput.value = formatInput(velocity);
+          setVelocity(velocity);
+        });
+        themeToggle.addEventListener("click", () => {
+          const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          applyTheme(next);
+        });
+        (function init() {
+          applyTheme(loadSavedTheme() === "dark" ? "dark" : "light");
+          const INITIAL_VELOCITY = 149896229;
+          velocityInput.value = formatInput(INITIAL_VELOCITY);
+          setVelocity(INITIAL_VELOCITY);
+        })();
+      })();
+    </script>
+  </body>
+</html>
