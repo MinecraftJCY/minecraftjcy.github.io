@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>扫地机器人</title>
+    <script>
+      try {
+        var t = localStorage.getItem("sweeper-theme");
+        if (t === "dark") {
+          document.documentElement.dataset.theme = "dark";
+        } else {
+          document.documentElement.dataset.theme = "light";
+        }
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+      }
+    </script>
+    <style>
+      :root {
+        --bg: #f2f2f7;
+        --surface: #ffffff;
+        --surface-2: #eceef3;
+        --text: #1d1d1f;
+        --text-2: #8a8a8f;
+        --line: rgba(0, 0, 0, 0.06);
+        --accent: #0a84ff;
+        --accent-2: #64b5ff;
+        --danger: #ff453a;
+        --success: #34c759;
+        --cell-a: #fbfbfd;
+        --cell-b: #f0f1f6;
+        --shadow-lg: 0 18px 50px rgba(20, 25, 45, 0.1);
+        --shadow-sm: 0 2px 10px rgba(20, 25, 45, 0.06);
+        --key-shadow: 0 2px 8px rgba(20, 25, 45, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+      }
+      [data-theme="dark"] {
+        --bg: #000000;
+        --surface: #1c1c1e;
+        --surface-2: #2c2c2e;
+        --text: #f5f5f7;
+        --text-2: #8e8e93;
+        --line: rgba(255, 255, 255, 0.08);
+        --cell-a: #1a1a1c;
+        --cell-b: #232326;
+        --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.6);
+        --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
+        --key-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        overflow: hidden;
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-font-smoothing: antialiased;
+        transition:
+          background 0.45s ease,
+          color 0.45s ease;
+      }
+      .app {
+        height: 100vh;
+        height: 100dvh;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: max(14px, env(safe-area-inset-top)) 18px max(14px, env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 0 0 auto;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15);
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .icon-btn {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: var(--surface);
+        box-shadow: var(--key-shadow);
+        font-size: 17px;
+        line-height: 1;
+        color: var(--text);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition:
+          transform 0.15s ease,
+          background 0.3s ease;
+      }
+      .icon-btn:active {
+        transform: scale(0.9);
+      }
+      .hud {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 0 0 auto;
+        padding: 0 2px;
+      }
+      .hud-value {
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        min-width: 58px;
+      }
+      .hud-value small {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-2);
+        margin-left: 2px;
+      }
+      .hud-value.bump {
+        animation: bump 0.34s cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      @keyframes bump {
+        0% {
+          transform: scale(1);
+        }
+        42% {
+          transform: scale(1.2);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      .hud-center {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .hud-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: var(--surface-2);
+        overflow: hidden;
+      }
+      .hud-fill {
+        width: 0%;
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #34c759, #0a84ff);
+        transition: width 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+      }
+      .hud-goal {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-2);
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+      .board-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        container-type: size;
+        display: grid;
+        place-items: center;
+        padding: 2px;
+      }
+      .board {
+        position: relative;
+        width: min(100cqw, 100cqh);
+        height: min(100cqw, 100cqh);
+        border-radius: 26px;
+        overflow: hidden;
+        background-image: repeating-conic-gradient(var(--cell-a) 0% 25%, var(--cell-b) 0% 50%);
+        background-size: 40% 40%;
+        box-shadow:
+          var(--shadow-lg),
+          inset 0 0 0 1px var(--line);
+        touch-action: none;
+        transition: box-shadow 0.45s ease;
+      }
+      .entities {
+        position: absolute;
+        inset: 0;
+      }
+      .entity {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 20%;
+        height: 20%;
+        will-change: transform;
+      }
+      .trash {
+        z-index: 2;
+        transition: transform 0.16s ease;
+      }
+      .trash-inner {
+        position: absolute;
+        will-change: transform;
+      }
+      .trash-small .trash-inner {
+        inset: 32%;
+        border-radius: 42%;
+        background: linear-gradient(150deg, #ffd989, #eea41c);
+        box-shadow: 0 2px 6px rgba(238, 164, 28, 0.35);
+      }
+      .trash-big .trash-inner {
+        inset: 17%;
+        border-radius: 30%;
+        background: linear-gradient(150deg, #ff9c8c, #ff5a44);
+        box-shadow: 0 6px 16px rgba(255, 90, 68, 0.35);
+        animation: bigPulse 1.8s ease-in-out infinite;
+      }
+      .trash-big .trash-inner::after {
+        content: "";
+        position: absolute;
+        inset: 26%;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.35);
+      }
+      @keyframes bigPulse {
+        0%,
+        100% {
+          box-shadow:
+            0 6px 16px rgba(255, 90, 68, 0.32),
+            0 0 0 0 rgba(255, 90, 68, 0.3);
+        }
+        50% {
+          box-shadow:
+            0 6px 16px rgba(255, 90, 68, 0.32),
+            0 0 0 7px rgba(255, 90, 68, 0);
+        }
+      }
+      .trash-big.near .trash-inner {
+        filter: brightness(1.12);
+        transform: scale(1.08);
+      }
+      .tentacle {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 6px;
+        margin-top: -3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(10, 132, 255, 0.35), #0a84ff 60%, #7cc7ff);
+        transform-origin: 0 50%;
+        z-index: 4;
+        pointer-events: none;
+        transition:
+          transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1),
+          opacity 0.2s ease;
+      }
+      .tentacle::after {
+        content: "";
+        position: absolute;
+        right: -5px;
+        top: 50%;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        border-radius: 50%;
+        background: #7cc7ff;
+        box-shadow: 0 0 10px rgba(10, 132, 255, 0.6);
+      }
+      .robot {
+        z-index: 5;
+        transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.3, 1);
+      }
+      .robot-body {
+        position: absolute;
+        inset: 11%;
+        border-radius: 50%;
+        background: radial-gradient(120% 120% at 30% 24%, #8fd0ff 0%, #0a84ff 46%, #0057c8 100%);
+        box-shadow:
+          0 8px 18px rgba(10, 132, 255, 0.32),
+          inset 0 2px 5px rgba(255, 255, 255, 0.45),
+          inset 0 -5px 12px rgba(0, 0, 0, 0.18);
+        display: grid;
+        place-items: center;
+        transition: filter 0.35s ease;
+      }
+      .robot.stunned .robot-body {
+        filter: grayscale(1) brightness(0.72);
+        animation: shake 0.45s ease;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          translate: 0 0;
+        }
+        18% {
+          translate: -12% 0;
+        }
+        38% {
+          translate: 10% 0;
+        }
+        58% {
+          translate: -7% 0;
+        }
+        78% {
+          translate: 5% 0;
+        }
+      }
+      .robot-eye {
+        width: 34%;
+        height: 34%;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow:
+          0 0 0 2px rgba(255, 255, 255, 0.3),
+          0 2px 6px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      .stun-badge {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        min-width: 26px;
+        height: 26px;
+        padding: 0 5px;
+        border-radius: 13px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 4px 14px rgba(255, 69, 58, 0.5);
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+        transition:
+          opacity 0.2s ease,
+          transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+        pointer-events: none;
+      }
+      .robot.stunned .stun-badge {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      .controls {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 46px;
+        padding-bottom: 2px;
+      }
+      .dpad {
+        width: 132px;
+        height: 132px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 7px;
+      }
+      .key {
+        border: none;
+        border-radius: 15px;
+        background: var(--surface);
+        box-shadow: var(--key-shadow);
+        color: var(--text);
+        font-size: 13px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition:
+          transform 0.12s ease,
+          background 0.3s ease;
+        touch-action: manipulation;
+      }
+      .key:active {
+        transform: scale(0.9);
+        background: var(--surface-2);
+      }
+      .key-up {
+        grid-area: 1 / 2;
+      }
+      .key-left {
+        grid-area: 2 / 1;
+      }
+      .key-right {
+        grid-area: 2 / 3;
+      }
+      .key-down {
+        grid-area: 3 / 2;
+      }
+      .grab-key {
+        width: 88px;
+        height: 88px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(160deg, #4aa8ff, #0a84ff 55%, #0062d6);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        box-shadow:
+          0 10px 26px rgba(10, 132, 255, 0.35),
+          inset 0 2px 5px rgba(255, 255, 255, 0.35);
+        transition:
+          transform 0.12s ease,
+          filter 0.2s ease;
+        touch-action: manipulation;
+      }
+      .grab-key:active {
+        transform: scale(0.92);
+        filter: brightness(0.94);
+      }
+      .grab-key .letter {
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .grab-key .label {
+        font-size: 11px;
+        opacity: 0.85;
+      }
+      .grab-key.nudge {
+        animation: nudge 0.42s ease;
+      }
+      @keyframes nudge {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-6px);
+        }
+        50% {
+          transform: translateX(6px);
+        }
+        75% {
+          transform: translateX(-3px);
+        }
+      }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(20, 22, 30, 0.28);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        animation: fadeIn 0.3s ease;
+      }
+      .overlay[hidden] {
+        display: none;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .overlay-card {
+        width: min(320px, 100%);
+        padding: 28px 26px 24px;
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+        animation: pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: scale(0.85) translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+      .overlay-emoji {
+        font-size: 46px;
+        line-height: 1;
+        margin-bottom: 10px;
+      }
+      .overlay-card h2 {
+        margin: 0 0 10px;
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .result-score {
+        margin: 0 0 22px;
+        font-size: 14px;
+        color: var(--text-2);
+      }
+      .result-score strong {
+        color: var(--accent);
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 2px;
+      }
+      .primary-btn {
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 16px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(10, 132, 255, 0.3);
+        transition:
+          transform 0.14s ease,
+          filter 0.2s ease;
+      }
+      .primary-btn:active {
+        transform: scale(0.96);
+        filter: brightness(0.94);
+      }
+      @media (max-height: 620px) {
+        .app {
+          gap: 10px;
+        }
+        .dpad {
+          width: 106px;
+          height: 106px;
+          gap: 6px;
+        }
+        .grab-key {
+          width: 72px;
+          height: 72px;
+        }
+        .grab-key .letter {
+          font-size: 19px;
+        }
+        .grab-key .label {
+          font-size: 10px;
+        }
+        .hud-value {
+          font-size: 20px;
+        }
+      }
+      @media (max-width: 380px) {
+        .app {
+          padding-left: 12px;
+          padding-right: 12px;
+        }
+        .controls {
+          gap: 30px;
+        }
+        .hud {
+          gap: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          <h1>扫地机器人</h1>
+        </div>
+        <button class="icon-btn" id="themeBtn" aria-label="切换主题">🌙</button>
+      </header>
+      <div class="hud">
+        <div class="hud-value" id="scoreWrap"><span id="scoreNumber">0</span><small>分</small></div>
+        <div class="hud-center">
+          <div class="hud-bar"><div class="hud-fill" id="progressFill"></div></div>
+          <div class="hud-goal">目标 30 分</div>
+        </div>
+      </div>
+      <div class="board-wrap">
+        <div class="board" id="board">
+          <div class="entities" id="entities">
+            <div class="entity robot" id="robot">
+              <div class="robot-body">
+                <div class="robot-eye"></div>
+              </div>
+              <div class="stun-badge"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="dpad">
+          <button class="key key-up" data-move="up" aria-label="向上">▲</button>
+          <button class="key key-left" data-move="left" aria-label="向左">◀</button>
+          <button class="key key-right" data-move="right" aria-label="向右">▶</button>
+          <button class="key key-down" data-move="down" aria-label="向下">▼</button>
+        </div>
+        <button class="grab-key" id="grabBtn" aria-label="用触手捡大垃圾">
+          <span class="letter">E</span>
+          <span class="label">捡垃圾</span>
+        </button>
+      </div>
+    </div>
+    <div class="overlay" id="overlay" hidden>
+      <div class="overlay-card">
+        <div class="overlay-emoji">🎉</div>
+        <h2>太棒啦！</h2>
+        <p class="result-score">收集了 <strong id="finalScore">0</strong> 分</p>
+        <button class="primary-btn" id="restartBtn">再来一局</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+        var BOARD = 5;
+        var TARGET = 30;
+        var STUN_MS = 1000;
+        var MOVE_COOLDOWN = 95;
+        var MAX_TRASH = 8;
+        var MAX_BIG = 4;
+        var CELL_PCT = 100 / BOARD;
+        var DIRS = {
+          up: [-1, 0],
+          down: [1, 0],
+          left: [0, -1],
+          right: [0, 1],
+        };
+        var boardEl = document.getElementById("board");
+        var entitiesEl = document.getElementById("entities");
+        var robotEl = document.getElementById("robot");
+        var robotEye = robotEl.querySelector(".robot-eye");
+        var stunBadge = robotEl.querySelector(".stun-badge");
+        var scoreWrap = document.getElementById("scoreWrap");
+        var scoreNumber = document.getElementById("scoreNumber");
+        var progressFill = document.getElementById("progressFill");
+        var overlay = document.getElementById("overlay");
+        var finalScore = document.getElementById("finalScore");
+        var grabBtn = document.getElementById("grabBtn");
+        var themeBtn = document.getElementById("themeBtn");
+        var state = {
+          robot: { r: 2, c: 2 },
+          trash: [],
+          score: 0,
+          busy: false,
+          stunUntil: 0,
+          over: false,
+          lastMove: 0,
+          nextId: 1,
+          epoch: 0,
+        };
+        function key(r, c) {
+          return r * BOARD + c;
+        }
+        function manhattan(a, b) {
+          return Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+        }
+        function isStunned() {
+          return state.stunUntil > 0 && performance.now() < state.stunUntil;
+        }
+        function after(ms, fn) {
+          var epoch = state.epoch;
+          setTimeout(function () {
+            if (state.epoch === epoch) fn();
+          }, ms);
+        }
+        function occupiedSet() {
+          var set = new Set([key(state.robot.r, state.robot.c)]);
+          state.trash.forEach(function (t) {
+            set.add(key(t.r, t.c));
+          });
+          return set;
+        }
+        function randomFreeCell() {
+          var occupied = occupiedSet();
+          var free = [];
+          for (var r = 0; r < BOARD; r++) {
+            for (var c = 0; c < BOARD; c++) {
+              if (!occupied.has(key(r, c))) free.push({ r: r, c: c });
+            }
+          }
+          if (!free.length) return null;
+          return free[Math.floor(Math.random() * free.length)];
+        }
+        function buildTrashEl(t) {
+          var el = document.createElement("div");
+          el.className = "entity trash " + (t.big ? "trash-big" : "trash-small");
+          el.style.transform = "translate(" + t.c * 100 + "%, " + t.r * 100 + "%)";
+          var inner = document.createElement("div");
+          inner.className = "trash-inner";
+          t.rot = (Math.random() * 2 - 1) * 20;
+          inner.style.transform = "rotate(" + t.rot + "deg)";
+          el.appendChild(inner);
+          entitiesEl.appendChild(el);
+          if (inner.animate) {
+            inner.animate([{ transform: "rotate(" + t.rot + "deg) scale(0)" }, { transform: "rotate(" + t.rot + "deg) scale(1.18)" }, { transform: "rotate(" + t.rot + "deg) scale(1)" }], { duration: 340, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)" });
+          }
+          return el;
+        }
+        function spawnTrash() {
+          if (state.over || state.trash.length >= MAX_TRASH) return;
+          var cell = randomFreeCell();
+          if (!cell) return;
+          var bigCount = 0;
+          state.trash.forEach(function (t) {
+            if (t.big) bigCount++;
+          });
+          var smallCount = state.trash.length - bigCount;
+          var big;
+          if (bigCount >= MAX_BIG) big = false;
+          else if (smallCount >= MAX_TRASH - MAX_BIG) big = true;
+          else big = Math.random() < 0.38;
+          var t = { id: state.nextId++, r: cell.r, c: cell.c, big: big, absorbing: false };
+          t.el = buildTrashEl(t);
+          state.trash.push(t);
+        }
+        function removeTrash(t) {
+          var i = state.trash.indexOf(t);
+          if (i >= 0) state.trash.splice(i, 1);
+          if (t.el && t.el.parentNode) t.el.remove();
+        }
+        function positionRobot() {
+          robotEl.style.transform = "translate(" + state.robot.c * 100 + "%, " + state.robot.r * 100 + "%)";
+        }
+        function setFacing(dr, dc) {
+          var len = Math.hypot(dr, dc) || 1;
+          robotEye.style.transform = "translate(" + (dc / len) * 55 + "%, " + (dr / len) * 55 + "%)";
+        }
+        function updateNearHighlight() {
+          state.trash.forEach(function (t) {
+            if (!t.big) return;
+            t.el.classList.toggle("near", manhattan(t, state.robot) <= 1);
+          });
+        }
+        function updateProgress() {
+          var pct = Math.min(1, state.score / TARGET) * 100;
+          progressFill.style.width = pct + "%";
+        }
+        function addScore(n) {
+          state.score += n;
+          scoreNumber.textContent = state.score;
+          scoreWrap.classList.remove("bump");
+          void scoreWrap.offsetWidth;
+          scoreWrap.classList.add("bump");
+          updateProgress();
+          checkWin();
+        }
+        function checkWin() {
+          if (state.over || state.score < TARGET) return;
+          state.over = true;
+          finalScore.textContent = state.score;
+          overlay.hidden = false;
+        }
+        function absorbNearby() {
+          state.trash.forEach(function (t) {
+            if (t.big || t.absorbing) return;
+            if (manhattan(t, state.robot) > 1) return;
+            t.absorbing = true;
+            t.el.style.transition = "transform 0.26s cubic-bezier(0.5, 0, 0.75, 0)";
+            t.el.style.transform = "translate(" + state.robot.c * 100 + "%, " + state.robot.r * 100 + "%)";
+            var inner = t.el.firstChild;
+            inner.style.transition = "transform 0.26s ease, opacity 0.26s ease";
+            inner.style.transform = "rotate(" + (t.rot + 90) + "deg) scale(0.25)";
+            inner.style.opacity = "0";
+            after(270, function () {
+              removeTrash(t);
+              addScore(1);
+            });
+          });
+        }
+        function move(dr, dc) {
+          if (state.busy || state.over || isStunned()) return;
+          var now = performance.now();
+          if (now - state.lastMove < MOVE_COOLDOWN) return;
+          var nr = state.robot.r + dr;
+          var nc = state.robot.c + dc;
+          if (nr < 0 || nr >= BOARD || nc < 0 || nc >= BOARD) {
+            setFacing(dr, dc);
+            return;
+          }
+          var blocker = null;
+          for (var i = 0; i < state.trash.length; i++) {
+            var t = state.trash[i];
+            if (t.big && t.r === nr && t.c === nc) {
+              blocker = t;
+              break;
+            }
+          }
+          state.lastMove = now;
+          setFacing(dr, dc);
+          if (blocker) {
+            crash();
+            return;
+          }
+          state.robot.r = nr;
+          state.robot.c = nc;
+          positionRobot();
+          updateNearHighlight();
+          after(120, absorbNearby);
+        }
+        function crash() {
+          if (isStunned()) return;
+          state.stunUntil = performance.now() + STUN_MS;
+          robotEl.classList.add("stunned");
+          var body = robotEl.querySelector(".robot-body");
+          body.style.animation = "none";
+          void body.offsetWidth;
+          body.style.animation = "";
+          stunBadge.textContent = "3";
+        }
+        function makeTentacle(from, to) {
+          var x1 = (from.c + 0.5) * CELL_PCT;
+          var y1 = (from.r + 0.5) * CELL_PCT;
+          var x2 = (to.c + 0.5) * CELL_PCT;
+          var y2 = (to.r + 0.5) * CELL_PCT;
+          var dx = x2 - x1;
+          var dy = y2 - y1;
+          var dist = Math.hypot(dx, dy);
+          var angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+          var el = document.createElement("div");
+          el.className = "tentacle";
+          el.style.left = x1 + "%";
+          el.style.top = y1 + "%";
+          el.style.width = dist + "%";
+          el.style.transform = "rotate(" + angle + "deg) scaleX(0)";
+          entitiesEl.appendChild(el);
+          return { el: el, angle: angle };
+        }
+        function grab() {
+          if (state.busy || state.over || isStunned()) return;
+          var target = null;
+          for (var i = 0; i < state.trash.length; i++) {
+            var t = state.trash[i];
+            if (t.big && manhattan(t, state.robot) <= 1) {
+              target = t;
+              break;
+            }
+          }
+          if (!target) {
+            grabBtn.classList.remove("nudge");
+            void grabBtn.offsetWidth;
+            grabBtn.classList.add("nudge");
+            return;
+          }
+          state.busy = true;
+          setFacing(target.r - state.robot.r, target.c - state.robot.c);
+          var tent = makeTentacle(state.robot, target);
+          requestAnimationFrame(function () {
+            tent.el.style.transform = "rotate(" + tent.angle + "deg) scaleX(1)";
+          });
+          after(200, function () {
+            var inner = target.el.firstChild;
+            inner.style.animation = "none";
+            inner.style.transition = "transform 0.22s cubic-bezier(0.4, 0, 0.7, 0), opacity 0.22s ease";
+            inner.style.transform = "rotate(" + (target.rot + 70) + "deg) scale(0.15)";
+            inner.style.opacity = "0";
+          });
+          after(430, function () {
+            tent.el.style.opacity = "0";
+            tent.el.style.transform = "rotate(" + tent.angle + "deg) scaleX(0)";
+          });
+          after(640, function () {
+            tent.el.remove();
+            removeTrash(target);
+            addScore(3);
+            updateNearHighlight();
+            state.busy = false;
+          });
+        }
+        function restart() {
+          state.epoch++;
+          state.trash.forEach(function (t) {
+            if (t.el) t.el.remove();
+          });
+          state.trash = [];
+          state.robot = { r: 2, c: 2 };
+          state.score = 0;
+          state.busy = false;
+          state.stunUntil = 0;
+          state.over = false;
+          state.lastMove = 0;
+          state.nextId = 1;
+          scoreNumber.textContent = "0";
+          updateProgress();
+          robotEl.classList.remove("stunned");
+          stunBadge.textContent = "";
+          overlay.hidden = true;
+          positionRobot();
+          setFacing(0, -1);
+          for (var i = 0; i < 4; i++) spawnTrash();
+          updateNearHighlight();
+        }
+        function loop(now) {
+          if (state.stunUntil) {
+            var left = state.stunUntil - now;
+            if (left <= 0) {
+              state.stunUntil = 0;
+              robotEl.classList.remove("stunned");
+              stunBadge.textContent = "";
+            } else {
+              var sec = Math.ceil(left / 1000);
+              if (stunBadge.textContent !== String(sec)) stunBadge.textContent = sec;
+            }
+          }
+          requestAnimationFrame(loop);
+        }
+        window.addEventListener(
+          "keydown",
+          function (e) {
+            var k = e.key.toLowerCase();
+            if (k === "arrowup" || k === "w") {
+              e.preventDefault();
+              move(-1, 0);
+            } else if (k === "arrowdown" || k === "s") {
+              e.preventDefault();
+              move(1, 0);
+            } else if (k === "arrowleft" || k === "a") {
+              e.preventDefault();
+              move(0, -1);
+            } else if (k === "arrowright" || k === "d") {
+              e.preventDefault();
+              move(0, 1);
+            } else if (k === "e" || k === " ") {
+              e.preventDefault();
+              grab();
+            } else if (k === "r") {
+              e.preventDefault();
+              restart();
+            }
+          },
+          { passive: false },
+        );
+        document.querySelectorAll("[data-move]").forEach(function (btn) {
+          var dir = DIRS[btn.dataset.move];
+          btn.addEventListener("click", function () {
+            move(dir[0], dir[1]);
+          });
+        });
+        grabBtn.addEventListener("click", grab);
+        document.getElementById("restartBtn").addEventListener("click", restart);
+        var touchStart = null;
+        boardEl.addEventListener(
+          "touchstart",
+          function (e) {
+            var t = e.changedTouches[0];
+            touchStart = { x: t.clientX, y: t.clientY };
+          },
+          { passive: true },
+        );
+        boardEl.addEventListener(
+          "touchend",
+          function (e) {
+            if (!touchStart) return;
+            var t = e.changedTouches[0];
+            var dx = t.clientX - touchStart.x;
+            var dy = t.clientY - touchStart.y;
+            touchStart = null;
+            if (Math.hypot(dx, dy) < 22) return;
+            if (Math.abs(dx) > Math.abs(dy)) move(0, dx > 0 ? 1 : -1);
+            else move(dy > 0 ? 1 : -1, 0);
+          },
+          { passive: true },
+        );
+        themeBtn.addEventListener("click", function () {
+          var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+          document.documentElement.dataset.theme = next;
+          themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
+          try {
+            localStorage.setItem("sweeper-theme", next);
+          } catch (err) {}
+        });
+        themeBtn.textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
+        setInterval(function () {
+          if (state.over) return;
+          if (state.trash.length < MAX_TRASH) spawnTrash();
+        }, 800);
+        restart();
+        requestAnimationFrame(loop);
+      })();
+    </script>
+  </body>
+</html>
