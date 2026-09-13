@@ -447,7 +447,7 @@
     <div class="game-wrapper">
       <div class="game-container">
         <div class="top-actions">
-          <button class="new-game-btn" id="newGameBtn"><span>🔄</span> 新游戏</button>
+          <button class="new-game-btn" id="newGameBtn">新游戏</button>
           <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换明暗主题">🌙</button>
         </div>
         <div class="header-area">
@@ -475,7 +475,7 @@
           <button class="bet-btn" data-bet="100">100 元</button>
         </div>
         <div class="result-area result-neutral" id="resultArea">点击上方按钮开始投注</div>
-        <button class="reset-btn" id="resetBtn">🔄 重新开始</button>
+        <button class="reset-btn" id="resetBtn">重新开始</button>
       </div>
     </div>
     <script>
@@ -587,7 +587,7 @@
         }
         function handleGameOver() {
           const minBet = Math.min(...betButtons.map((b) => parseFloat(b.dataset.bet)));
-          setResult("😔 余额不足 " + minBet.toFixed(0) + " 元，无法继续投注", "lose");
+          setResult("余额不足 " + minBet.toFixed(0) + " 元，无法继续投注", "lose");
           resetBtn.classList.add("visible");
           betButtons.forEach((b) => (b.disabled = true));
         }
@@ -606,10 +606,10 @@
           const won = Math.random() < WIN_RATE;
           if (won) {
             balance += betAmount;
-            setResult("🎉 恭喜中奖！投注 " + betAmount.toFixed(0) + " 元，获得 " + betAmount.toFixed(0) + " 元奖励", "win");
+            setResult("恭喜中奖！投注 " + betAmount.toFixed(0) + " 元，获得 " + betAmount.toFixed(0) + " 元奖励", "win");
           } else {
             balance -= betAmount;
-            setResult("😥 未中奖，扣除 " + betAmount.toFixed(0) + " 元", "lose");
+            setResult("未中奖，扣除 " + betAmount.toFixed(0) + " 元", "lose");
           }
           purchaseCount++;
           refreshUI(true);

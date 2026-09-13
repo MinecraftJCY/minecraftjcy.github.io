@@ -728,8 +728,8 @@
           </div>
         </div>
         <div class="action-buttons">
-          <button class="btn btn-outline" id="btnReset">🔄 重置</button>
-          <button class="btn btn-accent" id="btnAutoSolve">⚡ 自动求解</button>
+          <button class="btn btn-outline" id="btnReset">重置</button>
+          <button class="btn btn-accent" id="btnAutoSolve">自动求解</button>
         </div>
         <button class="theme-toggle" id="btnThemeToggle" aria-label="切换深色/浅色模式" title="切换深色/浅色模式">🌙</button>
       </div>
@@ -766,7 +766,7 @@
         <div class="victory-title">完美通关</div>
         <div class="victory-detail" id="victoryMovesDetail"></div>
         <div class="victory-detail" id="victoryOptimalDetail"></div>
-        <button class="btn btn-accent victory-btn" id="btnVictoryRestart">✨ 再来一局</button>
+        <button class="btn btn-accent victory-btn" id="btnVictoryRestart">再来一局</button>
       </div>
     </div>
     <script>
@@ -905,7 +905,7 @@
           const optimal = getOptimalMoves(state.numDisks);
           dom.victoryMovesDetail.textContent = `你完成了 ${state.numDisks} 层汉诺塔，共 ${state.moves} 步`;
           if (state.moves === optimal) {
-            dom.victoryOptimalDetail.textContent = "🌟 完美！你达到了最优解！";
+            dom.victoryOptimalDetail.textContent = "完美！你达到了最优解！";
             dom.victoryOptimalDetail.className = "victory-detail victory-perfect";
           } else {
             dom.victoryOptimalDetail.textContent = `理论最优步数为 ${optimal} 步`;
