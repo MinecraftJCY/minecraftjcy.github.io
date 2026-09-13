@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fdf6e3" />
     <title>五子棋</title>
     <style>
       :root {
         --bg-gradient: linear-gradient(160deg, #fdf6e3 0%, #f5e6d3 30%, #eedcc8 60%, #f0e0c8 100%);
         --panel-bg: #fefaf3;
-        --panel-shadow: 0 4px 24px rgba(120, 80, 40, 0.1);
+        --panel-shadow-side: 8px 0 40px rgba(120, 80, 40, 0.16);
+        --panel-shadow-bottom: 0 -8px 40px rgba(120, 80, 40, 0.16);
         --text-primary: #4a3728;
         --text-secondary: #6b5a4a;
         --text-muted: #8b7a6a;
         --accent: #7b9c6e;
-        --accent-hover: #6a8b5e;
-        --accent-light: rgba(123, 156, 110, 0.12);
         --board-bg: linear-gradient(145deg, #e2c9a0, #d4b888);
         --board-shadow: 0 8px 32px rgba(100, 60, 20, 0.18), inset 0 2px 8px rgba(255, 255, 255, 0.25);
         --btn-primary-bg: linear-gradient(135deg, #8b9d7e 0%, #7b8e6e 100%);
@@ -25,39 +25,31 @@
         --btn-danger-text: #fff;
         --btn-disabled-bg: #d5cfc6;
         --btn-disabled-text: #a09890;
-        --input-bg: #fefaf3;
-        --input-border: #c4b89a;
-        --input-focus-ring: rgba(123, 156, 110, 0.25);
         --stone-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
         --current-turn-bg: #faf5ec;
         --info-card-bg: #faf5ec;
         --winner-bg: linear-gradient(135deg, #8b9d7e 0%, #6b8b6e 100%);
         --winner-text: #fff;
         --divider: #e5d9c4;
-        --canvas-grid: #8b6914;
-        --canvas-border: #5c3d0a;
-        --canvas-star: #8b6914;
-        --hover-black: rgba(40, 20, 5, 0.32);
-        --hover-white: rgba(255, 250, 240, 0.38);
-        --hover-dot: #8b6914;
         --stone-black-start: #3a2a1a;
         --stone-black-end: #1a0a00;
         --stone-white-start: #fefefe;
         --stone-white-end: #d8d0c4;
-        --stone-border: rgba(0, 0, 0, 0.28);
         --theme-toggle-bg: #f0e6d8;
         --theme-toggle-icon: #6b5a4a;
+        --fab-bg: #fefaf3;
+        --fab-color: #6b5a4a;
+        --backdrop: rgba(40, 25, 10, 0.4);
       }
       [data-theme="dark"] {
         --bg-gradient: linear-gradient(160deg, #1e2328 0%, #252d34 30%, #1c2428 60%, #222a30 100%);
         --panel-bg: #252d34;
-        --panel-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        --panel-shadow-side: 8px 0 40px rgba(0, 0, 0, 0.4);
+        --panel-shadow-bottom: 0 -8px 40px rgba(0, 0, 0, 0.4);
         --text-primary: #d8cfc0;
         --text-secondary: #b8afa0;
         --text-muted: #988f80;
         --accent: #b8a878;
-        --accent-hover: #c8b888;
-        --accent-light: rgba(184, 168, 120, 0.14);
         --board-bg: linear-gradient(145deg, #5c4330, #4a3525);
         --board-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 2px 8px rgba(255, 255, 255, 0.04);
         --btn-primary-bg: linear-gradient(135deg, #6b7a5e 0%, #5a6a4e 100%);
@@ -68,560 +60,394 @@
         --btn-danger-text: #e8e0d0;
         --btn-disabled-bg: #3a3a3a;
         --btn-disabled-text: #6a6a6a;
-        --input-bg: #2a3238;
-        --input-border: #5a5040;
-        --input-focus-ring: rgba(184, 168, 120, 0.3);
         --stone-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
         --current-turn-bg: #2a323a;
         --info-card-bg: #2a323a;
         --winner-bg: linear-gradient(135deg, #6b7a5e 0%, #5a6a4e 100%);
         --winner-text: #e8e0d0;
         --divider: #3a3530;
-        --canvas-grid: #b8956e;
-        --canvas-border: #8b6a3a;
-        --canvas-star: #b8956e;
-        --hover-black: rgba(0, 0, 0, 0.55);
-        --hover-white: rgba(240, 230, 210, 0.4);
-        --hover-dot: #b8956e;
         --stone-black-start: #2a1a0a;
         --stone-black-end: #0a0000;
         --stone-white-start: #f5f0e8;
         --stone-white-end: #c8c0b0;
-        --stone-border: rgba(0, 0, 0, 0.45);
         --theme-toggle-bg: #353d44;
         --theme-toggle-icon: #d8cfc0;
+        --fab-bg: #2f3840;
+        --fab-color: #d8cfc0;
+        --backdrop: rgba(0, 0, 0, 0.55);
       }
-      * {
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
       }
-      html {
-        font-size: clamp(14px, 1.6vw, 16px);
+      html,
+      body {
         height: 100%;
-        -webkit-tap-highlight-color: transparent;
+        overflow: hidden;
       }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
         background: var(--bg-gradient);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-        overflow: hidden;
-        transition: background 0.4s ease;
+        color: var(--text-primary);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+        overscroll-behavior: none;
+        transition:
+          background 0.4s ease,
+          color 0.4s ease;
       }
-      .container {
-        display: flex;
-        width: 100vw;
-        height: 100vh;
-        background: transparent;
-        transition: all 0.4s ease;
-      }
-      .game-board {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
+      .app {
+        position: fixed;
+        inset: 0;
         overflow: hidden;
-        min-width: 0;
-        min-height: 0;
+      }
+      .board-area {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       #board {
+        display: block;
         background: var(--board-bg);
-        border-radius: clamp(4px, 1vw, 10px);
+        border-radius: 10px;
         box-shadow: var(--board-shadow);
         cursor: pointer;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
         transition:
           background 0.4s ease,
           box-shadow 0.4s ease;
-        touch-action: manipulation;
       }
-      .info-panel {
-        width: clamp(280px, 28vw, 360px);
-        min-width: 260px;
-        padding: clamp(20px, 3vw, 40px) clamp(16px, 2.5vw, 30px);
-        background: var(--panel-bg);
+      .fab {
+        position: fixed;
+        top: max(14px, env(safe-area-inset-top, 0px) + 10px);
+        right: max(14px, env(safe-area-inset-right, 0px) + 10px);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: none;
+        background: var(--fab-bg);
+        color: var(--fab-color);
+        font-size: 20px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        z-index: 40;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+        transition:
+          transform 0.22s ease,
+          box-shadow 0.22s ease,
+          background 0.4s ease,
+          color 0.4s ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fab:hover {
+        transform: scale(1.08);
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
+      }
+      .fab:active {
+        transform: scale(0.94);
+      }
+      .fab:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        background: var(--backdrop);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.32s ease;
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+      }
+      .backdrop.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .panel {
+        position: fixed;
+        z-index: 30;
         display: flex;
         flex-direction: column;
-        gap: clamp(14px, 2.5vh, 28px);
-        box-shadow: var(--panel-shadow);
-        transition:
-          background 0.4s ease,
-          box-shadow 0.4s ease;
+        gap: 14px;
+        padding: 22px;
+        background: var(--panel-bg);
         overflow-y: auto;
-        z-index: 2;
+        overscroll-behavior: contain;
+        transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
       }
-      .panel-header {
+      .panel::-webkit-scrollbar {
+        width: 6px;
+      }
+      .panel::-webkit-scrollbar-thumb {
+        background: var(--divider);
+        border-radius: 3px;
+      }
+      @media (min-aspect-ratio: 1/1) {
+        .panel {
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: clamp(256px, 24vw, 320px);
+          border-radius: 0 20px 20px 0;
+          padding-top: max(22px, env(safe-area-inset-top, 0px) + 14px);
+          padding-left: max(22px, env(safe-area-inset-left, 0px) + 14px);
+          padding-bottom: max(22px, env(safe-area-inset-bottom, 0px) + 14px);
+          box-shadow: var(--panel-shadow-side);
+          transform: translateX(calc(-100% - 30px));
+        }
+        .panel.open {
+          transform: translateX(0);
+        }
+      }
+      @media (max-aspect-ratio: 1/1) {
+        .panel {
+          left: 0;
+          right: 0;
+          bottom: 0;
+          max-height: 66vh;
+          border-radius: 24px 24px 0 0;
+          padding-bottom: max(22px, env(safe-area-inset-bottom, 0px) + 14px);
+          padding-left: max(22px, env(safe-area-inset-left, 0px) + 14px);
+          padding-right: max(22px, env(safe-area-inset-right, 0px) + 14px);
+          box-shadow: var(--panel-shadow-bottom);
+          transform: translateY(calc(100% + 30px));
+        }
+        .panel.open {
+          transform: translateY(0);
+        }
+      }
+      .panel-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 12px;
       }
-      .title {
-        font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+      .panel-title {
+        font-size: 1.35rem;
         font-weight: 700;
+        letter-spacing: 0.04em;
         color: var(--text-primary);
-        letter-spacing: 0.03em;
-        transition: color 0.4s ease;
         line-height: 1.2;
+        transition: color 0.4s ease;
       }
-      .theme-toggle {
-        width: clamp(36px, 6vw, 44px);
-        height: clamp(36px, 6vw, 44px);
+      .icon-btn {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 auto;
         border-radius: 50%;
         border: none;
         background: var(--theme-toggle-bg);
-        cursor: pointer;
-        font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.35s ease;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        color: var(--theme-toggle-icon);
+        font-size: 1.15rem;
         line-height: 1;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          background 0.4s ease,
+          color 0.4s ease;
       }
-      .theme-toggle:hover {
-        transform: scale(1.08);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      .icon-btn:hover {
+        transform: scale(1.06);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
       }
-      .theme-toggle:active {
+      .icon-btn:active {
         transform: scale(0.94);
-        transition: transform 0.1s ease;
       }
-      .current-turn {
+      .icon-btn:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .status-row,
+      .stat-row {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: clamp(10px, 2vw, 16px);
-        padding: clamp(14px, 2vh, 20px) clamp(12px, 2vw, 20px);
-        background: var(--current-turn-bg);
-        border-radius: clamp(8px, 1.5vw, 14px);
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 14px;
         transition: background 0.4s ease;
       }
-      .turn-label {
-        font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+      .status-row {
+        background: var(--current-turn-bg);
+      }
+      .stat-row {
+        background: var(--info-card-bg);
+      }
+      .status-row.winner {
+        background: var(--winner-bg);
+      }
+      .status-label,
+      .stat-label {
+        font-size: 0.95rem;
         font-weight: 600;
         color: var(--text-secondary);
-        transition: color 0.4s ease;
         white-space: nowrap;
+        transition: color 0.4s ease;
       }
-      .current-stone {
-        width: clamp(34px, 5vw, 44px);
-        height: clamp(34px, 5vw, 44px);
-        border-radius: 50%;
-        box-shadow: var(--stone-shadow);
-        transition: all 0.35s ease;
-        flex-shrink: 0;
-      }
-      .current-stone.black {
-        background: radial-gradient(circle at 30% 30%, #3a2a1a, #1a0a00);
-      }
-      .current-stone.white {
-        background: radial-gradient(circle at 30% 30%, #fefefe, #d8d0c4);
-      }
-      .game-info {
-        display: flex;
-        flex-direction: column;
-        gap: clamp(10px, 2vh, 16px);
-        padding: clamp(14px, 2vh, 20px) clamp(12px, 2vw, 20px);
-        background: var(--info-card-bg);
-        border-radius: clamp(8px, 1.5vw, 14px);
-        transition: background 0.4s ease;
-      }
-      .info-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .info-label {
-        font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+      .stat-label {
         color: var(--text-muted);
         font-weight: 500;
-        transition: color 0.4s ease;
-        white-space: nowrap;
       }
-      .info-value {
-        font-size: clamp(0.9rem, 1.9vw, 1.1rem);
+      .status-row.winner .status-label {
+        color: var(--winner-text);
+        font-size: 1.05rem;
+        letter-spacing: 0.05em;
+      }
+      .stat-value {
+        font-size: 1.15rem;
         font-weight: 700;
         color: var(--accent);
         transition: color 0.4s ease;
       }
-      .game-controls {
+      .stone-dot {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        box-shadow: var(--stone-shadow);
+        transition: background 0.35s ease;
+      }
+      .stone-dot.black {
+        background: radial-gradient(circle at 32% 30%, var(--stone-black-start), var(--stone-black-end));
+      }
+      .stone-dot.white {
+        background: radial-gradient(circle at 32% 30%, var(--stone-white-start), var(--stone-white-end));
+      }
+      .actions {
         display: flex;
-        flex-direction: column;
-        gap: clamp(10px, 2vh, 16px);
-      }
-      .board-size-control {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(8px, 1.5vw, 14px);
-        padding: clamp(10px, 1.8vh, 16px) clamp(10px, 2vw, 18px);
-        background: var(--info-card-bg);
-        border-radius: clamp(8px, 1.5vw, 14px);
-        transition: background 0.4s ease;
-      }
-      .control-label {
-        font-size: clamp(0.8rem, 1.6vw, 0.95rem);
-        font-weight: 600;
-        color: var(--text-secondary);
-        transition: color 0.4s ease;
-        white-space: nowrap;
-      }
-      .board-size-select {
-        padding: clamp(6px, 1vh, 10px) clamp(10px, 1.8vw, 16px);
-        font-size: clamp(0.82rem, 1.7vw, 0.95rem);
-        font-weight: 600;
-        border: 2px solid var(--input-border);
-        border-radius: clamp(6px, 1vw, 10px);
-        background: var(--input-bg);
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        outline: none;
-        min-height: clamp(36px, 7vw, 44px);
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding-right: clamp(28px, 4vw, 36px);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%236b5a4a'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-      }
-      [data-theme="dark"] .board-size-select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23b8aFA0'/%3E%3C/svg%3E");
-      }
-      .board-size-select:hover {
-        border-color: var(--accent);
-      }
-      .board-size-select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 clamp(2px, 0.4vw, 4px) var(--input-focus-ring);
-      }
-      .board-size-select:disabled {
-        background: var(--btn-disabled-bg);
-        color: var(--btn-disabled-text);
-        border-color: transparent;
-        cursor: not-allowed;
-        opacity: 0.7;
-      }
-      .action-buttons {
-        display: flex;
-        gap: clamp(8px, 1.5vw, 12px);
-        width: 100%;
-      }
-      .action-buttons .btn {
-        flex: 1;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 4px;
       }
       .btn {
-        padding: clamp(11px, 2vh, 15px) clamp(16px, 3vw, 28px);
-        font-size: clamp(0.82rem, 1.7vw, 0.95rem);
-        font-weight: 600;
+        flex: 1;
+        min-height: 48px;
+        padding: 12px 18px;
         border: none;
-        border-radius: clamp(8px, 1.5vw, 14px);
+        border-radius: 14px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
         cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: clamp(4px, 1vw, 8px);
-        position: relative;
-        overflow: hidden;
-        min-height: clamp(38px, 7.5vw, 48px);
-        white-space: nowrap;
-        letter-spacing: 0.02em;
-      }
-      .btn::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        transform: translate(-50%, -50%);
+        gap: 6px;
         transition:
-          width 0.55s ease,
-          height 0.55s ease;
+          transform 0.15s ease,
+          box-shadow 0.2s ease,
+          background 0.25s ease,
+          opacity 0.2s ease,
+          color 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        white-space: nowrap;
       }
-      .btn:active::before {
-        width: 350px;
-        height: 350px;
-      }
-      .btn:hover {
+      .btn:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
       }
-      .btn:active {
+      .btn:active:not(:disabled) {
         transform: translateY(0);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transition: all 0.08s ease;
       }
-      .btn-icon {
-        font-size: clamp(1rem, 2.2vw, 1.25rem);
-        font-weight: bold;
-        transition: transform 0.3s ease;
-        flex-shrink: 0;
+      .btn:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
       }
-      .btn:hover .btn-icon {
-        transform: scale(1.15);
+      .btn:disabled {
+        background: var(--btn-disabled-bg) !important;
+        color: var(--btn-disabled-text) !important;
+        cursor: not-allowed;
+        opacity: 0.7;
+        transform: none !important;
+        box-shadow: none !important;
       }
-      .btn-text {
-        transition: transform 0.3s ease;
-      }
-      .btn:hover .btn-text {
-        transform: translateX(2px);
-      }
-      .restart-btn {
-        background: var(--btn-primary-bg);
-        color: var(--btn-primary-text);
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
-      }
-      .restart-btn:hover {
-        background: var(--btn-primary-hover);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-      }
-      .undo-btn {
+      .btn-undo {
         background: var(--btn-danger-bg);
         color: var(--btn-danger-text);
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
       }
-      .undo-btn:hover {
+      .btn-undo:hover:not(:disabled) {
         background: var(--btn-danger-hover);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
       }
-      .undo-btn:disabled {
-        background: var(--btn-disabled-bg);
-        color: var(--btn-disabled-text);
-        cursor: not-allowed;
-        transform: none;
-        opacity: 0.65;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      .btn-restart {
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
       }
-      .undo-btn:disabled:hover {
-        transform: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      .btn-restart:hover:not(:disabled) {
+        background: var(--btn-primary-hover);
       }
-      .undo-btn:disabled .btn-icon,
-      .undo-btn:disabled .btn-text {
-        transform: none;
-      }
-      .undo-btn:disabled::before {
-        display: none;
-      }
-      .winner-message {
-        padding: clamp(14px, 2.5vh, 22px) clamp(16px, 3vw, 24px);
-        background: var(--winner-bg);
-        border-radius: clamp(8px, 1.5vw, 14px);
-        text-align: center;
-        color: var(--winner-text);
-        font-size: clamp(1rem, 2.2vw, 1.3rem);
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        display: none;
-        transition: background 0.4s ease;
-      }
-      .winner-message.show {
-        display: block;
-        animation: winnerPopup 0.5s ease forwards;
-      }
-      @keyframes winnerPopup {
-        0% {
-          opacity: 0;
-          transform: scale(0.85);
+      @media (max-width: 360px) {
+        .panel {
+          padding: 18px 16px;
         }
-        60% {
-          transform: scale(1.04);
-        }
-        100% {
-          opacity: 1;
-          transform: scale(1);
+        .panel-title {
+          font-size: 1.15rem;
         }
       }
-      @media (max-width: 768px) {
-        html {
-          font-size: clamp(14px, 3.2vw, 15px);
-        }
-        .container {
-          flex-direction: column;
-        }
-        .game-board {
-          flex: 1 1 auto;
-          min-height: 0;
-          order: 1;
-        }
-        .info-panel {
-          width: 100%;
-          min-width: unset;
-          flex: 0 0 auto;
-          flex-direction: row;
-          flex-wrap: wrap;
-          gap: clamp(8px, 2vw, 14px);
-          padding: clamp(10px, 2.5vw, 18px) clamp(12px, 3vw, 20px);
-          order: 2;
-          box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-          max-height: 42vh;
-          overflow-y: auto;
-          justify-content: center;
-          align-items: flex-start;
-        }
-        .panel-header {
-          width: 100%;
-          justify-content: center;
-          gap: clamp(10px, 2vw, 16px);
-        }
-        .title {
-          font-size: clamp(1.2rem, 5vw, 1.6rem);
-        }
-        .theme-toggle {
-          width: clamp(32px, 8vw, 40px);
-          height: clamp(32px, 8vw, 40px);
-          font-size: clamp(1rem, 3.5vw, 1.3rem);
-        }
-        .current-turn {
-          flex: 0 0 auto;
-          padding: clamp(8px, 1.8vw, 14px) clamp(10px, 2.5vw, 16px);
-        }
-        .game-info {
-          flex: 0 0 auto;
-          flex-direction: row;
-          gap: clamp(12px, 3vw, 20px);
-          padding: clamp(8px, 1.8vw, 14px) clamp(10px, 2.5vw, 16px);
-        }
-        .info-item {
-          gap: 6px;
-        }
-        .game-controls {
-          flex: 0 0 auto;
-          flex-direction: row;
-          flex-wrap: wrap;
-          gap: clamp(6px, 1.5vw, 10px);
-          justify-content: center;
-        }
-        .board-size-control {
-          flex: 0 0 auto;
-          padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.5vw, 14px);
-          gap: clamp(6px, 1.5vw, 10px);
-        }
-        .action-buttons {
-          flex: 0 0 auto;
-          gap: clamp(6px, 1.5vw, 10px);
-        }
-        .btn {
-          padding: clamp(9px, 2vh, 13px) clamp(12px, 2.5vw, 18px);
-          font-size: clamp(0.78rem, 2.8vw, 0.9rem);
-          min-height: clamp(34px, 8vw, 42px);
-          border-radius: clamp(6px, 2vw, 10px);
-        }
-        .board-size-select {
-          min-height: clamp(32px, 7.5vw, 40px);
-          font-size: clamp(0.76rem, 2.6vw, 0.88rem);
-          padding: clamp(5px, 1vh, 8px) clamp(8px, 2vw, 12px);
-          padding-right: clamp(24px, 5vw, 30px);
-        }
-        .winner-message {
-          flex-basis: 100%;
-          font-size: clamp(0.9rem, 3.5vw, 1.1rem);
-          padding: clamp(10px, 2vh, 16px) clamp(12px, 3vw, 18px);
-        }
-        .current-stone {
-          width: clamp(28px, 6vw, 36px);
-          height: clamp(28px, 6vw, 36px);
-        }
-      }
-      @media (max-width: 380px) {
-        .info-panel {
-          gap: 6px;
-          padding: 8px 10px;
-          max-height: 46vh;
-        }
-        .action-buttons {
-          flex-direction: column;
-          width: 100%;
-        }
-        .action-buttons .btn {
-          width: 100%;
-        }
-        .game-controls {
-          flex-direction: column;
-          width: 100%;
-        }
-        .board-size-control {
-          width: 100%;
-          justify-content: space-between;
-        }
-        .game-info {
-          flex-wrap: wrap;
-          justify-content: center;
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <section class="game-board">
-        <canvas id="board"></canvas>
-      </section>
-      <aside class="info-panel">
-        <div class="panel-header">
-          <h1 class="title">五子棋</h1>
-          <button class="theme-toggle" id="theme-toggle" aria-label="切换主题" title="切换亮色/暗色主题">🌙</button>
+    <div class="app">
+      <div class="board-area">
+        <canvas id="board" aria-label="五子棋棋盘"></canvas>
+      </div>
+      <button class="fab" id="fab" aria-label="打开操作面板" aria-controls="panel" aria-expanded="false">⚙</button>
+      <div class="backdrop" id="backdrop"></div>
+      <aside class="panel" id="panel" aria-label="操作面板">
+        <header class="panel-head">
+          <h1 class="panel-title">五子棋</h1>
+          <button class="icon-btn" id="theme-toggle" aria-label="切换主题">🌙</button>
+        </header>
+        <div class="status-row" id="status-row">
+          <span class="status-label" id="status-label">当前回合</span>
+          <span class="stone-dot black" id="turn-stone"></span>
         </div>
-        <section class="current-turn">
-          <span class="turn-label">当前回合：</span>
-          <div class="current-stone black"></div>
-        </section>
-        <section class="game-info">
-          <div class="info-item">
-            <span class="info-label">步数：</span>
-            <span class="info-value" id="move-count">0</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">棋盘大小：</span>
-            <span class="info-value" id="board-size">15×15</span>
-          </div>
-        </section>
-        <nav class="game-controls">
-          <div class="board-size-control">
-            <label class="control-label" for="board-size-select">棋盘大小：</label>
-            <select class="board-size-select" id="board-size-select"></select>
-          </div>
-          <div class="action-buttons">
-            <button class="btn undo-btn" id="undo-btn" disabled>
-              <span class="btn-icon">↩</span>
-              <span class="btn-text">悔棋</span>
-            </button>
-            <button class="btn restart-btn" id="restart-btn">
-              <span class="btn-icon">↻</span>
-              <span class="btn-text">重新开始</span>
-            </button>
-          </div>
-        </nav>
-        <div class="winner-message" id="winner-message"></div>
+        <div class="stat-row">
+          <span class="stat-label">步数</span>
+          <span class="stat-value" id="move-count">0</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-undo" id="undo-btn" disabled>悔棋</button>
+          <button class="btn btn-restart" id="restart-btn">重新开始</button>
+        </div>
       </aside>
     </div>
     <script>
       (() => {
-        const CONSTANTS = {
-          DEFAULT_BOARD_SIZE: 15,
-          AVAILABLE_BOARD_SIZES: [9, 13, 15, 19],
-          PADDING: 28,
-          PADDING_MOBILE: 18,
-          CANVAS_MARGIN: 40,
-          CANVAS_MARGIN_MOBILE: 16,
-          WIN_COUNT: 5,
-          STAR_POINT_RADIUS: 4,
-          STONE_RADIUS_RATIO: 0.4,
-          STONE_GRADIENT_OFFSET: 0.3,
-          HOVER_CENTER_DOT_RADIUS: 3,
-        };
-        const DIRECTIONS = [
+        "use strict";
+        const SIZE = 15;
+        const WIN_COUNT = 5;
+        const THEME_KEY = "gomoku-theme";
+        const MAX_DPR = 2.5;
+        const EDGE = 8;
+        const DIRS = [
           [
             [0, 1],
             [0, -1],
@@ -639,482 +465,350 @@
             [-1, 1],
           ],
         ];
-        const CANVAS_COLORS_LIGHT = {
-          gridColor: "#8b6914",
-          borderColor: "#5c3d0a",
-          borderWidth: 3,
-          starPointColor: "#8b6914",
-          stoneBorderColor: "rgba(0,0,0,0.28)",
-          stoneBlackStart: "#3a2a1a",
-          stoneBlackEnd: "#1a0a00",
-          stoneWhiteStart: "#fefefe",
-          stoneWhiteEnd: "#d8d0c4",
-          hoverBlackFill: "rgba(40,20,5,0.32)",
-          hoverBlackStroke: "rgba(40,20,5,0.5)",
-          hoverWhiteFill: "rgba(255,250,240,0.38)",
-          hoverWhiteStroke: "rgba(180,160,140,0.5)",
-          hoverDotColor: "#8b6914",
+        const STARS = [
+          [3, 3],
+          [3, 7],
+          [3, 11],
+          [7, 3],
+          [7, 7],
+          [7, 11],
+          [11, 3],
+          [11, 7],
+          [11, 11],
+        ];
+        const THEMES = {
+          light: {
+            grid: "#8b6914",
+            border: "#5c3d0a",
+            star: "#8b6914",
+            stoneBorder: "rgba(0,0,0,0.28)",
+            blackFrom: "#3a2a1a",
+            blackTo: "#1a0a00",
+            whiteFrom: "#fefefe",
+            whiteTo: "#d8d0c4",
+            hoverBlack: "rgba(40,20,5,0.32)",
+            hoverBlackStroke: "rgba(40,20,5,0.5)",
+            hoverWhite: "rgba(255,250,240,0.38)",
+            hoverWhiteStroke: "rgba(180,160,140,0.5)",
+            hoverDot: "#8b6914",
+          },
+          dark: {
+            grid: "#b8956e",
+            border: "#8b6a3a",
+            star: "#b8956e",
+            stoneBorder: "rgba(0,0,0,0.45)",
+            blackFrom: "#2a1a0a",
+            blackTo: "#0a0000",
+            whiteFrom: "#f5f0e8",
+            whiteTo: "#c8c0b0",
+            hoverBlack: "rgba(0,0,0,0.55)",
+            hoverBlackStroke: "rgba(0,0,0,0.65)",
+            hoverWhite: "rgba(240,230,210,0.4)",
+            hoverWhiteStroke: "rgba(220,200,180,0.5)",
+            hoverDot: "#b8956e",
+          },
         };
-        const CANVAS_COLORS_DARK = {
-          gridColor: "#b8956e",
-          borderColor: "#8b6a3a",
-          borderWidth: 3,
-          starPointColor: "#b8956e",
-          stoneBorderColor: "rgba(0,0,0,0.45)",
-          stoneBlackStart: "#2a1a0a",
-          stoneBlackEnd: "#0a0000",
-          stoneWhiteStart: "#f5f0e8",
-          stoneWhiteEnd: "#c8c0b0",
-          hoverBlackFill: "rgba(0,0,0,0.55)",
-          hoverBlackStroke: "rgba(0,0,0,0.65)",
-          hoverWhiteFill: "rgba(240,230,210,0.4)",
-          hoverWhiteStroke: "rgba(220,200,180,0.5)",
-          hoverDotColor: "#b8956e",
+        const canvas = document.getElementById("board");
+        const ctx = canvas.getContext("2d");
+        const fab = document.getElementById("fab");
+        const backdrop = document.getElementById("backdrop");
+        const panel = document.getElementById("panel");
+        const themeToggle = document.getElementById("theme-toggle");
+        const statusRow = document.getElementById("status-row");
+        const statusLabel = document.getElementById("status-label");
+        const turnStone = document.getElementById("turn-stone");
+        const moveCountEl = document.getElementById("move-count");
+        const undoBtn = document.getElementById("undo-btn");
+        const restartBtn = document.getElementById("restart-btn");
+        const state = {
+          board: [],
+          player: "black",
+          history: [],
+          over: false,
+          winner: null,
         };
-        const THEME_STORAGE_KEY = "gomoku-theme-v2";
-        function getInitialTheme() {
+        let cssSize = 0;
+        let padding = 0;
+        let cellSize = 0;
+        let palette = THEMES.light;
+        let hoverRow = -1;
+        let hoverCol = -1;
+        let resizeRaf = 0;
+        const inBounds = (r, c) => r >= 0 && r < SIZE && c >= 0 && c < SIZE;
+        const gridToPixel = (row, col) => ({
+          x: padding + col * cellSize,
+          y: padding + row * cellSize,
+        });
+        const checkWin = (row, col, player) => {
+          for (const [a, b] of DIRS) {
+            let count = 1;
+            for (const [dr, dc] of [a, b]) {
+              let r = row + dr;
+              let c = col + dc;
+              while (inBounds(r, c) && state.board[r][c] === player) {
+                count++;
+                r += dr;
+                c += dc;
+              }
+            }
+            if (count >= WIN_COUNT) return true;
+          }
+          return false;
+        };
+        const render = () => {
+          if (!cssSize) return;
+          ctx.clearRect(0, 0, cssSize, cssSize);
+          const end = padding + (SIZE - 1) * cellSize;
+          ctx.strokeStyle = palette.grid;
+          ctx.lineWidth = Math.max(1, cellSize * 0.035);
+          ctx.beginPath();
+          for (let i = 0; i < SIZE; i++) {
+            const p = padding + i * cellSize;
+            ctx.moveTo(p, padding);
+            ctx.lineTo(p, end);
+            ctx.moveTo(padding, p);
+            ctx.lineTo(end, p);
+          }
+          ctx.stroke();
+          const bw = Math.max(2, cellSize * 0.09);
+          ctx.strokeStyle = palette.border;
+          ctx.lineWidth = bw;
+          ctx.strokeRect(padding - bw / 2, padding - bw / 2, end - padding + bw, end - padding + bw);
+          const starR = Math.max(1.8, cellSize * 0.09);
+          ctx.fillStyle = palette.star;
+          ctx.beginPath();
+          for (const [sr, sc] of STARS) {
+            const { x, y } = gridToPixel(sr, sc);
+            ctx.moveTo(x + starR, y);
+            ctx.arc(x, y, starR, 0, Math.PI * 2);
+          }
+          ctx.fill();
+          const stoneR = cellSize * 0.42;
+          const off = stoneR * 0.3;
+          const lineW = Math.max(0.6, cellSize * 0.025);
+          for (let row = 0; row < SIZE; row++) {
+            for (let col = 0; col < SIZE; col++) {
+              const stone = state.board[row][col];
+              if (!stone) continue;
+              const { x, y } = gridToPixel(row, col);
+              const grad = ctx.createRadialGradient(x - off, y - off, stoneR * 0.05, x, y, stoneR);
+              if (stone === "black") {
+                grad.addColorStop(0, palette.blackFrom);
+                grad.addColorStop(1, palette.blackTo);
+              } else {
+                grad.addColorStop(0, palette.whiteFrom);
+                grad.addColorStop(1, palette.whiteTo);
+              }
+              ctx.beginPath();
+              ctx.arc(x, y, stoneR, 0, Math.PI * 2);
+              ctx.fillStyle = grad;
+              ctx.fill();
+              ctx.strokeStyle = palette.stoneBorder;
+              ctx.lineWidth = lineW;
+              ctx.stroke();
+            }
+          }
+          if (!state.over && hoverRow >= 0 && hoverCol >= 0) {
+            const { x, y } = gridToPixel(hoverRow, hoverCol);
+            const isBlack = state.player === "black";
+            ctx.beginPath();
+            ctx.arc(x, y, stoneR, 0, Math.PI * 2);
+            ctx.fillStyle = isBlack ? palette.hoverBlack : palette.hoverWhite;
+            ctx.fill();
+            ctx.strokeStyle = isBlack ? palette.hoverBlackStroke : palette.hoverWhiteStroke;
+            ctx.lineWidth = Math.max(0.8, cellSize * 0.03);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x, y, Math.max(1.4, cellSize * 0.07), 0, Math.PI * 2);
+            ctx.fillStyle = palette.hoverDot;
+            ctx.fill();
+          }
+        };
+        const resizeBoard = () => {
+          const size = Math.floor(Math.min(window.innerWidth, window.innerHeight) - EDGE * 2);
+          if (size < 100) return;
+          const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+          const target = Math.round(size * dpr);
+          if (canvas.width !== target || canvas.height !== target) {
+            canvas.width = target;
+            canvas.height = target;
+            canvas.style.width = size + "px";
+            canvas.style.height = size + "px";
+          }
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          cssSize = size;
+          padding = Math.max(12, Math.min(size * 0.05, 36));
+          cellSize = (size - padding * 2) / (SIZE - 1);
+          render();
+        };
+        const scheduleResize = () => {
+          if (resizeRaf) return;
+          resizeRaf = requestAnimationFrame(() => {
+            resizeRaf = 0;
+            resizeBoard();
+          });
+        };
+        const updateUI = () => {
+          moveCountEl.textContent = String(state.history.length);
+          undoBtn.disabled = state.history.length === 0;
+          if (state.over) {
+            statusRow.classList.add("winner");
+            statusLabel.textContent = (state.winner === "black" ? "黑方" : "白方") + "获胜！";
+            turnStone.className = "stone-dot " + state.winner;
+          } else {
+            statusRow.classList.remove("winner");
+            statusLabel.textContent = "当前回合";
+            turnStone.className = "stone-dot " + state.player;
+          }
+        };
+        const isPanelOpen = () => panel.classList.contains("open");
+        const openPanel = () => {
+          if (isPanelOpen()) return;
+          panel.classList.add("open");
+          backdrop.classList.add("show");
+          fab.textContent = "✕";
+          fab.setAttribute("aria-label", "关闭操作面板");
+          fab.setAttribute("aria-expanded", "true");
+        };
+        const closePanel = () => {
+          if (!isPanelOpen()) return;
+          panel.classList.remove("open");
+          backdrop.classList.remove("show");
+          fab.textContent = "⚙";
+          fab.setAttribute("aria-label", "打开操作面板");
+          fab.setAttribute("aria-expanded", "false");
+        };
+        const newGame = () => {
+          state.board = Array.from({ length: SIZE }, () => new Array(SIZE).fill(null));
+          state.player = "black";
+          state.history = [];
+          state.over = false;
+          state.winner = null;
+          hoverRow = -1;
+          hoverCol = -1;
+          updateUI();
+          render();
+        };
+        const makeMove = (row, col) => {
+          if (state.over || !inBounds(row, col) || state.board[row][col]) return;
+          state.board[row][col] = state.player;
+          state.history.push({ row, col, player: state.player });
+          hoverRow = -1;
+          hoverCol = -1;
+          if (checkWin(row, col, state.player)) {
+            state.over = true;
+            state.winner = state.player;
+            render();
+            updateUI();
+            openPanel();
+            return;
+          }
+          state.player = state.player === "black" ? "white" : "black";
+          render();
+          updateUI();
+        };
+        const undo = () => {
+          if (!state.history.length) return;
+          const last = state.history.pop();
+          state.board[last.row][last.col] = null;
+          state.player = last.player;
+          state.over = false;
+          state.winner = null;
+          updateUI();
+          render();
+        };
+        const getPos = (clientX, clientY) => {
+          if (cellSize <= 0) return { row: -1, col: -1 };
+          const rect = canvas.getBoundingClientRect();
+          return {
+            row: Math.round((clientY - rect.top - padding) / cellSize),
+            col: Math.round((clientX - rect.left - padding) / cellSize),
+          };
+        };
+        const clearHover = () => {
+          if (hoverRow === -1 && hoverCol === -1) return;
+          hoverRow = -1;
+          hoverCol = -1;
+          render();
+        };
+        const setTheme = (theme) => {
+          document.documentElement.setAttribute("data-theme", theme);
+          palette = THEMES[theme];
+          themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+          themeToggle.setAttribute("aria-label", theme === "dark" ? "切换到亮色主题" : "切换到暗色主题");
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", theme === "dark" ? "#1e2328" : "#fdf6e3");
+          render();
+        };
+        const initialTheme = () => {
           try {
-            const saved = localStorage.getItem(THEME_STORAGE_KEY);
+            const saved = localStorage.getItem(THEME_KEY);
             if (saved === "dark" || saved === "light") return saved;
           } catch (_) {}
-          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
-          return "light";
-        }
-        function saveTheme(theme) {
-          try {
-            localStorage.setItem(THEME_STORAGE_KEY, theme);
-          } catch (_) {}
-        }
-        function screenToGrid(clientX, clientY, canvasRect, padding, cellSize) {
-          const boardX = clientX - canvasRect.left;
-          const boardY = clientY - canvasRect.top;
-          if (cellSize <= 0) return { row: -1, col: -1 };
-          return {
-            row: Math.round((boardY - padding) / cellSize),
-            col: Math.round((boardX - padding) / cellSize),
-          };
-        }
-        function calcCellSize(canvasSize, boardSize, padding) {
-          return (canvasSize - padding * 2) / (boardSize - 1);
-        }
-        function createEmptyBoard(size) {
-          return Array(size)
-            .fill(null)
-            .map(() => Array(size).fill(null));
-        }
-        class BoardRenderer {
-          constructor(ctx) {
-            this.ctx = ctx;
-            this.hoverRow = -1;
-            this.hoverCol = -1;
-            this._colors = CANVAS_COLORS_LIGHT;
-          }
-          setColors(colors) {
-            this._colors = { ...colors };
-          }
-          clear(width, height) {
-            this.ctx.clearRect(0, 0, width, height);
-          }
-          draw(board, boardSize, cellSize, padding, currentPlayer, gameOver) {
-            this._drawGrid(boardSize, cellSize, padding);
-            this._drawStarPoints(boardSize, cellSize, padding);
-            this._drawStones(board, boardSize, cellSize, padding);
-            this._drawHover(boardSize, cellSize, padding, currentPlayer, gameOver);
-          }
-          setHover(row, col) {
-            this.hoverRow = row;
-            this.hoverCol = col;
-          }
-          _drawGrid(boardSize, cellSize, padding) {
-            const ctx = this.ctx;
-            const colors = this._colors;
-            ctx.save();
-            ctx.strokeStyle = colors.gridColor;
-            ctx.lineWidth = 1;
-            const endPos = padding + (boardSize - 1) * cellSize;
-            for (let i = 0; i < boardSize; i++) {
-              const pos = padding + i * cellSize;
-              ctx.beginPath();
-              ctx.moveTo(pos, padding);
-              ctx.lineTo(pos, endPos);
-              ctx.stroke();
-              ctx.beginPath();
-              ctx.moveTo(padding, pos);
-              ctx.lineTo(endPos, pos);
-              ctx.stroke();
-            }
-            ctx.strokeStyle = colors.borderColor;
-            ctx.lineWidth = colors.borderWidth;
-            const halfBorder = colors.borderWidth / 2;
-            ctx.strokeRect(padding - halfBorder, padding - halfBorder, endPos - padding + colors.borderWidth, endPos - padding + colors.borderWidth);
-            ctx.restore();
-          }
-          _drawStarPoints(boardSize, cellSize, padding) {
-            const points = this._getStarPoints(boardSize);
-            if (points.length === 0) return;
-            const ctx = this.ctx;
-            ctx.save();
-            ctx.fillStyle = this._colors.starPointColor;
-            for (const point of points) {
-              const { x, y } = this._gridToPixel(point.row, point.col, padding, cellSize);
-              ctx.beginPath();
-              ctx.arc(x, y, CONSTANTS.STAR_POINT_RADIUS, 0, Math.PI * 2);
-              ctx.fill();
-            }
-            ctx.restore();
-          }
-          _drawStones(board, boardSize, cellSize, padding) {
-            const ctx = this.ctx;
-            ctx.save();
-            for (let row = 0; row < boardSize; row++) {
-              for (let col = 0; col < boardSize; col++) {
-                const stone = board[row][col];
-                if (stone) {
-                  this._drawSingleStone(row, col, stone, padding, cellSize);
-                }
-              }
-            }
-            ctx.restore();
-          }
-          _drawSingleStone(row, col, stone, padding, cellSize) {
-            const ctx = this.ctx;
-            const colors = this._colors;
-            const { x, y } = this._gridToPixel(row, col, padding, cellSize);
-            const radius = cellSize * CONSTANTS.STONE_RADIUS_RATIO;
-            const gradient = ctx.createRadialGradient(x - radius * CONSTANTS.STONE_GRADIENT_OFFSET, y - radius * CONSTANTS.STONE_GRADIENT_OFFSET, 0, x, y, radius);
-            if (stone === "black") {
-              gradient.addColorStop(0, colors.stoneBlackStart);
-              gradient.addColorStop(1, colors.stoneBlackEnd);
-            } else {
-              gradient.addColorStop(0, colors.stoneWhiteStart);
-              gradient.addColorStop(1, colors.stoneWhiteEnd);
-            }
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = gradient;
-            ctx.fill();
-            ctx.strokeStyle = colors.stoneBorderColor;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-          _drawHover(boardSize, cellSize, padding, currentPlayer, gameOver) {
-            if (this.hoverRow < 0 || this.hoverCol < 0 || gameOver) return;
-            if (this.hoverRow >= boardSize || this.hoverCol >= boardSize) return;
-            const ctx = this.ctx;
-            const colors = this._colors;
-            const { x, y } = this._gridToPixel(this.hoverRow, this.hoverCol, padding, cellSize);
-            const radius = cellSize * CONSTANTS.STONE_RADIUS_RATIO;
-            const isBlack = currentPlayer === "black";
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = isBlack ? colors.hoverBlackFill : colors.hoverWhiteFill;
-            ctx.fill();
-            ctx.strokeStyle = isBlack ? colors.hoverBlackStroke : colors.hoverWhiteStroke;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(x, y, CONSTANTS.HOVER_CENTER_DOT_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = colors.hoverDotColor;
-            ctx.fill();
-            ctx.restore();
-          }
-          _gridToPixel(row, col, padding, cellSize) {
-            return {
-              x: padding + col * cellSize,
-              y: padding + row * cellSize,
-            };
-          }
-          _getStarPoints(boardSize) {
-            if (boardSize < 13) return [];
-            const positions = [3, Math.floor(boardSize / 2), boardSize - 4];
-            const points = [];
-            for (const row of positions) {
-              for (const col of positions) {
-                points.push({ row, col });
-              }
-            }
-            return points;
-          }
-        }
-        class GameState {
-          constructor() {
-            this.reset();
-          }
-          reset(boardSize) {
-            this._boardSize = boardSize ?? this._boardSize ?? CONSTANTS.DEFAULT_BOARD_SIZE;
-            this._board = createEmptyBoard(this._boardSize);
-            this._currentPlayer = "black";
-            this._moveCount = 0;
-            this._gameOver = false;
-            this._moveHistory = [];
-            this._winner = null;
-          }
-          getSnapshot() {
-            return {
-              boardSize: this._boardSize,
-              board: this._board.map((row) => [...row]),
-              currentPlayer: this._currentPlayer,
-              moveCount: this._moveCount,
-              gameOver: this._gameOver,
-              winner: this._winner,
-              canUndo: this._moveHistory.length > 0,
-              isLocked: this._moveCount > 0 || this._gameOver,
-            };
-          }
-          makeMove(row, col) {
-            if (this._gameOver || this._board[row][col]) return false;
-            this._board[row][col] = this._currentPlayer;
-            this._moveHistory.push({ row, col, player: this._currentPlayer });
-            this._moveCount++;
-            if (this._checkWin(row, col)) {
-              this._gameOver = true;
-              this._winner = this._currentPlayer;
-              return true;
-            }
-            this._currentPlayer = this._currentPlayer === "black" ? "white" : "black";
-            return true;
-          }
-          undo() {
-            if (this._moveHistory.length === 0) return false;
-            const lastMove = this._moveHistory.pop();
-            this._board[lastMove.row][lastMove.col] = null;
-            this._moveCount--;
-            this._currentPlayer = lastMove.player;
-            this._gameOver = false;
-            this._winner = null;
-            return true;
-          }
-          isValidPosition(row, col) {
-            return row >= 0 && row < this._boardSize && col >= 0 && col < this._boardSize;
-          }
-          get boardSize() {
-            return this._boardSize;
-          }
-          get board() {
-            return this._board;
-          }
-          get currentPlayer() {
-            return this._currentPlayer;
-          }
-          get gameOver() {
-            return this._gameOver;
-          }
-          get moveCount() {
-            return this._moveCount;
-          }
-          get winner() {
-            return this._winner;
-          }
-          _checkWin(row, col) {
-            for (const direction of DIRECTIONS) {
-              let count = 1;
-              for (const [dr, dc] of direction) {
-                let r = row + dr;
-                let c = col + dc;
-                while (this.isValidPosition(r, c) && this._board[r][c] === this._currentPlayer) {
-                  count++;
-                  r += dr;
-                  c += dc;
-                }
-              }
-              if (count >= CONSTANTS.WIN_COUNT) return true;
-            }
-            return false;
-          }
-        }
-        class UIManager {
-          constructor() {
-            this.elements = {
-              moveCount: document.getElementById("move-count"),
-              boardSize: document.getElementById("board-size"),
-              currentStone: document.querySelector(".current-stone"),
-              undoBtn: document.getElementById("undo-btn"),
-              winnerMessage: document.getElementById("winner-message"),
-              restartBtn: document.getElementById("restart-btn"),
-              boardSizeSelect: document.getElementById("board-size-select"),
-              themeToggle: document.getElementById("theme-toggle"),
-            };
-            this._initBoardSizeOptions();
-          }
-          bindEvents(handlers) {
-            this.elements.restartBtn.addEventListener("click", handlers.onRestart);
-            this.elements.undoBtn.addEventListener("click", handlers.onUndo);
-            this.elements.boardSizeSelect.addEventListener("change", handlers.onBoardSizeChange);
-            this.elements.themeToggle.addEventListener("click", handlers.onThemeToggle);
-            window.addEventListener("resize", handlers.onResize);
-          }
-          update(snapshot) {
-            this.elements.moveCount.textContent = snapshot.moveCount;
-            this.elements.boardSize.textContent = `${snapshot.boardSize}×${snapshot.boardSize}`;
-            this.elements.currentStone.className = `current-stone ${snapshot.currentPlayer}`;
-            this.elements.undoBtn.disabled = !snapshot.canUndo;
-            this.elements.boardSizeSelect.value = snapshot.boardSize;
-            this.elements.boardSizeSelect.disabled = snapshot.isLocked;
-            if (snapshot.gameOver) {
-              const winnerText = snapshot.winner === "black" ? "黑方" : "白方";
-              this.elements.winnerMessage.textContent = `🎉 ${winnerText}胜利！`;
-              this.elements.winnerMessage.classList.add("show");
-            } else {
-              this.elements.winnerMessage.classList.remove("show");
-              this.elements.winnerMessage.textContent = "";
-            }
-          }
-          updateThemeIcon(theme) {
-            this.elements.themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
-            this.elements.themeToggle.title = theme === "dark" ? "切换到亮色主题" : "切换到暗色主题";
-          }
-          _initBoardSizeOptions() {
-            const select = this.elements.boardSizeSelect;
-            select.innerHTML = "";
-            CONSTANTS.AVAILABLE_BOARD_SIZES.forEach((size) => {
-              const option = document.createElement("option");
-              option.value = size;
-              option.textContent = `${size}×${size}`;
-              if (size === CONSTANTS.DEFAULT_BOARD_SIZE) {
-                option.selected = true;
-              }
-              select.appendChild(option);
-            });
-          }
-        }
-        class Gomoku {
-          constructor() {
-            this.canvas = document.getElementById("board");
-            this.ctx = this.canvas.getContext("2d");
-            this.gameState = new GameState();
-            this.renderer = new BoardRenderer(this.ctx);
-            this.uiManager = new UIManager();
-            this._theme = getInitialTheme();
-            this.cellSize = 0;
-            this.padding = CONSTANTS.PADDING;
-            this._setup();
-          }
-          _setup() {
-            this._applyTheme(this._theme);
-            this._bindEvents();
-            this._resizeBoard();
-            this.uiManager.update(this.gameState.getSnapshot());
-            this.uiManager.updateThemeIcon(this._theme);
-          }
-          _bindEvents() {
-            this.uiManager.bindEvents({
-              onRestart: () => this._resetGame(),
-              onUndo: () => this._undo(),
-              onBoardSizeChange: (e) => this._resetGame(parseInt(e.target.value, 10)),
-              onThemeToggle: () => this._toggleTheme(),
-              onResize: () => this._resizeBoard(),
-            });
-            this.canvas.addEventListener("click", (e) => this._handleClick(e));
-            this.canvas.addEventListener("mousemove", (e) => this._handleMouseMove(e));
-            this.canvas.addEventListener("mouseleave", () => this._handleMouseLeave());
-            this.canvas.addEventListener(
-              "touchmove",
-              (e) => {
-                e.preventDefault();
-                this._handleTouchMove(e);
-              },
-              { passive: false },
-            );
-            this.canvas.addEventListener("touchend", () => this._handleMouseLeave());
-            this.canvas.addEventListener("touchcancel", () => this._handleMouseLeave());
-          }
-          _resetGame(boardSize) {
-            this.gameState.reset(boardSize);
-            this._resizeBoard();
-            this.uiManager.update(this.gameState.getSnapshot());
-          }
-          _undo() {
-            if (this.gameState.undo()) {
-              this.uiManager.update(this.gameState.getSnapshot());
-              this._render();
-            }
-          }
-          _toggleTheme() {
-            this._theme = this._theme === "dark" ? "light" : "dark";
-            this._applyTheme(this._theme);
-            this.uiManager.updateThemeIcon(this._theme);
-            saveTheme(this._theme);
-            this._resizeBoard();
-          }
-          _applyTheme(theme) {
-            document.documentElement.setAttribute("data-theme", theme);
-            const colors = theme === "dark" ? CANVAS_COLORS_DARK : CANVAS_COLORS_LIGHT;
-            this.renderer.setColors(colors);
-          }
-          _handleClick(e) {
-            if (e.button !== undefined && e.button !== 0) return;
-            if (this.gameState.gameOver) return;
-            const pos = this._getBoardPosition(e);
-            if (this.gameState.isValidPosition(pos.row, pos.col) && !this.gameState.board[pos.row][pos.col]) {
-              this.gameState.makeMove(pos.row, pos.col);
-              this.renderer.setHover(-1, -1);
-              this.uiManager.update(this.gameState.getSnapshot());
-              this._render();
-            }
-          }
-          _handleMouseMove(e) {
-            if (this.gameState.gameOver) return;
-            const pos = this._getBoardPosition(e);
-            this._updateHover(pos);
-          }
-          _handleTouchMove(e) {
-            if (this.gameState.gameOver) return;
-            if (!e.touches || e.touches.length === 0) return;
-            const touch = e.touches[0];
-            const pos = this._getBoardPosition({ clientX: touch.clientX, clientY: touch.clientY });
-            this._updateHover(pos);
-          }
-          _updateHover(pos) {
-            const inBounds = this.gameState.isValidPosition(pos.row, pos.col);
-            const isEmpty = inBounds && !this.gameState.board[pos.row][pos.col];
-            if (isEmpty) {
-              if (this.renderer.hoverRow !== pos.row || this.renderer.hoverCol !== pos.col) {
-                this.renderer.setHover(pos.row, pos.col);
-                this._render();
-              }
-            } else if (this.renderer.hoverRow !== -1 || this.renderer.hoverCol !== -1) {
-              this.renderer.setHover(-1, -1);
-              this._render();
-            }
-          }
-          _handleMouseLeave() {
-            if (this.renderer.hoverRow !== -1 || this.renderer.hoverCol !== -1) {
-              this.renderer.setHover(-1, -1);
-              this._render();
-            }
-          }
-          _resizeBoard() {
-            const container = this.canvas.parentElement;
-            const isMobile = window.innerWidth < 768;
-            const margin = isMobile ? CONSTANTS.CANVAS_MARGIN_MOBILE : CONSTANTS.CANVAS_MARGIN;
-            this.padding = isMobile ? CONSTANTS.PADDING_MOBILE : CONSTANTS.PADDING;
-            const availableWidth = container.clientWidth - margin;
-            const availableHeight = container.clientHeight - margin;
-            const cssSize = Math.min(availableWidth, availableHeight);
-            const dpr = window.devicePixelRatio || 1;
-            this.canvas.width = Math.floor(cssSize * dpr);
-            this.canvas.height = Math.floor(cssSize * dpr);
-            this.canvas.style.width = `${cssSize}px`;
-            this.canvas.style.height = `${cssSize}px`;
-            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-            this.ctx.scale(dpr, dpr);
-            this.cellSize = calcCellSize(cssSize, this.gameState.boardSize, this.padding);
-            this._render();
-          }
-          _getBoardPosition(e) {
-            const rect = this.canvas.getBoundingClientRect();
-            return screenToGrid(e.clientX, e.clientY, rect, this.padding, this.cellSize);
-          }
-          _render() {
-            const cssSize = this.canvas.width / (window.devicePixelRatio || 1);
-            this.renderer.clear(cssSize, cssSize);
-            this.renderer.draw(this.gameState.board, this.gameState.boardSize, this.cellSize, this.padding, this.gameState.currentPlayer, this.gameState.gameOver);
-          }
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-          new Gomoku();
+          return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        };
+        canvas.addEventListener("click", (e) => {
+          const { row, col } = getPos(e.clientX, e.clientY);
+          makeMove(row, col);
         });
+        canvas.addEventListener("pointermove", (e) => {
+          if (e.pointerType === "touch") return;
+          if (state.over) {
+            clearHover();
+            return;
+          }
+          const { row, col } = getPos(e.clientX, e.clientY);
+          if (inBounds(row, col) && !state.board[row][col]) {
+            if (hoverRow !== row || hoverCol !== col) {
+              hoverRow = row;
+              hoverCol = col;
+              render();
+            }
+          } else {
+            clearHover();
+          }
+        });
+        canvas.addEventListener("pointerleave", clearHover);
+        canvas.addEventListener("pointercancel", clearHover);
+        fab.addEventListener("click", () => {
+          if (isPanelOpen()) closePanel();
+          else openPanel();
+        });
+        backdrop.addEventListener("click", closePanel);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && isPanelOpen()) closePanel();
+        });
+        undoBtn.addEventListener("click", undo);
+        restartBtn.addEventListener("click", () => {
+          closePanel();
+          newGame();
+        });
+        themeToggle.addEventListener("click", () => {
+          const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          setTheme(next);
+          try {
+            localStorage.setItem(THEME_KEY, next);
+          } catch (_) {}
+        });
+        window.addEventListener("resize", scheduleResize);
+        window.addEventListener("orientationchange", () => {
+          scheduleResize();
+          setTimeout(scheduleResize, 120);
+          setTimeout(scheduleResize, 320);
+        });
+        window.addEventListener("load", scheduleResize);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", scheduleResize);
+        }
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(scheduleResize).catch(() => {});
+        }
+        setTheme(initialTheme());
+        newGame();
+        resizeBoard();
+        requestAnimationFrame(scheduleResize);
+        setTimeout(scheduleResize, 100);
+        setTimeout(scheduleResize, 350);
       })();
     </script>
   </body>
