@@ -520,7 +520,7 @@
         <section class="panel" id="inputPanel">
           <div class="panel-head">
             <label for="velocityInput">物体速度 <span class="sym">v</span></label>
-            <span class="range">0 – 299792458 m/s</span>
+            <span class="range">0 ≤ v &lt; c = 299792458 m/s</span>
           </div>
           <div class="velocity-row">
             <input id="velocityInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="149896229" aria-label="速度，单位米每秒" />
@@ -584,11 +584,10 @@
         "use strict";
         const LIGHT_SPEED = 299792458;
         const SLIDER_MAX = 1000;
-        const SLIDER_SCALE = 100;
-        const PRECISION = 17;
-        const SCI_UPPER = 1e16;
-        const SCI_LOWER = 1e-5;
+        const MIN_GAP = 1e-7;
         const INITIAL_VELOCITY = 149896229;
+        const GAP_RATIO = MIN_GAP / LIGHT_SPEED;
+        const LOG_GAP_RATIO = Math.log(GAP_RATIO);
         const THEME_KEY = "relativity-theme";
         const THEME_DARK = "dark";
         const THEME_LIGHT = "light";
@@ -608,42 +607,25 @@
           length: { value: $("lengthValue"), note: $("lengthNote") },
           mass: { value: $("massValue"), note: $("massNote") },
         };
-        function trimZeros(str) {
-          if (!str.includes(".")) return str;
-          return str.replace(/0+$/, "").replace(/\.$/, "");
+        function sliderToGap(sliderValue) {
+          const t = sliderValue / SLIDER_MAX;
+          if (t <= 0) return LIGHT_SPEED;
+          if (t >= 1) return MIN_GAP;
+          return LIGHT_SPEED * Math.pow(GAP_RATIO, t);
         }
-        function formatScientific(value) {
-          const [mantissa, exponent] = value.toExponential(PRECISION - 1).split("e");
-          return trimZeros(mantissa) + "×10<sup>" + Number(exponent) + "</sup>";
+        function gapToSlider(gap) {
+          if (gap >= LIGHT_SPEED) return 0;
+          if (gap <= MIN_GAP) return SLIDER_MAX;
+          return (Math.log(gap / LIGHT_SPEED) / LOG_GAP_RATIO) * SLIDER_MAX;
         }
-        function formatNumber(value) {
-          if (!Number.isFinite(value)) return "∞";
-          if (value === 0) return "0";
-          const abs = Math.abs(value);
-          if (abs >= SCI_UPPER || abs < SCI_LOWER) return formatScientific(value);
-          return trimZeros(value.toPrecision(PRECISION));
-        }
-        function formatBeta(beta) {
-          return beta > 1 - 1e-10 ? "1 − " + formatNumber(1 - beta) : formatNumber(beta);
-        }
-        function formatVelocityInput(value) {
-          return value > 0 ? String(value) : "0";
-        }
-        function betaToSlider(beta) {
-          if (!(beta > 0)) return 0;
-          if (beta >= 1 - 1e-10) return SLIDER_MAX;
-          return Math.min(SLIDER_MAX, -SLIDER_SCALE * Math.log10(1 - beta));
-        }
-        function sliderToBeta(sliderValue) {
-          return sliderValue > 0 ? 1 - Math.pow(10, -sliderValue / SLIDER_SCALE) : 0;
-        }
-        function computeResults(velocity) {
-          const beta = velocity / LIGHT_SPEED;
-          const gamma = 1 / Math.sqrt((1 - beta) * (1 + beta));
+        function computeResults(gap) {
+          const oneMinusBeta = gap / LIGHT_SPEED;
+          const beta = 1 - oneMinusBeta;
+          const gamma = 1 / Math.sqrt(oneMinusBeta * (2 - oneMinusBeta));
           return { beta, gamma, lengthFactor: 1 / gamma };
         }
-        function renderCard(slot, valueHTML, note) {
-          slot.value.innerHTML = valueHTML;
+        function renderCard(slot, valueText, note) {
+          slot.value.textContent = valueText;
           slot.note.textContent = note;
         }
         function setHint(message) {
@@ -654,26 +636,28 @@
           const percent = (Number(dom.slider.value) / SLIDER_MAX) * 100;
           dom.slider.style.setProperty("--fill", percent + "%");
         }
-        function renderAll(velocity) {
-          const { beta, gamma, lengthFactor } = computeResults(velocity);
-          dom.betaValue.innerHTML = formatBeta(beta);
-          renderCard(resultCards.gamma, formatNumber(gamma), "时间变慢、长度缩短与质量增大的共同倍数");
-          renderCard(resultCards.time, formatNumber(gamma) + '<span class="unit">s</span>', "物体自身钟走过 1 秒时，静止观察者测得的时间");
-          renderCard(resultCards.length, formatNumber(lengthFactor) + '<span class="unit">m</span>', "固有长度为 1 米的物体，沿运动方向测得的长度");
-          renderCard(resultCards.mass, formatNumber(gamma) + '<span class="unit">kg</span>', "静止质量 1 千克的物体，运动时具有的惯性质量");
+        function renderAll(gap) {
+          const { beta, gamma, lengthFactor } = computeResults(gap);
+          dom.betaValue.textContent = beta;
+          renderCard(resultCards.gamma, gamma, "时间变慢、长度缩短与质量增大的共同倍数");
+          renderCard(resultCards.time, gamma, "物体自身钟走过 1 秒时，静止观察者测得的时间（s）");
+          renderCard(resultCards.length, lengthFactor, "固有长度为 1 米的物体，沿运动方向测得的长度（m）");
+          renderCard(resultCards.mass, gamma, "静止质量 1 千克的物体，运动时具有的惯性质量（kg）");
         }
         function applyVelocity(velocity) {
-          dom.slider.value = String(betaToSlider(velocity / LIGHT_SPEED));
+          const gap = LIGHT_SPEED - velocity;
+          const clampedGap = Math.max(gap, MIN_GAP);
+          dom.slider.value = String(gapToSlider(clampedGap));
           syncSliderFill();
           setHint("");
-          renderAll(velocity);
+          renderAll(clampedGap);
         }
         function parseVelocity(raw) {
           const cleaned = raw.trim().replace(/[,\s]/g, "");
           if (cleaned === "") return { error: "请输入一个速度值" };
           const value = Number(cleaned);
           if (!Number.isFinite(value)) return { error: "请输入有效的数字" };
-          if (value <= 0) return { error: "速度必须大于 0" };
+          if (value < 0) return { error: "速度不能为负数" };
           if (value >= LIGHT_SPEED) return { error: "速度不能达到或超过光速（299792458 m/s）" };
           return { value };
         }
@@ -688,21 +672,22 @@
         function handleInputBlur() {
           const { value } = parseVelocity(dom.velocityInput.value);
           if (value !== undefined) {
-            dom.velocityInput.value = formatVelocityInput(value);
+            dom.velocityInput.value = value;
           }
         }
         function handleSliderInput() {
-          const velocity = sliderToBeta(Number(dom.slider.value)) * LIGHT_SPEED;
+          const gap = sliderToGap(Number(dom.slider.value));
+          const velocity = LIGHT_SPEED - gap;
           syncSliderFill();
-          dom.velocityInput.value = formatVelocityInput(velocity);
+          dom.velocityInput.value = velocity;
           setHint("");
-          renderAll(velocity);
+          renderAll(gap);
         }
         function handleChipClick(event) {
           const button = event.target.closest("button[data-beta]");
           if (!button) return;
           const velocity = Number(button.dataset.beta) * LIGHT_SPEED;
-          dom.velocityInput.value = formatVelocityInput(velocity);
+          dom.velocityInput.value = velocity;
           applyVelocity(velocity);
         }
         function applyTheme(theme) {
@@ -724,7 +709,7 @@
         }
         function init() {
           applyTheme(loadStoredTheme() === THEME_DARK ? THEME_DARK : THEME_LIGHT);
-          dom.velocityInput.value = formatVelocityInput(INITIAL_VELOCITY);
+          dom.velocityInput.value = INITIAL_VELOCITY;
           applyVelocity(INITIAL_VELOCITY);
           dom.velocityInput.addEventListener("input", handleInput);
           dom.velocityInput.addEventListener("blur", handleInputBlur);
