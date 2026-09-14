@@ -6,15 +6,8 @@
     <title>扫地机器人</title>
     <script>
       try {
-        var t = localStorage.getItem("sweeper-theme");
-        if (t === "dark") {
-          document.documentElement.dataset.theme = "dark";
-        } else {
-          document.documentElement.dataset.theme = "light";
-        }
-      } catch (e) {
-        document.documentElement.dataset.theme = "light";
-      }
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
     </script>
     <style>
       :root {
@@ -989,7 +982,7 @@
           document.documentElement.dataset.theme = next;
           themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
           try {
-            localStorage.setItem("sweeper-theme", next);
+            localStorage.setItem("theme", next);
           } catch (err) {}
         });
         themeBtn.textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";

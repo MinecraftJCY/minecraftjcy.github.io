@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>末地传送门定位器</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <style>
       :root {
         --bg-color: #f5f5f7;
@@ -322,7 +327,7 @@
       const modalClose = document.getElementById("modalClose");
       const modalCopy = document.getElementById("modalCopy");
       const toast = document.getElementById("toast");
-      const savedTheme = localStorage.getItem("theme") || "light";
+      const savedTheme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", savedTheme);
       updateThemeIcon(savedTheme);
       themeToggle.addEventListener("click", () => {

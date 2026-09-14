@@ -1,10 +1,14 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>相对论效应</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <style>
       *,
       *::before,
@@ -588,7 +592,7 @@
         const INITIAL_VELOCITY = 149896229;
         const GAP_RATIO = MIN_GAP / LIGHT_SPEED;
         const LOG_GAP_RATIO = Math.log(GAP_RATIO);
-        const THEME_KEY = "relativity-theme";
+        const THEME_KEY = "theme";
         const THEME_DARK = "dark";
         const THEME_LIGHT = "light";
         const $ = (id) => document.getElementById(id);

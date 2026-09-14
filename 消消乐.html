@@ -62,7 +62,6 @@
         width: 100%;
         width: 100dvw;
         overflow: hidden;
-        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
         background: var(--bg);
         color: var(--text);
         transition:
@@ -180,7 +179,6 @@
           box-shadow 0.2s,
           color var(--transition-speed);
         white-space: nowrap;
-        font-family: inherit;
         outline: none;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
@@ -671,21 +669,15 @@
         let currentDragTarget = null;
         function getStoredTheme() {
           try {
-            return localStorage.getItem("match3-theme");
+            return localStorage.getItem("theme");
           } catch (e) {
             return null;
           }
         }
         function setStoredTheme(theme) {
           try {
-            localStorage.setItem("match3-theme", theme);
+            localStorage.setItem("theme", theme);
           } catch (e) {}
-        }
-        function getSystemTheme() {
-          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            return "dark";
-          }
-          return "light";
         }
         function applyTheme(theme) {
           document.body.setAttribute("data-theme", theme);
@@ -699,7 +691,7 @@
         }
         function initTheme() {
           const stored = getStoredTheme();
-          applyTheme(stored || getSystemTheme());
+          applyTheme(stored === "dark" ? "dark" : "light");
         }
         function createBoardData() {
           const data = [];
@@ -1091,11 +1083,6 @@
           resetGame();
         });
         btnTheme.addEventListener("click", toggleTheme);
-        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
-          if (!getStoredTheme()) {
-            applyTheme(e.matches ? "dark" : "light");
-          }
-        });
         function init() {
           initTheme();
           boardData = createBoardData();

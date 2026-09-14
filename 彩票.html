@@ -1,9 +1,14 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>彩票</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <style>
       :root {
         --bg: #b8c9b2;
@@ -45,7 +50,6 @@
         --radius-md: clamp(10px, 1.8vw, 16px);
         --radius-lg: clamp(14px, 2.4vw, 22px);
         --radius-xl: clamp(18px, 3vw, 28px);
-        --font-mono: "SF Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
         --container-padding: clamp(24px, 4vw, 48px);
         --gap-small: clamp(6px, 1vw, 12px);
         --gap-medium: clamp(10px, 1.6vw, 16px);
@@ -105,7 +109,6 @@
         justify-content: center;
         align-items: center;
         padding: clamp(16px, 2.5vw, 32px);
-        font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
         transition: background var(--transition-speed) ease;
         position: relative;
       }
@@ -262,7 +265,6 @@
         font-size: clamp(20px, 3vw, 30px);
         font-weight: 700;
         color: var(--balance-color);
-        font-family: var(--font-mono);
         letter-spacing: -0.02em;
         transition:
           color var(--transition-speed) ease,
@@ -482,7 +484,7 @@
       (function () {
         const STATE_KEY = "lottery_balance";
         const COUNT_KEY = "lottery_purchase_count";
-        const THEME_KEY = "lottery_theme";
+        const THEME_KEY = "theme";
         const INITIAL_BALANCE = 200;
         const WIN_RATE = 0.5;
         const balanceDisplay = document.getElementById("balanceDisplay");
@@ -535,9 +537,6 @@
               return saved;
             }
           } catch (_) {}
-          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            return "dark";
-          }
           return "light";
         }
         function saveTheme(theme) {

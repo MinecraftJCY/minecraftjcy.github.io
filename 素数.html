@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>素数</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <style>
       :root {
         --bg: #f5f5f7;
@@ -371,7 +376,7 @@
           iconMoon.style.display = "none";
         }
       }
-      const savedTheme = localStorage.getItem("theme") || "light";
+      const savedTheme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", savedTheme);
       updateThemeIcon(savedTheme);
     </script>

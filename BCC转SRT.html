@@ -4,9 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BCC 转 SRT</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <style>
       :root {
-        --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
         --bg-color: #f5f5f7;
         --card-bg: rgba(255, 255, 255, 0.8);
         --text-primary: #1d1d1f;
@@ -38,7 +42,6 @@
         -webkit-tap-highlight-color: transparent;
       }
       body {
-        font-family: var(--font-family);
         background-color: var(--bg-color);
         color: var(--text-primary);
         min-height: 100vh;
@@ -334,7 +337,6 @@
             validCount++;
             const startTime = Utils.formatTime(item.from);
             const endTime = Utils.formatTime(item.to);
-            // SRT 序号从 1 开始
             srtContent += `${validCount}\n`;
             srtContent += `${startTime} --> ${endTime}\n`;
             srtContent += `${item.content.trim()}\n\n`;
@@ -378,12 +380,14 @@
           this.setupEventListeners();
         },
         setupTheme() {
-          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          this.state.isDark = prefersDark;
+          this.state.isDark = document.documentElement.getAttribute("data-theme") === "dark";
           this.updateTheme();
           this.elements.themeToggle.addEventListener("click", () => {
             this.state.isDark = !this.state.isDark;
             this.updateTheme();
+            try {
+              localStorage.setItem("theme", this.state.isDark ? "dark" : "light");
+            } catch (e) {}
           });
         },
         updateTheme() {

@@ -106,7 +106,6 @@
         text-size-adjust: 100%;
       }
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
         background: var(--bg);
         color: var(--text);
         min-height: 100vh;
@@ -217,6 +216,29 @@
       .theme-toggle:active::after {
         background: rgba(0, 0, 0, 0.06);
       }
+      .select-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .select-wrapper::after {
+        content: "";
+        position: absolute;
+        right: 11px;
+        top: 50%;
+        width: 0;
+        height: 0;
+        border-left: 4.5px solid transparent;
+        border-right: 4.5px solid transparent;
+        border-top: 5px solid var(--text-secondary);
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: border-top-color var(--transition-normal);
+      }
+      .select-wrapper:hover::after {
+        border-top-color: var(--text);
+      }
       .difficulty-select {
         padding: clamp(6px, 1.4vw, 9px) 28px clamp(6px, 1.4vw, 9px) clamp(10px, 2vw, 14px);
         border-radius: 20px;
@@ -228,17 +250,10 @@
         cursor: pointer;
         transition: all var(--transition-normal);
         box-shadow: var(--shadow-xs);
-        font-family: inherit;
         appearance: none;
         -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 3.5l3.5 3.5 3.5-3.5' fill='none' stroke='%235e5242' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 9px center;
-        background-size: 10px;
         letter-spacing: -0.01em;
-      }
-      [data-theme="dark"] .difficulty-select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 3.5l3.5 3.5 3.5-3.5' fill='none' stroke='%23b0a898' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        font-family: inherit;
       }
       .difficulty-select:hover {
         border-color: var(--border-strong);
@@ -286,7 +301,6 @@
         font-size: var(--font-cell);
         font-weight: 500;
         font-variant-numeric: tabular-nums;
-        font-family: "SF Mono", "Cascadia Code", "Consolas", "Menlo", "PingFang SC", monospace;
         transition:
           background-color 0.12s ease,
           transform 0.1s ease,
@@ -464,7 +478,6 @@
         font-size: var(--font-panel-num);
         font-weight: 600;
         font-variant-numeric: tabular-nums;
-        font-family: "SF Mono", "Cascadia Code", "Consolas", "PingFang SC", monospace;
         color: var(--text);
         display: flex;
         flex-direction: column;
@@ -476,6 +489,7 @@
         position: relative;
         letter-spacing: -0.02em;
         line-height: 1;
+        font-family: inherit;
       }
       .number-btn:hover {
         background: var(--button-hover);
@@ -533,9 +547,9 @@
         transition: all var(--transition-fast);
         box-shadow: var(--shadow-xs);
         white-space: nowrap;
-        font-family: inherit;
         letter-spacing: -0.01em;
         flex-shrink: 0;
+        font-family: inherit;
       }
       .action-btn:hover {
         background: var(--button-hover);
@@ -597,7 +611,6 @@
         font-weight: 700;
         color: var(--text);
         font-variant-numeric: tabular-nums;
-        font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
         min-width: 2.2em;
         text-align: center;
       }
@@ -668,8 +681,12 @@
         .difficulty-select {
           font-size: 0.72rem;
           padding: 5px 22px 5px 9px;
-          background-position: right 5px center;
-          background-size: 8px;
+        }
+        .select-wrapper::after {
+          right: 8px;
+          border-left-width: 3.5px;
+          border-right-width: 3.5px;
+          border-top-width: 4px;
         }
         .status-bar {
           gap: 6px;
@@ -716,6 +733,12 @@
         .difficulty-select {
           font-size: 0.66rem;
           padding: 4px 18px 4px 7px;
+        }
+        .select-wrapper::after {
+          right: 6px;
+          border-left-width: 3px;
+          border-right-width: 3px;
+          border-top-width: 3.5px;
         }
         .title {
           font-size: 1.1rem;
@@ -786,11 +809,13 @@
           <span class="title">数独</span>
         </div>
         <div class="header-actions">
-          <select class="difficulty-select" id="difficultySelect" aria-label="选择难度">
-            <option value="easy">简单</option>
-            <option value="medium" selected>中等</option>
-            <option value="hard">困难</option>
-          </select>
+          <div class="select-wrapper">
+            <select class="difficulty-select" id="difficultySelect" aria-label="选择难度">
+              <option value="easy">简单</option>
+              <option value="medium" selected>中等</option>
+              <option value="hard">困难</option>
+            </select>
+          </div>
           <button class="theme-toggle" id="themeToggle" aria-label="切换主题" title="切换亮色/暗色主题">🌙</button>
         </div>
       </header>
@@ -867,15 +892,14 @@
             this.startNewGame();
           }
           initTheme() {
-            const saved = localStorage.getItem("sudoku-theme");
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            const theme = saved || (prefersDark ? "dark" : "light");
+            const saved = localStorage.getItem("theme");
+            const theme = saved === "dark" ? "dark" : "light";
             this.setTheme(theme);
           }
           setTheme(theme) {
             document.body.setAttribute("data-theme", theme);
             this.themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
-            localStorage.setItem("sudoku-theme", theme);
+            localStorage.setItem("theme", theme);
           }
           toggleTheme() {
             const current = document.body.getAttribute("data-theme");
@@ -936,11 +960,6 @@
               this.startNewGame();
             });
             this.themeToggle.addEventListener("click", () => this.toggleTheme());
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-              if (!localStorage.getItem("sudoku-theme")) {
-                this.setTheme(e.matches ? "dark" : "light");
-              }
-            });
           }
           buildNumberPanel() {
             this.numberPanel.innerHTML = "";

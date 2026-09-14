@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitHub主页</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+    </script>
     <style>
       :root {
         --bg-gradient: linear-gradient(135deg, #1a1d2e 0%, #252040 40%, #1e1b2e 100%);
@@ -62,7 +67,6 @@
       body {
         min-height: 100vh;
         padding: 2.5rem 1.25rem 2rem;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
         color: var(--text);
         background-color: var(--bg-fallback);
         background-image: var(--bg-gradient);
@@ -166,7 +170,6 @@
         border: 0;
         border-radius: 999px;
         background: transparent;
-        font-family: inherit;
         font-size: 0.95rem;
         font-weight: 600;
         letter-spacing: 0.02em;
@@ -505,7 +508,6 @@
           return node;
         };
         const themeController = (() => {
-          const systemLight = window.matchMedia("(prefers-color-scheme: light)");
           let current = THEMES.dark;
           const stored = () => {
             const value = storage.read(STORAGE_KEYS.theme);
@@ -524,11 +526,8 @@
             storage.write(STORAGE_KEYS.theme, next);
           };
           const init = () => {
-            apply(stored() ?? (systemLight.matches ? THEMES.light : THEMES.dark));
+            apply(stored() ?? THEMES.light);
             dom.themeToggle.addEventListener("click", toggle);
-            systemLight.addEventListener("change", ({ matches }) => {
-              if (!stored()) apply(matches ? THEMES.light : THEMES.dark);
-            });
           };
           return { init };
         })();
