@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>乘法口诀表</title>
+    <script>
+      try {
+        if (localStorage.getItem("multiplication-table-theme") === "dark") {
+          document.documentElement.dataset.theme = "dark";
+        }
+      } catch (e) {}
+    </script>
     <style>
       *,
       *::before,
@@ -12,44 +19,27 @@
       }
       :root {
         color-scheme: light;
-        --bg: #eef1f8;
-        --text: #1d1d1f;
-        --text-dim: rgba(60, 60, 67, 0.55);
-        --accent: #0a6cff;
-        --glass-bg: rgba(255, 255, 255, 0.58);
-        --glass-bg-hover: rgba(255, 255, 255, 0.78);
-        --glass-border: rgba(255, 255, 255, 0.85);
-        --glass-highlight: rgba(255, 255, 255, 0.95);
-        --glass-shadow: 0 1px 1px rgba(20, 30, 60, 0.03), 0 4px 12px rgba(20, 30, 60, 0.05), 0 12px 32px rgba(20, 30, 60, 0.05);
-        --glass-shadow-hover: 0 2px 4px rgba(20, 30, 60, 0.04), 0 8px 20px rgba(20, 30, 60, 0.08), 0 20px 48px rgba(20, 30, 60, 0.1);
-        --btn-bg: rgba(255, 255, 255, 0.55);
-        --btn-hover: rgba(255, 255, 255, 0.85);
-        --btn-border: rgba(255, 255, 255, 0.8);
-        --glow-a: rgba(120, 160, 255, 0.22);
-        --glow-b: rgba(180, 140, 255, 0.16);
-        --glow-c: rgba(140, 210, 255, 0.16);
+        --bg: #f2f2f7;
+        --card: #ffffff;
+        --card-hover: #ffffff;
+        --text: #1c1c1e;
+        --accent: #007aff;
+        --border: rgba(60, 60, 67, 0.08);
+        --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.05);
+        --card-shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.06), 0 10px 22px rgba(0, 0, 0, 0.09);
+        --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.06);
       }
-      [data-theme="dark"] {
+      :root[data-theme="dark"] {
         color-scheme: dark;
-        --bg: #0c0e14;
-        --text: #f2f3f7;
-        --text-dim: rgba(235, 235, 245, 0.52);
-        --accent: #5b9dff;
-        --glass-bg: rgba(255, 255, 255, 0.065);
-        --glass-bg-hover: rgba(255, 255, 255, 0.11);
-        --glass-border: rgba(255, 255, 255, 0.1);
-        --glass-highlight: rgba(255, 255, 255, 0.16);
-        --glass-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.28), 0 12px 32px rgba(0, 0, 0, 0.32);
-        --glass-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.28), 0 8px 20px rgba(0, 0, 0, 0.4), 0 20px 48px rgba(0, 0, 0, 0.5);
-        --btn-bg: rgba(255, 255, 255, 0.08);
-        --btn-hover: rgba(255, 255, 255, 0.14);
-        --btn-border: rgba(255, 255, 255, 0.1);
-        --glow-a: rgba(60, 110, 220, 0.22);
-        --glow-b: rgba(120, 80, 220, 0.16);
-        --glow-c: rgba(40, 140, 200, 0.14);
-      }
-      html {
-        -webkit-text-size-adjust: 100%;
+        --bg: #0b0b0d;
+        --card: #1c1c1e;
+        --card-hover: #242426;
+        --text: #f2f2f7;
+        --accent: #0a84ff;
+        --border: rgba(255, 255, 255, 0.07);
+        --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+        --card-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.45);
+        --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
       }
       body {
         margin: 0;
@@ -61,197 +51,145 @@
         -moz-osx-font-smoothing: grayscale;
         overflow-x: hidden;
         transition:
-          background-color 0.5s ease,
-          color 0.5s ease;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        inset: -20%;
-        z-index: -2;
-        pointer-events: none;
-        background: radial-gradient(42% 42% at 18% 12%, var(--glow-a), transparent 62%), radial-gradient(38% 38% at 86% 18%, var(--glow-b), transparent 62%), radial-gradient(52% 52% at 50% 96%, var(--glow-c), transparent 62%);
-        filter: blur(20px);
-      }
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: -1;
-        pointer-events: none;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.02) 100%);
-      }
-      [data-theme="dark"] body::after {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.15) 100%);
+          background-color 0.3s ease,
+          color 0.3s ease;
       }
       .app {
         width: 100%;
-        max-width: 1080px;
+        max-width: 1040px;
         margin: 0 auto;
-        padding: clamp(18px, 3.5vw, 48px) clamp(12px, 3.5vw, 40px) clamp(28px, 5vw, 64px);
+        padding: clamp(16px, 3vw, 40px) clamp(10px, 3vw, 32px) clamp(24px, 4vw, 56px);
       }
       .topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        margin-bottom: clamp(18px, 3vw, 32px);
+        margin-bottom: clamp(16px, 2.5vw, 28px);
       }
       .topbar h1 {
         margin: 0;
-        font-size: clamp(22px, 2.6vw, 30px);
+        font-size: clamp(20px, 2.4vw, 28px);
         font-weight: 700;
-        letter-spacing: -0.024em;
+        letter-spacing: -0.02em;
       }
       .theme-toggle {
         position: relative;
         flex: none;
         display: grid;
         place-items: center;
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
         padding: 0;
-        border: 1px solid var(--btn-border);
+        border: 1px solid var(--border);
         border-radius: 50%;
-        background: var(--btn-bg);
+        background: var(--card);
         color: var(--text);
+        box-shadow: var(--btn-shadow);
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        box-shadow:
-          inset 0 1px 0 var(--glass-highlight),
-          0 1px 2px rgba(0, 0, 0, 0.04),
-          0 4px 12px rgba(20, 30, 60, 0.06);
         transition:
-          background-color 0.25s ease,
-          transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.18s ease,
+          background-color 0.3s ease,
           box-shadow 0.3s ease;
       }
-      .theme-toggle:hover {
-        background: var(--btn-hover);
-        transform: translateY(-1px);
-        box-shadow:
-          inset 0 1px 0 var(--glass-highlight),
-          0 2px 4px rgba(0, 0, 0, 0.05),
-          0 8px 20px rgba(20, 30, 60, 0.1);
-      }
       .theme-toggle:active {
-        transform: scale(0.94);
+        transform: scale(0.92);
       }
       .theme-toggle .icon {
         position: absolute;
-        width: 20px;
-        height: 20px;
+        width: 19px;
+        height: 19px;
         transition:
-          opacity 0.4s ease,
-          transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+          opacity 0.28s ease,
+          transform 0.28s ease;
       }
       .icon-moon {
         opacity: 0;
-        transform: rotate(-70deg) scale(0.5);
+        transform: rotate(-60deg) scale(0.6);
       }
-      [data-theme="dark"] .icon-sun {
+      :root[data-theme="dark"] .icon-sun {
         opacity: 0;
-        transform: rotate(70deg) scale(0.5);
+        transform: rotate(60deg) scale(0.6);
       }
-      [data-theme="dark"] .icon-moon {
+      :root[data-theme="dark"] .icon-moon {
         opacity: 1;
         transform: none;
       }
       .board {
         display: grid;
         grid-template-columns: repeat(9, minmax(0, 1fr));
-        gap: clamp(5px, 0.95vw, 11px);
-        width: 100%;
+        gap: clamp(4px, 0.9vw, 10px);
+        animation: board-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      @keyframes board-in {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
       }
       .cell {
-        grid-row: var(--row);
-        grid-column: var(--col);
-        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: clamp(8px, 1.4vw, 16px) clamp(2px, 0.8vw, 9px);
-        border: 1px solid var(--glass-border);
-        border-radius: clamp(8px, 1.1vw, 14px);
-        background: var(--glass-bg);
-        color: var(--text-dim);
-        box-shadow:
-          inset 0 1px 0 var(--glass-highlight),
-          var(--glass-shadow);
-        font-size: clamp(10px, 0.55vw + 8px, 16px);
+        gap: 0.2em;
+        padding: clamp(8px, 1.2vw, 15px) clamp(2px, 0.7vw, 8px);
+        border: 1px solid var(--border);
+        border-radius: clamp(8px, 1vw, 13px);
+        background: var(--card);
+        box-shadow: var(--card-shadow);
+        font-size: clamp(10px, 0.5vw + 8px, 15px);
         font-variant-numeric: tabular-nums;
-        letter-spacing: -0.012em;
+        letter-spacing: -0.01em;
         line-height: 1.15;
         white-space: nowrap;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
         transition:
-          transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+          box-shadow 0.22s ease,
           background-color 0.3s ease,
-          box-shadow 0.34s ease,
-          border-color 0.4s ease,
-          color 0.4s ease;
-      }
-      .cell::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        pointer-events: none;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.04) 42%, transparent 100%);
-        opacity: 0.9;
-        transition: opacity 0.3s ease;
-      }
-      [data-theme="dark"] .cell::after {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 42%, transparent 100%);
+          border-color 0.3s ease;
       }
       .op {
-        margin: 0 1px;
-        opacity: 0.55;
+        opacity: 0.45;
       }
       .product {
         font-weight: 600;
         color: var(--accent);
-        transition: color 0.4s ease;
       }
       @media (hover: hover) and (pointer: fine) {
-        .cell:hover {
-          z-index: 3;
-          transform: translateY(-3px) scale(1.055);
-          background: var(--glass-bg-hover);
-          box-shadow:
-            inset 0 1px 0 var(--glass-highlight),
-            var(--glass-shadow-hover);
+        .theme-toggle:hover {
+          background: var(--card-hover);
         }
-        .cell:hover::after {
-          opacity: 1;
+        .cell:hover {
+          z-index: 2;
+          transform: translateY(-2px);
+          background: var(--card-hover);
+          box-shadow: var(--card-shadow-hover);
         }
       }
       .cell:active {
-        transform: scale(0.955);
-        transition-duration: 0.14s;
+        transform: scale(0.96);
+        transition-duration: 0.12s;
       }
-      @media (max-width: 520px) {
+      @media (max-width: 560px) {
         .cell {
           flex-direction: column;
-          gap: 1px;
-          padding: clamp(9px, 2.6vw, 14px) 1px;
-          border-radius: 10px;
-          font-size: clamp(11px, 3.1vw, 15px);
+          gap: 0;
+          padding: clamp(7px, 2vw, 12px) 1px;
+          border-radius: 9px;
+          font-size: clamp(10px, 2.8vw, 14px);
         }
         .op {
           display: none;
         }
         .expr {
-          font-size: 0.9em;
+          font-size: 0.92em;
         }
         .product {
-          font-size: 1.2em;
-          line-height: 1.2;
+          font-size: 1.15em;
+          line-height: 1.25;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -284,73 +222,38 @@
       (function () {
         "use strict";
         const STORAGE_KEY = "multiplication-table-theme";
-        const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const root = document.documentElement;
         const board = document.getElementById("board");
-        const themeToggle = document.getElementById("themeToggle");
-        function makeSpan(className, text) {
-          const el = document.createElement("span");
-          el.className = className;
-          el.textContent = text;
-          return el;
-        }
+        const toggle = document.getElementById("themeToggle");
         function buildBoard() {
-          const fragment = document.createDocumentFragment();
           const cells = [];
           for (let row = 1; row <= 9; row += 1) {
             for (let col = 1; col <= row; col += 1) {
-              const cell = document.createElement("div");
-              cell.className = "cell";
-              cell.style.setProperty("--row", row);
-              cell.style.setProperty("--col", col);
-              cell.append(makeSpan("expr", `${col}×${row}`), makeSpan("op", "="), makeSpan("product", String(col * row)));
-              cells.push(cell);
-              fragment.appendChild(cell);
+              cells.push('<div class="cell" style="grid-area:' + row + "/" + col + '"><span class="expr">' + col + "×" + row + '</span><span class="op">=</span><span class="product">' + col * row + "</span></div>");
             }
           }
-          board.appendChild(fragment);
-          return cells;
-        }
-        function animateIn(cells) {
-          if (REDUCED_MOTION) return;
-          cells.forEach(function (cell, index) {
-            cell.animate(
-              [
-                { opacity: 0, transform: "translateY(16px) scale(0.88)" },
-                { opacity: 1, transform: "translateY(0) scale(1)" },
-              ],
-              {
-                duration: 720,
-                delay: index * 14,
-                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-                fill: "backwards",
-              },
-            );
-          });
+          board.innerHTML = cells.join("");
         }
         function applyTheme(theme) {
-          root.setAttribute("data-theme", theme);
-          themeToggle.setAttribute("aria-label", theme === "dark" ? "切换到浅色模式" : "切换到深色模式");
-        }
-        function readTheme() {
-          try {
-            return localStorage.getItem(STORAGE_KEY) === "dark" ? "dark" : "light";
-          } catch (error) {
-            return "light";
+          if (theme === "dark") {
+            root.dataset.theme = "dark";
+          } else {
+            delete root.dataset.theme;
           }
+          toggle.setAttribute("aria-label", theme === "dark" ? "切换到浅色模式" : "切换到深色模式");
         }
         function saveTheme(theme) {
           try {
             localStorage.setItem(STORAGE_KEY, theme);
-          } catch (error) {}
+          } catch (e) {}
         }
-        themeToggle.addEventListener("click", function () {
-          const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        toggle.addEventListener("click", function () {
+          const next = root.dataset.theme === "dark" ? "light" : "dark";
           applyTheme(next);
           saveTheme(next);
         });
-        applyTheme(readTheme());
-        animateIn(buildBoard());
+        applyTheme(root.dataset.theme === "dark" ? "dark" : "light");
+        buildBoard();
       })();
     </script>
   </body>
