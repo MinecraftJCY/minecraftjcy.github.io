@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Base64编解码</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --field: rgba(0, 0, 0, 0.035);
+        --text: #1d1d1f;
+        --text-2: #6e6e73;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-2: rgba(0, 0, 0, 0.16);
+        --accent: #0071e3;
+        --accent-hover: #0077ed;
+        --accent-soft: rgba(0, 113, 227, 0.09);
+        --accent-shadow: 0 4px 16px rgba(0, 113, 227, 0.28);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 28px rgba(0, 0, 0, 0.06);
+        --toast-bg: rgba(28, 28, 30, 0.94);
+        --toast-text: #ffffff;
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --out: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --surface: #1c1c1e;
+        --field: rgba(255, 255, 255, 0.07);
+        --text: #f5f5f7;
+        --text-2: #98989d;
+        --border: rgba(255, 255, 255, 0.1);
+        --border-2: rgba(255, 255, 255, 0.2);
+        --accent: #0a84ff;
+        --accent-hover: #2f96ff;
+        --accent-soft: rgba(10, 132, 255, 0.16);
+        --accent-shadow: 0 4px 16px rgba(10, 132, 255, 0.22);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px rgba(0, 0, 0, 0.45);
+        --toast-bg: rgba(240, 240, 245, 0.94);
+        --toast-text: #1d1d1f;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition:
+          background-color 0.45s var(--ease),
+          color 0.45s var(--ease);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 34px 22px 72px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 26px;
+      }
+      .brand {
+        min-width: 0;
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+      }
+      .brand p {
+        margin: 3px 0 0;
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .theme-toggle {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        flex: none;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-2);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.35s var(--spring),
+          background-color 0.45s var(--ease),
+          border-color 0.45s var(--ease),
+          color 0.3s var(--ease);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .theme-toggle:hover {
+        color: var(--text);
+        transform: scale(1.06);
+      }
+      .theme-toggle:active {
+        transform: scale(0.93);
+      }
+      .theme-toggle svg {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        transition:
+          opacity 0.35s var(--ease),
+          transform 0.5s var(--out);
+      }
+      .icon-moon {
+        opacity: 1;
+        transform: none;
+      }
+      .icon-sun {
+        opacity: 0;
+        transform: rotate(-90deg) scale(0.4);
+      }
+      :root[data-theme="dark"] .icon-moon {
+        opacity: 0;
+        transform: rotate(90deg) scale(0.4);
+      }
+      :root[data-theme="dark"] .icon-sun {
+        opacity: 1;
+        transform: none;
+      }
+      .tabs {
+        position: relative;
+        display: inline-flex;
+        gap: 2px;
+        padding: 4px;
+        margin-bottom: 22px;
+        border-radius: 13px;
+        background: var(--field);
+        transition: background-color 0.45s var(--ease);
+      }
+      .tab-indicator {
+        position: absolute;
+        top: 4px;
+        left: 0;
+        height: calc(100% - 8px);
+        width: 0;
+        border-radius: 10px;
+        background: var(--surface);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        transition:
+          transform 0.42s var(--out),
+          width 0.42s var(--out),
+          background-color 0.45s var(--ease);
+      }
+      .tab {
+        position: relative;
+        z-index: 1;
+        appearance: none;
+        border: 0;
+        background: transparent;
+        padding: 9px 26px;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-2);
+        cursor: pointer;
+        transition: color 0.3s var(--ease);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .tab.active {
+        color: var(--text);
+      }
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+        animation: fade-up 0.5s var(--out) both;
+      }
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+      .stack {
+        display: grid;
+        gap: 18px;
+      }
+      .card {
+        min-width: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition:
+          background-color 0.45s var(--ease),
+          border-color 0.45s var(--ease),
+          box-shadow 0.45s var(--ease);
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--border);
+        transition: border-color 0.45s var(--ease);
+      }
+      .label {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+      .meta {
+        font-size: 12px;
+        color: var(--text-2);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .head-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .card-body {
+        padding: 18px;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1;
+        min-height: 42px;
+        padding: 0 20px;
+        border-radius: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          transform 0.3s var(--spring),
+          background-color 0.25s var(--ease),
+          border-color 0.3s var(--ease),
+          color 0.25s var(--ease);
+      }
+      .btn:hover {
+        background: var(--field);
+      }
+      .btn:active {
+        transform: scale(0.965);
+      }
+      .btn.primary {
+        border-color: transparent;
+        background: var(--accent);
+        color: #fff;
+        box-shadow: var(--accent-shadow);
+      }
+      .btn.primary:hover {
+        background: var(--accent-hover);
+      }
+      .ghost {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: var(--accent);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 7px 11px;
+        border-radius: 9px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          background-color 0.22s var(--ease),
+          opacity 0.22s var(--ease);
+        white-space: nowrap;
+      }
+      .ghost:hover {
+        background: var(--accent-soft);
+      }
+      .ghost:active {
+        opacity: 0.6;
+      }
+      .io {
+        display: block;
+        width: 100%;
+        height: 300px;
+        min-height: 140px;
+        max-height: 75vh;
+        margin: 0;
+        padding: 16px 18px;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--text);
+        font: inherit;
+        font-size: 14px;
+        line-height: 1.65;
+        resize: vertical;
+        overflow: auto;
+        -webkit-appearance: none;
+        transition: color 0.45s var(--ease);
+      }
+      .io::placeholder {
+        color: var(--text-2);
+        opacity: 0.75;
+      }
+      .io::-webkit-scrollbar {
+        width: 11px;
+        height: 11px;
+      }
+      .io::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .io::-webkit-scrollbar-thumb {
+        background: var(--border-2);
+        border: 3px solid transparent;
+        border-radius: 10px;
+        background-clip: content-box;
+      }
+      .dropzone {
+        display: block;
+        width: 100%;
+        padding: 40px 24px;
+        border: 2px dashed var(--border-2);
+        border-radius: 14px;
+        background: transparent;
+        color: inherit;
+        text-align: center;
+        cursor: pointer;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          border-color 0.3s var(--ease),
+          background-color 0.35s var(--ease),
+          transform 0.35s var(--spring);
+      }
+      .dropzone:hover,
+      .dropzone:focus-visible {
+        border-color: var(--accent);
+      }
+      .dropzone.dragover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        transform: scale(1.012);
+      }
+      .dz-icon {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 14px;
+        border-radius: 15px;
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        background: var(--accent-soft);
+        transition: transform 0.4s var(--spring);
+      }
+      .dropzone:hover .dz-icon {
+        transform: translateY(-3px) scale(1.05);
+      }
+      .dz-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .dz-sub {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: var(--text-2);
+      }
+      .picked {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        animation: fade-up 0.5s var(--out) both;
+      }
+      .file-icon {
+        width: 46px;
+        height: 46px;
+        flex: none;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .file-info {
+        flex: 1 1 180px;
+        min-width: 0;
+      }
+      .file-name {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .file-sub {
+        margin: 4px 0 0;
+        font-size: 12.5px;
+        color: var(--text-2);
+        font-variant-numeric: tabular-nums;
+      }
+      .file-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 34px;
+        z-index: 99;
+        max-width: calc(100% - 36px);
+        padding: 11px 20px;
+        border-radius: 999px;
+        background: var(--toast-bg);
+        color: var(--toast-text);
+        font-size: 13.5px;
+        line-height: 1.4;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 18px) scale(0.96);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        transition:
+          opacity 0.3s var(--ease),
+          transform 0.5s var(--out);
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+      @media (max-width: 820px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        .page {
+          padding: 22px 14px 56px;
+        }
+        .brand p {
+          display: none;
+        }
+        .tab {
+          padding: 9px 20px;
+        }
+        .toolbar .btn {
+          flex: 1 1 auto;
+        }
+        .io {
+          font-size: 16px;
+          height: 220px;
+        }
+        .dropzone {
+          padding: 32px 18px;
+        }
+        .file-actions {
+          width: 100%;
+        }
+        .file-actions .btn {
+          flex: 1 1 auto;
+        }
+        .head-actions {
+          gap: 4px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+    <script>
+      (function () {
+        var theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Base64</h1>
+          <p>文本与文件编解码工具</p>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4.2" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </svg>
+        </button>
+      </header>
+      <nav class="tabs" role="tablist">
+        <span class="tab-indicator" id="tabIndicator"></span>
+        <button class="tab active" type="button" role="tab" data-tab="text" aria-selected="true">文本</button>
+        <button class="tab" type="button" role="tab" data-tab="file" aria-selected="false">文件</button>
+      </nav>
+      <main>
+        <section class="panel active" id="panel-text" role="tabpanel">
+          <div class="toolbar">
+            <button class="btn primary" id="btnEncodeText" type="button">编码</button>
+            <button class="btn primary" id="btnDecodeText" type="button">解码</button>
+            <button class="btn" id="btnSwapText" type="button">交换</button>
+            <button class="btn" id="btnClearText" type="button">清空</button>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-head">
+                <span class="label">输入</span>
+                <div class="head-actions">
+                  <span class="meta" id="inputCharCount">0 字符</span>
+                  <button class="ghost" id="btnCopyInput" type="button">复制</button>
+                </div>
+              </div>
+              <textarea id="textInput" class="io" placeholder="输入要编码的文本，或要解码的 Base64 字符串…" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="label">输出</span>
+                <div class="head-actions">
+                  <span class="meta" id="outputCharCount">0 字符</span>
+                  <button class="ghost" id="btnCopyOutput" type="button">复制</button>
+                </div>
+              </div>
+              <textarea id="textOutput" class="io" placeholder="结果将显示在这里…" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+            </div>
+          </div>
+        </section>
+        <section class="panel" id="panel-file" role="tabpanel">
+          <div class="stack">
+            <div class="card">
+              <div class="card-head">
+                <span class="label">文件编码为 Base64</span>
+                <span class="meta">编码后得到 .txt 文件</span>
+              </div>
+              <div class="card-body">
+                <div class="dropzone" id="encodeDropzone" role="button" tabindex="0">
+                  <div class="dz-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 16V4M12 4 7.5 8.5M12 4l4.5 4.5" />
+                      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+                    </svg>
+                  </div>
+                  <p class="dz-title">拖拽文件到此处</p>
+                  <p class="dz-sub">或点击选择 · 任意类型</p>
+                  <input type="file" id="encodeInput" hidden />
+                </div>
+                <div class="picked" id="encodePicked" hidden>
+                  <div class="file-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                      <path d="M14 3v5h5" />
+                    </svg>
+                  </div>
+                  <div class="file-info">
+                    <p class="file-name" id="encodeName"></p>
+                    <p class="file-sub" id="encodeSub"></p>
+                  </div>
+                  <div class="file-actions">
+                    <button class="btn primary" id="btnEncodeFile" type="button">编码并下载</button>
+                    <button class="btn" id="btnEncodeRemove" type="button">移除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="label">Base64 解码为文件</span>
+                <span class="meta">解码后得到原始文件</span>
+              </div>
+              <div class="card-body">
+                <div class="dropzone" id="decodeDropzone" role="button" tabindex="0">
+                  <div class="dz-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 16V4M12 4 7.5 8.5M12 4l4.5 4.5" />
+                      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+                    </svg>
+                  </div>
+                  <p class="dz-title">拖拽 .txt 文件到此处</p>
+                  <p class="dz-sub">或点击选择 · 内容为 Base64 字符串</p>
+                  <input type="file" id="decodeInput" accept=".txt,text/plain" hidden />
+                </div>
+                <div class="picked" id="decodePicked" hidden>
+                  <div class="file-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                      <path d="M14 3v5h5" />
+                    </svg>
+                  </div>
+                  <div class="file-info">
+                    <p class="file-name" id="decodeName"></p>
+                    <p class="file-sub" id="decodeSub"></p>
+                  </div>
+                  <div class="file-actions">
+                    <button class="btn primary" id="btnDecodeFile" type="button">解码并下载</button>
+                    <button class="btn" id="btnDecodeRemove" type="button">移除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      (function () {
+        "use strict";
+        const CHUNK_SIZE = 0x8000;
+        const $ = (id) => document.getElementById(id);
+        const root = document.documentElement;
+        const themeToggle = $("themeToggle");
+        const tabs = Array.from(document.querySelectorAll(".tab"));
+        const tabIndicator = $("tabIndicator");
+        const panels = Array.from(document.querySelectorAll(".panel"));
+        const textInput = $("textInput");
+        const textOutput = $("textOutput");
+        const inputCharCount = $("inputCharCount");
+        const outputCharCount = $("outputCharCount");
+        const toastEl = $("toast");
+        let toastTimer = null;
+        function toast(message) {
+          toastEl.textContent = message;
+          toastEl.classList.add("show");
+          window.clearTimeout(toastTimer);
+          toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), 2200);
+        }
+        function applyTheme(theme) {
+          root.setAttribute("data-theme", theme);
+          localStorage.setItem("theme", theme);
+        }
+        function moveIndicator() {
+          const active = document.querySelector(".tab.active");
+          if (!active) return;
+          tabIndicator.style.width = active.offsetWidth + "px";
+          tabIndicator.style.transform = "translateX(" + active.offsetLeft + "px)";
+        }
+        function activateTab(name) {
+          tabs.forEach((tab) => {
+            const active = tab.dataset.tab === name;
+            tab.classList.toggle("active", active);
+            tab.setAttribute("aria-selected", String(active));
+          });
+          panels.forEach((panel) => panel.classList.toggle("active", panel.id === "panel-" + name));
+          moveIndicator();
+        }
+        function encodeText(text) {
+          const bytes = new TextEncoder().encode(text);
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK_SIZE));
+          }
+          return btoa(binary);
+        }
+        function decodeText(base64) {
+          const clean = base64.replace(/[\s\r\n]+/g, "");
+          const binary = atob(clean);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+        }
+        function base64ToBytes(base64) {
+          const normalized = base64.replace(/-/g, "+").replace(/_/g, "/");
+          const clean = normalized.replace(/[^A-Za-z0-9+/=]/g, "");
+          const binary = atob(clean);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          return bytes;
+        }
+        function formatSize(bytes) {
+          if (bytes < 1024) return bytes + " B";
+          if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+          return (bytes / 1024 / 1024).toFixed(2) + " MB";
+        }
+        function downloadBlob(blob, filename) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+        async function copyToClipboard(text) {
+          if (!text) {
+            toast("没有可复制的内容");
+            return;
+          }
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              const helper = document.createElement("textarea");
+              helper.value = text;
+              helper.style.position = "fixed";
+              helper.style.top = "-1000px";
+              helper.style.opacity = "0";
+              document.body.appendChild(helper);
+              helper.select();
+              document.execCommand("copy");
+              helper.remove();
+            }
+            toast("已复制到剪贴板");
+          } catch (error) {
+            toast("复制失败，请手动选择复制");
+          }
+        }
+        function updateCounts() {
+          inputCharCount.textContent = textInput.value.length.toLocaleString() + " 字符";
+          outputCharCount.textContent = textOutput.value.length.toLocaleString() + " 字符";
+        }
+        function handleEncodeText() {
+          const value = textInput.value;
+          if (!value) {
+            toast("请输入需要编码的文本");
+            return;
+          }
+          try {
+            textOutput.value = encodeText(value);
+            updateCounts();
+            toast("编码完成");
+          } catch (error) {
+            toast("编码失败：" + error.message);
+          }
+        }
+        function handleDecodeText() {
+          const value = textInput.value.trim();
+          if (!value) {
+            toast("请输入需要解码的 Base64");
+            return;
+          }
+          try {
+            textOutput.value = decodeText(value);
+            updateCounts();
+            toast("解码完成");
+          } catch (error) {
+            toast("解码失败：不是有效的 Base64 内容");
+          }
+        }
+        function handleSwapText() {
+          const currentInput = textInput.value;
+          textInput.value = textOutput.value;
+          textOutput.value = currentInput;
+          updateCounts();
+        }
+        function handleClearText() {
+          textInput.value = "";
+          textOutput.value = "";
+          updateCounts();
+          textInput.focus();
+        }
+        function createPicker(config) {
+          const dropzone = $(config.dropzone);
+          const input = $(config.input);
+          const picked = $(config.picked);
+          const nameEl = $(config.name);
+          const subEl = $(config.sub);
+          const picker = {
+            file: null,
+            setFile(file) {
+              picker.file = file;
+              nameEl.textContent = file.name;
+              subEl.textContent = formatSize(file.size) + " · " + (file.type || "未知类型");
+              dropzone.hidden = true;
+              picked.hidden = false;
+            },
+            clear() {
+              picker.file = null;
+              input.value = "";
+              picked.hidden = true;
+              dropzone.hidden = false;
+            },
+          };
+          dropzone.addEventListener("click", () => input.click());
+          dropzone.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              input.click();
+            }
+          });
+          input.addEventListener("change", (event) => {
+            const file = event.target.files && event.target.files[0];
+            input.value = "";
+            if (file) picker.setFile(file);
+          });
+          ["dragenter", "dragover"].forEach((type) => {
+            dropzone.addEventListener(type, (event) => {
+              event.preventDefault();
+              dropzone.classList.add("dragover");
+            });
+          });
+          ["dragleave", "dragend", "drop"].forEach((type) => {
+            dropzone.addEventListener(type, (event) => {
+              event.preventDefault();
+              dropzone.classList.remove("dragover");
+            });
+          });
+          dropzone.addEventListener("drop", (event) => {
+            const file = event.dataTransfer && event.dataTransfer.files[0];
+            if (file) picker.setFile(file);
+          });
+          return picker;
+        }
+        const encodePicker = createPicker({
+          dropzone: "encodeDropzone",
+          input: "encodeInput",
+          picked: "encodePicked",
+          name: "encodeName",
+          sub: "encodeSub",
+        });
+        const decodePicker = createPicker({
+          dropzone: "decodeDropzone",
+          input: "decodeInput",
+          picked: "decodePicked",
+          name: "decodeName",
+          sub: "decodeSub",
+        });
+        function handleEncodeFile() {
+          const file = encodePicker.file;
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = String(reader.result || "");
+            const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+            const outName = file.name + ".txt";
+            downloadBlob(new Blob([base64], { type: "text/plain;charset=utf-8" }), outName);
+            toast("已编码并开始下载 " + outName);
+          };
+          reader.onerror = () => toast("读取文件失败");
+          reader.readAsDataURL(file);
+        }
+        function parseBase64(text) {
+          let payload = String(text)
+            .trim()
+            .replace(/[\s\r\n]+/g, "");
+          const match = payload.match(/^data:([^;,]*)(;base64)?,/i);
+          if (match) payload = payload.slice(match[0].length);
+          if (!payload) throw new Error("empty");
+          return base64ToBytes(payload);
+        }
+        function getDecodedFileName(txtName) {
+          const name = /\.txt$/i.test(txtName) ? txtName.slice(0, -4) : txtName;
+          return name || "decoded";
+        }
+        function handleDecodeFile() {
+          const file = decodePicker.file;
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const bytes = parseBase64(reader.result);
+              const outName = getDecodedFileName(file.name);
+              downloadBlob(new Blob([bytes], { type: "application/octet-stream" }), outName);
+              toast("已解码并开始下载 " + outName);
+            } catch (error) {
+              toast("解码失败：文件内容不是有效的 Base64");
+            }
+          };
+          reader.onerror = () => toast("读取文件失败");
+          reader.readAsText(file);
+        }
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+        });
+        themeToggle.addEventListener("click", () => {
+          const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          applyTheme(next);
+        });
+        textInput.addEventListener("input", updateCounts);
+        textOutput.addEventListener("input", updateCounts);
+        textInput.addEventListener("keydown", (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            event.preventDefault();
+            handleEncodeText();
+          }
+        });
+        $("btnEncodeText").addEventListener("click", handleEncodeText);
+        $("btnDecodeText").addEventListener("click", handleDecodeText);
+        $("btnSwapText").addEventListener("click", handleSwapText);
+        $("btnClearText").addEventListener("click", handleClearText);
+        $("btnCopyInput").addEventListener("click", () => copyToClipboard(textInput.value));
+        $("btnCopyOutput").addEventListener("click", () => copyToClipboard(textOutput.value));
+        $("btnEncodeFile").addEventListener("click", handleEncodeFile);
+        $("btnEncodeRemove").addEventListener("click", () => encodePicker.clear());
+        $("btnDecodeFile").addEventListener("click", handleDecodeFile);
+        $("btnDecodeRemove").addEventListener("click", () => decodePicker.clear());
+        window.addEventListener("dragover", (event) => event.preventDefault());
+        window.addEventListener("drop", (event) => event.preventDefault());
+        window.addEventListener("resize", moveIndicator);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(moveIndicator);
+        }
+        updateCounts();
+        window.setTimeout(moveIndicator, 0);
+      })();
+    </script>
+  </body>
+</html>
