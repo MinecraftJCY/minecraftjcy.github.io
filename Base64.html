@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Base64 生成器</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        color-scheme: light;
+        --bg: #f2f2f7;
+        --surface: #ffffff;
+        --surface-2: #f0f0f5;
+        --seg-thumb: #ffffff;
+        --text: #1d1d1f;
+        --text-2: #6e6e73;
+        --text-3: #a1a1a6;
+        --accent: #0071e3;
+        --accent-soft: rgba(0, 113, 227, 0.14);
+        --success: #34c759;
+        --success-soft: rgba(52, 199, 89, 0.3);
+        --border: rgba(0, 0, 0, 0.07);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+        --thumb-shadow: 0 1px 4px rgba(0, 0, 0, 0.18), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+        --glow: rgba(0, 122, 255, 0.16);
+      }
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #131316;
+        --surface: #1c1c1f;
+        --surface-2: #27272b;
+        --seg-thumb: #3a3a40;
+        --text: #f5f5f7;
+        --text-2: #9a9aa0;
+        --text-3: #6e6e73;
+        --accent: #0a84ff;
+        --accent-soft: rgba(10, 132, 255, 0.2);
+        --success: #30d158;
+        --success-soft: rgba(48, 209, 88, 0.28);
+        --border: rgba(255, 255, 255, 0.08);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.3);
+        --thumb-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+        --glow: rgba(10, 132, 255, 0.2);
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+        background-color: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          background-color 0.45s ease,
+          color 0.45s ease;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: -32vh;
+        left: 50%;
+        width: min(130vw, 960px);
+        height: min(72vh, 640px);
+        transform: translateX(-50%);
+        background: radial-gradient(closest-side, var(--glow), transparent 100%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .app {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 560px;
+        margin: auto;
+        animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 6px;
+        margin-bottom: 14px;
+      }
+      .title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .theme-toggle {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition:
+          background-color 0.45s ease,
+          border-color 0.45s ease,
+          transform 0.2s ease,
+          box-shadow 0.45s ease;
+      }
+      .theme-toggle:active {
+        transform: scale(0.92);
+      }
+      .theme-toggle svg {
+        grid-area: 1 / 1;
+        width: 20px;
+        height: 20px;
+        transition:
+          opacity 0.35s ease,
+          transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .icon-sun {
+        opacity: 0;
+        transform: rotate(-70deg) scale(0.5);
+      }
+      .icon-moon {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+      }
+      [data-theme="dark"] .icon-sun {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+      }
+      [data-theme="dark"] .icon-moon {
+        opacity: 0;
+        transform: rotate(70deg) scale(0.5);
+      }
+      .card {
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        transition:
+          background-color 0.45s ease,
+          border-color 0.45s ease,
+          box-shadow 0.45s ease;
+      }
+      .segmented {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 3px;
+        border-radius: 14px;
+        background: var(--surface-2);
+        transition: background-color 0.45s ease;
+      }
+      .segmented-thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: calc((100% - 6px) / 2);
+        height: calc(100% - 6px);
+        border-radius: 11px;
+        background: var(--seg-thumb);
+        box-shadow: var(--thumb-shadow);
+        will-change: transform;
+        transition:
+          transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1),
+          background-color 0.45s ease;
+      }
+      .segmented-item {
+        position: relative;
+        z-index: 1;
+        padding: 10px 4px;
+        border: 0;
+        border-radius: 11px;
+        background: transparent;
+        color: var(--text-2);
+        font-family: inherit;
+        font-size: 14.5px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+      .segmented-item.is-active {
+        color: var(--text);
+      }
+      .length {
+        margin-top: 22px;
+      }
+      .length-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-2);
+      }
+      .number {
+        width: 78px;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface-2);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        outline: none;
+        appearance: textfield;
+        -moz-appearance: textfield;
+        transition:
+          border-color 0.25s ease,
+          box-shadow 0.25s ease,
+          background-color 0.45s ease;
+      }
+      .number::-webkit-outer-spin-button,
+      .number::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .number:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+      .range {
+        display: block;
+        width: 100%;
+        height: 24px;
+        margin: 0;
+        background: transparent;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .range::-webkit-slider-runnable-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        transition: background-color 0.45s ease;
+      }
+      .range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        margin-top: -8px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow:
+          0 1px 4px rgba(0, 0, 0, 0.22),
+          0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s ease;
+      }
+      .range:active::-webkit-slider-thumb {
+        transform: scale(1.12);
+      }
+      .range::-moz-range-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-2);
+      }
+      .range::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+        border: 0;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+        transition: transform 0.2s ease;
+      }
+      .range:active::-moz-range-thumb {
+        transform: scale(1.12);
+      }
+      .primary-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 15px;
+        border: 0;
+        border-radius: 15px;
+        background: var(--accent);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        box-shadow: 0 6px 20px var(--accent-soft);
+        transition:
+          transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1),
+          filter 0.25s ease,
+          box-shadow 0.45s ease;
+      }
+      .primary-btn:hover {
+        filter: brightness(1.06);
+      }
+      .primary-btn:active {
+        transform: scale(0.98);
+        filter: brightness(0.96);
+      }
+      .output {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: start;
+        gap: 12px;
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 16px;
+        background: var(--surface-2);
+        transition: background-color 0.45s ease;
+      }
+      .output-text {
+        font-size: 15px;
+        line-height: 1.62;
+        letter-spacing: 0.01em;
+        word-break: break-all;
+        overflow-wrap: anywhere;
+        max-height: min(38vh, 240px);
+        overflow-y: auto;
+        user-select: all;
+        -webkit-user-select: all;
+        scrollbar-width: thin;
+      }
+      .output-text:empty::before {
+        content: "点击生成按钮…";
+        color: var(--text-3);
+      }
+      .copy-btn {
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 11px;
+        background: var(--accent);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        transition:
+          transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1),
+          background-color 0.3s ease,
+          box-shadow 0.3s ease,
+          filter 0.25s ease;
+      }
+      .copy-btn:hover {
+        filter: brightness(1.06);
+      }
+      .copy-btn:active {
+        transform: scale(0.94);
+      }
+      .copy-btn.is-copied {
+        background: var(--success);
+        box-shadow: 0 4px 14px var(--success-soft);
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      @media (max-width: 480px) {
+        body {
+          padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+        }
+        .title {
+          font-size: 21px;
+        }
+        .card {
+          padding: 18px;
+          border-radius: 20px;
+        }
+        .output-text {
+          font-size: 14px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1 class="title">随机 Base64 生成器</h1>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换浅色与深色主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2" />
+            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" />
+          </svg>
+        </button>
+      </header>
+      <section class="card">
+        <div class="segmented" role="tablist" aria-label="字符集">
+          <span class="segmented-thumb" id="segmentedThumb"></span>
+          <button class="segmented-item is-active" type="button" role="tab" aria-selected="true" data-mode="base64">Base64</button>
+          <button class="segmented-item" type="button" role="tab" aria-selected="false" data-mode="base64url">Base64URL</button>
+        </div>
+        <div class="length">
+          <div class="length-head">
+            <label class="label" for="lengthRange">长度</label>
+            <input class="number" id="lengthNumber" type="number" min="1" max="256" step="1" value="32" inputmode="numeric" aria-label="长度数值" />
+          </div>
+          <input class="range" id="lengthRange" type="range" min="1" max="256" step="1" value="32" aria-label="长度滑块" />
+        </div>
+        <button class="primary-btn" id="generateBtn" type="button">生成</button>
+        <div class="output">
+          <div class="output-text" id="output"></div>
+          <button class="copy-btn" id="copyBtn" type="button">复制</button>
+        </div>
+      </section>
+    </main>
+    <script>
+      const STORAGE_KEY = "theme";
+      const THEME = { LIGHT: "light", DARK: "dark" };
+      const CHARSETS = {
+        base64: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+        base64url: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+      };
+      const LENGTH = { MIN: 1, MAX: 256, DEFAULT: 32 };
+      const Theme = (() => {
+        const root = document.documentElement;
+        const read = () => {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          return stored === THEME.DARK ? THEME.DARK : THEME.LIGHT;
+        };
+        const apply = (theme) => {
+          root.setAttribute("data-theme", theme);
+        };
+        const set = (theme) => {
+          localStorage.setItem(STORAGE_KEY, theme);
+          apply(theme);
+        };
+        return {
+          init() {
+            apply(read());
+          },
+          toggle() {
+            const current = root.getAttribute("data-theme");
+            const next = current === THEME.DARK ? THEME.LIGHT : THEME.DARK;
+            set(next);
+            return next;
+          },
+        };
+      })();
+      const SecureRandom = (() => {
+        const cryptoObj = window.crypto;
+        const fill = (buffer) => cryptoObj.getRandomValues(buffer);
+        const string = (charset, length) => {
+          const max = charset.length;
+          const limit = Math.floor(256 / max) * max;
+          const poolSize = 256;
+          const pool = new Uint8Array(poolSize);
+          const chars = new Array(length);
+          let cursor = poolSize;
+          for (let i = 0; i < length; i += 1) {
+            let value;
+            do {
+              if (cursor >= poolSize) {
+                fill(pool);
+                cursor = 0;
+              }
+              value = pool[cursor];
+              cursor += 1;
+            } while (value >= limit);
+            chars[i] = charset[value % max];
+          }
+          return chars.join("");
+        };
+        return { string };
+      })();
+      const App = (() => {
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+        const state = {
+          mode: "base64",
+          length: LENGTH.DEFAULT,
+        };
+        const els = {
+          thumb: document.getElementById("segmentedThumb"),
+          modeButtons: Array.from(document.querySelectorAll(".segmented-item")),
+          range: document.getElementById("lengthRange"),
+          number: document.getElementById("lengthNumber"),
+          generate: document.getElementById("generateBtn"),
+          output: document.getElementById("output"),
+          copy: document.getElementById("copyBtn"),
+          themeToggle: document.getElementById("themeToggle"),
+        };
+        let copyTimer = null;
+        const generate = () => {
+          const charset = CHARSETS[state.mode];
+          els.output.textContent = SecureRandom.string(charset, state.length);
+        };
+        const selectMode = (mode) => {
+          state.mode = mode;
+          const index = els.modeButtons.findIndex((btn) => btn.dataset.mode === mode);
+          els.modeButtons.forEach((btn) => {
+            const active = btn.dataset.mode === mode;
+            btn.classList.toggle("is-active", active);
+            btn.setAttribute("aria-selected", String(active));
+          });
+          els.thumb.style.transform = `translateX(${index * 100}%)`;
+          generate();
+        };
+        const applyLength = (value) => {
+          state.length = clamp(Math.round(value), LENGTH.MIN, LENGTH.MAX);
+          els.range.value = String(state.length);
+          els.number.value = String(state.length);
+          generate();
+        };
+        const flashCopied = () => {
+          els.copy.classList.add("is-copied");
+          els.copy.textContent = "已复制";
+          clearTimeout(copyTimer);
+          copyTimer = setTimeout(() => {
+            els.copy.classList.remove("is-copied");
+            els.copy.textContent = "复制";
+          }, 1600);
+        };
+        const fallbackCopy = (text) => {
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.top = "-1000px";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.select();
+          document.execCommand("copy");
+          document.body.removeChild(helper);
+        };
+        const copyOutput = async () => {
+          const text = els.output.textContent;
+          if (!text) return;
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch (error) {
+            fallbackCopy(text);
+          }
+          flashCopied();
+        };
+        const bindEvents = () => {
+          els.modeButtons.forEach((btn) => {
+            btn.addEventListener("click", () => selectMode(btn.dataset.mode));
+          });
+          els.range.addEventListener("input", () => {
+            state.length = Number(els.range.value);
+            els.number.value = els.range.value;
+            generate();
+          });
+          els.number.addEventListener("input", () => {
+            const parsed = Number.parseInt(els.number.value, 10);
+            if (Number.isNaN(parsed)) return;
+            state.length = clamp(parsed, LENGTH.MIN, LENGTH.MAX);
+            els.range.value = String(state.length);
+            generate();
+          });
+          els.number.addEventListener("blur", () => {
+            els.number.value = String(state.length);
+          });
+          els.generate.addEventListener("click", generate);
+          els.copy.addEventListener("click", copyOutput);
+          els.themeToggle.addEventListener("click", () => Theme.toggle());
+        };
+        const init = () => {
+          Theme.init();
+          els.thumb.style.transform = "translateX(0)";
+          bindEvents();
+          generate();
+        };
+        return { init };
+      })();
+      App.init();
+    </script>
+  </body>
+</html>
