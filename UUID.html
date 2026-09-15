@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UUID 生成器</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        color-scheme: light;
+        --bg: #f2f2f7;
+        --surface: #ffffff;
+        --surface-2: #f0f0f5;
+        --text: #1d1d1f;
+        --text-2: #6e6e73;
+        --text-3: #a1a1a6;
+        --accent: #0071e3;
+        --accent-soft: rgba(0, 113, 227, 0.14);
+        --success: #34c759;
+        --success-soft: rgba(52, 199, 89, 0.3);
+        --border: rgba(0, 0, 0, 0.07);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+        --thumb-shadow: 0 1px 4px rgba(0, 0, 0, 0.18), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+        --glow: rgba(0, 122, 255, 0.16);
+      }
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #131316;
+        --surface: #1c1c1f;
+        --surface-2: #27272b;
+        --text: #f5f5f7;
+        --text-2: #9a9aa0;
+        --text-3: #6e6e73;
+        --accent: #0a84ff;
+        --accent-soft: rgba(10, 132, 255, 0.2);
+        --success: #30d158;
+        --success-soft: rgba(48, 209, 88, 0.28);
+        --border: rgba(255, 255, 255, 0.08);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.3);
+        --thumb-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+        --glow: rgba(10, 132, 255, 0.2);
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+        background-color: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          background-color 0.45s ease,
+          color 0.45s ease;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: -32vh;
+        left: 50%;
+        width: min(130vw, 960px);
+        height: min(72vh, 640px);
+        transform: translateX(-50%);
+        background: radial-gradient(closest-side, var(--glow), transparent 100%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .app {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 560px;
+        margin: auto;
+        animation: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 6px;
+        margin-bottom: 14px;
+      }
+      .title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .theme-toggle {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition:
+          background-color 0.45s ease,
+          border-color 0.45s ease,
+          transform 0.2s ease,
+          box-shadow 0.45s ease;
+      }
+      .theme-toggle:active {
+        transform: scale(0.92);
+      }
+      .theme-toggle svg {
+        grid-area: 1 / 1;
+        width: 20px;
+        height: 20px;
+        transition:
+          opacity 0.35s ease,
+          transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .icon-sun {
+        opacity: 0;
+        transform: rotate(-70deg) scale(0.5);
+      }
+      .icon-moon {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+      }
+      [data-theme="dark"] .icon-sun {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+      }
+      [data-theme="dark"] .icon-moon {
+        opacity: 0;
+        transform: rotate(70deg) scale(0.5);
+      }
+      .card {
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        transition:
+          background-color 0.45s ease,
+          border-color 0.45s ease,
+          box-shadow 0.45s ease;
+      }
+      .field {
+        display: block;
+      }
+      .field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-2);
+      }
+      .number {
+        width: 78px;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface-2);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        outline: none;
+        appearance: textfield;
+        -moz-appearance: textfield;
+        transition:
+          border-color 0.25s ease,
+          box-shadow 0.25s ease,
+          background-color 0.45s ease;
+      }
+      .number::-webkit-outer-spin-button,
+      .number::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .number:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+      .range {
+        display: block;
+        width: 100%;
+        height: 24px;
+        margin: 0;
+        background: transparent;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .range::-webkit-slider-runnable-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        transition: background-color 0.45s ease;
+      }
+      .range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        margin-top: -8px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: var(--thumb-shadow);
+        transition: transform 0.2s ease;
+      }
+      .range:active::-webkit-slider-thumb {
+        transform: scale(1.12);
+      }
+      .range::-moz-range-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-2);
+      }
+      .range::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+        border: 0;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: var(--thumb-shadow);
+        transition: transform 0.2s ease;
+      }
+      .range:active::-moz-range-thumb {
+        transform: scale(1.12);
+      }
+      .primary-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 15px;
+        border: 0;
+        border-radius: 15px;
+        background: var(--accent);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        box-shadow: 0 6px 20px var(--accent-soft);
+        transition:
+          transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1),
+          filter 0.25s ease,
+          box-shadow 0.45s ease;
+      }
+      .primary-btn:hover {
+        filter: brightness(1.06);
+      }
+      .primary-btn:active {
+        transform: scale(0.98);
+        filter: brightness(0.96);
+      }
+      .list {
+        list-style: none;
+        margin: 16px 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: min(46vh, 360px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        overscroll-behavior: contain;
+      }
+      .list:empty {
+        display: none;
+      }
+      .item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: var(--surface-2);
+        animation: item-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+        transition: background-color 0.45s ease;
+      }
+      @keyframes item-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .item-text {
+        font-size: 13.5px;
+        line-height: 1.4;
+        letter-spacing: 0.02em;
+        font-variant-numeric: tabular-nums;
+        word-break: break-all;
+        overflow-wrap: anywhere;
+        user-select: all;
+        -webkit-user-select: all;
+      }
+      .item-copy {
+        padding: 7px 12px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--accent);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        transition:
+          transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1),
+          background-color 0.3s ease,
+          box-shadow 0.3s ease,
+          filter 0.25s ease;
+      }
+      .item-copy:hover {
+        filter: brightness(1.06);
+      }
+      .item-copy:active {
+        transform: scale(0.94);
+      }
+      .item-copy.is-copied {
+        background: var(--success);
+        box-shadow: 0 4px 14px var(--success-soft);
+      }
+      .copy-all {
+        width: 100%;
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: transparent;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 14.5px;
+        font-weight: 500;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease,
+          transform 0.18s ease,
+          border-color 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+      .copy-all:hover {
+        background: var(--surface-2);
+      }
+      .copy-all:active {
+        transform: scale(0.98);
+      }
+      .copy-all.is-copied {
+        border-color: transparent;
+        background: var(--success);
+        color: #ffffff;
+        box-shadow: 0 4px 14px var(--success-soft);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      @media (max-width: 480px) {
+        body {
+          padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+        }
+        .title {
+          font-size: 21px;
+        }
+        .card {
+          padding: 18px;
+          border-radius: 20px;
+        }
+        .item-text {
+          font-size: 12.5px;
+        }
+        .list {
+          max-height: min(42vh, 300px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1 class="title">随机 UUID v4 生成器</h1>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换浅色与深色主题">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2" />
+            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" />
+          </svg>
+        </button>
+      </header>
+      <section class="card">
+        <div class="field">
+          <div class="field-head">
+            <label class="label" for="countRange">数量</label>
+            <input class="number" id="countNumber" type="number" min="1" max="50" step="1" value="1" inputmode="numeric" aria-label="生成数量" />
+          </div>
+          <input class="range" id="countRange" type="range" min="1" max="50" step="1" value="1" aria-label="数量滑块" />
+        </div>
+        <button class="primary-btn" id="generateBtn" type="button">生成</button>
+        <ul class="list" id="list" aria-live="polite"></ul>
+        <button class="copy-all" id="copyAllBtn" type="button" hidden>复制全部</button>
+      </section>
+    </main>
+    <script>
+      const STORAGE_KEY = "theme";
+      const THEME = { LIGHT: "light", DARK: "dark" };
+      const COUNT = { MIN: 1, MAX: 50, DEFAULT: 1 };
+      const Theme = (() => {
+        const root = document.documentElement;
+        const read = () => {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          return stored === THEME.DARK ? THEME.DARK : THEME.LIGHT;
+        };
+        const apply = (theme) => {
+          root.setAttribute("data-theme", theme);
+        };
+        const set = (theme) => {
+          localStorage.setItem(STORAGE_KEY, theme);
+          apply(theme);
+        };
+        return {
+          init() {
+            apply(read());
+          },
+          toggle() {
+            const current = root.getAttribute("data-theme");
+            const next = current === THEME.DARK ? THEME.LIGHT : THEME.DARK;
+            set(next);
+          },
+        };
+      })();
+      const UuidV4 = (() => {
+        const cryptoObj = window.crypto;
+        const byteToHex = (byte) => byte.toString(16).padStart(2, "0");
+        const generate = () => {
+          const bytes = new Uint8Array(16);
+          cryptoObj.getRandomValues(bytes);
+          bytes[6] = (bytes[6] & 0x0f) | 0x40;
+          bytes[8] = (bytes[8] & 0x3f) | 0x80;
+          const hex = Array.from(bytes, byteToHex).join("");
+          return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join("-");
+        };
+        const generateMany = (count) => Array.from({ length: count }, generate);
+        return { generate, generateMany };
+      })();
+      const Clipboard = (() => {
+        const fallback = (text) => {
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.top = "-1000px";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.select();
+          const ok = document.execCommand("copy");
+          document.body.removeChild(helper);
+          return ok;
+        };
+        const write = async (text) => {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+              await navigator.clipboard.writeText(text);
+              return true;
+            } catch (error) {
+              return fallback(text);
+            }
+          }
+          return fallback(text);
+        };
+        return { write };
+      })();
+      const App = (() => {
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+        const state = {
+          count: COUNT.DEFAULT,
+          uuids: [],
+        };
+        const els = {
+          range: document.getElementById("countRange"),
+          number: document.getElementById("countNumber"),
+          generate: document.getElementById("generateBtn"),
+          list: document.getElementById("list"),
+          copyAll: document.getElementById("copyAllBtn"),
+          themeToggle: document.getElementById("themeToggle"),
+        };
+        const copyTimers = new WeakMap();
+        const flashButton = (button, activeText, idleText) => {
+          button.classList.add("is-copied");
+          button.textContent = activeText;
+          const previous = copyTimers.get(button);
+          if (previous) clearTimeout(previous);
+          copyTimers.set(
+            button,
+            setTimeout(() => {
+              button.classList.remove("is-copied");
+              button.textContent = idleText;
+              copyTimers.delete(button);
+            }, 1600),
+          );
+        };
+        const render = () => {
+          els.list.textContent = "";
+          if (state.uuids.length === 0) {
+            els.copyAll.hidden = true;
+            return;
+          }
+          els.copyAll.hidden = false;
+          const fragment = document.createDocumentFragment();
+          state.uuids.forEach((uuid, index) => {
+            const item = document.createElement("li");
+            item.className = "item";
+            item.style.animationDelay = `${Math.min(index * 26, 280)}ms`;
+            const text = document.createElement("span");
+            text.className = "item-text";
+            text.textContent = uuid;
+            const copy = document.createElement("button");
+            copy.className = "item-copy";
+            copy.type = "button";
+            copy.textContent = "复制";
+            copy.dataset.index = String(index);
+            item.append(text, copy);
+            fragment.appendChild(item);
+          });
+          els.list.appendChild(fragment);
+        };
+        const generate = () => {
+          state.uuids = UuidV4.generateMany(state.count);
+          render();
+        };
+        const syncCount = (value) => {
+          state.count = clamp(Math.round(value), COUNT.MIN, COUNT.MAX);
+          els.range.value = String(state.count);
+          els.number.value = String(state.count);
+        };
+        const handleListCopy = async (button) => {
+          const index = Number(button.dataset.index);
+          const uuid = state.uuids[index];
+          if (!uuid) return;
+          const ok = await Clipboard.write(uuid);
+          if (ok) flashButton(button, "已复制", "复制");
+        };
+        const handleCopyAll = async () => {
+          if (state.uuids.length === 0) return;
+          const ok = await Clipboard.write(state.uuids.join("\n"));
+          if (ok) flashButton(els.copyAll, "已复制全部", "复制全部");
+        };
+        const bindEvents = () => {
+          els.range.addEventListener("input", () => {
+            syncCount(Number(els.range.value));
+            generate();
+          });
+          els.number.addEventListener("input", () => {
+            const parsed = Number.parseInt(els.number.value, 10);
+            if (Number.isNaN(parsed)) return;
+            syncCount(parsed);
+            generate();
+          });
+          els.number.addEventListener("blur", () => {
+            els.number.value = String(state.count);
+          });
+          els.generate.addEventListener("click", generate);
+          els.list.addEventListener("click", (event) => {
+            const button = event.target.closest(".item-copy");
+            if (button) handleListCopy(button);
+          });
+          els.copyAll.addEventListener("click", handleCopyAll);
+          els.themeToggle.addEventListener("click", () => Theme.toggle());
+        };
+        const init = () => {
+          Theme.init();
+          bindEvents();
+          generate();
+        };
+        return { init };
+      })();
+      App.init();
+    </script>
+  </body>
+</html>
