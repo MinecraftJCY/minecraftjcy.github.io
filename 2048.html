@@ -22,20 +22,8 @@
         --board-shadow: 0 16px 38px rgba(74, 62, 44, 0.13), 0 2px 8px rgba(74, 62, 44, 0.06), inset 0 1px 0 rgba(255, 253, 247, 0.65);
         --tile-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 1px 2px rgba(74, 62, 44, 0.07);
         --gap: clamp(9px, 2.6vmin, 13px);
+        --control-h: clamp(42px, 10vmin, 48px);
         color-scheme: light;
-      }
-      [data-theme="dark"] {
-        --bg: #191714;
-        --text: #e9e5dc;
-        --text-secondary: #8e8a7f;
-        --surface: rgba(255, 250, 240, 0.06);
-        --stroke: rgba(255, 248, 235, 0.09);
-        --board-bg: rgba(255, 248, 235, 0.045);
-        --cell-bg: rgba(255, 248, 235, 0.028);
-        --overlay-bg: rgba(25, 23, 20, 0.85);
-        --board-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 248, 235, 0.05);
-        --tile-shadow: inset 0 1px 0 rgba(255, 248, 235, 0.05), 0 1px 3px rgba(0, 0, 0, 0.4);
-        color-scheme: dark;
       }
       html,
       body {
@@ -67,35 +55,32 @@
       }
       .header {
         display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 12px;
+        align-items: center;
+        gap: clamp(8px, 2vw, 12px);
       }
-      .brand h1 {
+      .header h1 {
+        flex: 1;
+        min-width: 0;
         margin: 0;
         font-size: clamp(26px, 7vw, 34px);
         font-weight: 700;
         letter-spacing: -0.03em;
-        line-height: 1.05;
-      }
-      .brand p {
-        margin: 3px 0 0;
-        font-size: 12px;
-        color: var(--text-secondary);
-        letter-spacing: 0.01em;
-      }
-      .scores {
-        display: flex;
-        gap: 8px;
+        line-height: 1;
       }
       .score {
-        min-width: 66px;
-        padding: 6px 14px 7px;
-        border-radius: 14px;
+        flex: none;
+        height: var(--control-h);
+        min-width: 72px;
+        padding: 0 14px;
+        border-radius: 999px;
         background: var(--surface);
         box-shadow: inset 0 0 0 1px var(--stroke);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         text-align: center;
         transition:
           background-color 0.35s ease,
@@ -103,18 +88,20 @@
       }
       .score span {
         display: block;
-        font-size: 10px;
+        margin-bottom: 2px;
+        font-size: 9px;
         font-weight: 500;
         letter-spacing: 0.1em;
+        line-height: 1;
         text-transform: uppercase;
         color: var(--text-secondary);
       }
       .score strong {
-        display: inline-block;
-        font-size: 18px;
+        display: block;
+        font-size: 17px;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
-        line-height: 1.25;
+        line-height: 1;
       }
       @keyframes scorePop {
         0% {
@@ -129,6 +116,41 @@
       }
       .score.bump strong {
         animation: scorePop 0.28s ease;
+      }
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        touch-action: manipulation;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+          opacity 0.2s ease,
+          background-color 0.35s ease,
+          color 0.35s ease,
+          box-shadow 0.35s ease;
+      }
+      .btn:hover {
+        opacity: 0.86;
+      }
+      .btn:active {
+        transform: scale(0.95);
+      }
+      .header .btn {
+        flex: none;
+        height: var(--control-h);
+        padding: 0 18px;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface);
+        box-shadow: inset 0 0 0 1px var(--stroke);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
       .board {
         position: relative;
@@ -277,61 +299,6 @@
         background: #1c2436;
         color: #e4ebf4;
       }
-      [data-theme="dark"] .tile[data-v="2"] .tile-inner {
-        background: #37342d;
-        color: #c8c4b6;
-      }
-      [data-theme="dark"] .tile[data-v="4"] .tile-inner {
-        background: #42403a;
-        color: #d3cfc2;
-      }
-      [data-theme="dark"] .tile[data-v="8"] .tile-inner {
-        background: #515247;
-        color: #e0dcd0;
-      }
-      [data-theme="dark"] .tile[data-v="16"] .tile-inner {
-        background: #646b5e;
-        color: #eae8de;
-      }
-      [data-theme="dark"] .tile[data-v="32"] .tile-inner {
-        background: #7c8a79;
-        color: #1f1d18;
-      }
-      [data-theme="dark"] .tile[data-v="64"] .tile-inner {
-        background: #98a89a;
-        color: #1a1814;
-      }
-      [data-theme="dark"] .tile[data-v="128"] .tile-inner {
-        background: #b5c3b8;
-        color: #1a1814;
-      }
-      [data-theme="dark"] .tile[data-v="256"] .tile-inner {
-        background: #ced9d0;
-        color: #1a1814;
-      }
-      [data-theme="dark"] .tile[data-v="512"] .tile-inner {
-        background: #e0e9e2;
-        color: #1a1814;
-      }
-      [data-theme="dark"] .tile[data-v="1024"] .tile-inner {
-        background: #edf2ec;
-        color: #1a1814;
-      }
-      [data-theme="dark"] .tile[data-v="2048"] .tile-inner {
-        background: #f7f8f2;
-        color: #1a1814;
-        box-shadow:
-          0 0 0 1px rgba(235, 205, 145, 0.5),
-          0 0 32px rgba(225, 190, 125, 0.42);
-      }
-      [data-theme="dark"] .tile[data-v="4096"] .tile-inner,
-      [data-theme="dark"] .tile[data-v="8192"] .tile-inner,
-      [data-theme="dark"] .tile[data-v="16384"] .tile-inner,
-      [data-theme="dark"] .tile[data-v="32768"] .tile-inner,
-      [data-theme="dark"] .tile[data-v="65536"] .tile-inner {
-        background: #fdfdf8;
-        color: #1a1814;
-      }
       .overlay {
         position: absolute;
         inset: 0;
@@ -373,97 +340,110 @@
         font-size: 14px;
         color: var(--text-secondary);
       }
-      .btn {
-        appearance: none;
-        border: none;
-        border-radius: 999px;
+      .overlay-content .btn {
         padding: 11px 24px;
         font-size: 15px;
-        font-weight: 600;
         color: var(--bg);
         background: var(--text);
-        cursor: pointer;
-        touch-action: manipulation;
-        transition:
-          transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
-          opacity 0.2s ease,
-          background-color 0.35s ease,
-          color 0.35s ease;
       }
-      .btn:hover {
-        opacity: 0.86;
-      }
-      .btn:active {
-        transform: scale(0.95);
-      }
-      .btn-ghost {
-        color: var(--text);
-        background: var(--surface);
-        box-shadow: inset 0 0 0 1px var(--stroke);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        padding: 9px 20px;
-        font-size: 14px;
-      }
-      .btn:focus-visible,
-      .icon-btn:focus-visible {
+      .btn:focus-visible {
         outline: 2px solid var(--text);
         outline-offset: 3px;
       }
-      .footer {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
       .hint {
-        flex: 1;
         margin: 0;
         text-align: center;
         font-size: 12px;
         color: var(--text-secondary);
         letter-spacing: 0.01em;
       }
-      .icon-btn {
-        appearance: none;
-        border: none;
-        display: grid;
-        place-items: center;
-        width: 38px;
-        height: 38px;
-        flex: none;
-        border-radius: 50%;
-        color: var(--text);
-        background: var(--surface);
-        box-shadow: inset 0 0 0 1px var(--stroke);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        cursor: pointer;
-        touch-action: manipulation;
-        transition:
-          transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
-          background-color 0.35s ease,
-          color 0.35s ease,
-          box-shadow 0.35s ease;
-      }
-      .icon-btn:active {
-        transform: scale(0.92);
-      }
-      .icon-btn svg {
-        width: 19px;
-        height: 19px;
-      }
-      .icon-sun {
-        display: none;
-      }
-      [data-theme="dark"] .icon-sun {
-        display: block;
-      }
-      [data-theme="dark"] .icon-moon {
-        display: none;
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #191714;
+          --text: #e9e5dc;
+          --text-secondary: #8e8a7f;
+          --surface: rgba(255, 250, 240, 0.06);
+          --stroke: rgba(255, 248, 235, 0.09);
+          --board-bg: rgba(255, 248, 235, 0.045);
+          --cell-bg: rgba(255, 248, 235, 0.028);
+          --overlay-bg: rgba(25, 23, 20, 0.85);
+          --board-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 248, 235, 0.05);
+          --tile-shadow: inset 0 1px 0 rgba(255, 248, 235, 0.05), 0 1px 3px rgba(0, 0, 0, 0.4);
+          color-scheme: dark;
+        }
+        .tile[data-v="2"] .tile-inner {
+          background: #37342d;
+          color: #c8c4b6;
+        }
+        .tile[data-v="4"] .tile-inner {
+          background: #42403a;
+          color: #d3cfc2;
+        }
+        .tile[data-v="8"] .tile-inner {
+          background: #515247;
+          color: #e0dcd0;
+        }
+        .tile[data-v="16"] .tile-inner {
+          background: #646b5e;
+          color: #eae8de;
+        }
+        .tile[data-v="32"] .tile-inner {
+          background: #7c8a79;
+          color: #1f1d18;
+        }
+        .tile[data-v="64"] .tile-inner {
+          background: #98a89a;
+          color: #1a1814;
+        }
+        .tile[data-v="128"] .tile-inner {
+          background: #b5c3b8;
+          color: #1a1814;
+        }
+        .tile[data-v="256"] .tile-inner {
+          background: #ced9d0;
+          color: #1a1814;
+        }
+        .tile[data-v="512"] .tile-inner {
+          background: #e0e9e2;
+          color: #1a1814;
+        }
+        .tile[data-v="1024"] .tile-inner {
+          background: #edf2ec;
+          color: #1a1814;
+        }
+        .tile[data-v="2048"] .tile-inner {
+          background: #f7f8f2;
+          color: #1a1814;
+          box-shadow:
+            0 0 0 1px rgba(235, 205, 145, 0.5),
+            0 0 32px rgba(225, 190, 125, 0.42);
+        }
+        .tile[data-v="4096"] .tile-inner,
+        .tile[data-v="8192"] .tile-inner,
+        .tile[data-v="16384"] .tile-inner,
+        .tile[data-v="32768"] .tile-inner,
+        .tile[data-v="65536"] .tile-inner {
+          background: #fdfdf8;
+          color: #1a1814;
+        }
       }
       @media (max-width: 360px) {
-        .brand p {
-          display: none;
+        .header {
+          gap: 6px;
+        }
+        .score {
+          min-width: 64px;
+          padding: 0 10px;
+        }
+        .score span {
+          font-size: 9px;
+        }
+        .score strong {
+          font-size: 16px;
+        }
+        .header .btn {
+          padding: 0 12px;
+          font-size: 13px;
         }
         .hint {
           font-size: 11px;
@@ -474,20 +454,12 @@
   <body>
     <div class="app">
       <header class="header">
-        <div class="brand">
-          <h1>2048</h1>
-          <p>合并数字，抵达 2048</p>
+        <h1>2048</h1>
+        <div class="score" id="score-box">
+          <span>得分</span>
+          <strong id="score">0</strong>
         </div>
-        <div class="scores">
-          <div class="score" id="score-box">
-            <span>得分</span>
-            <strong id="score">0</strong>
-          </div>
-          <div class="score">
-            <span>最高</span>
-            <strong id="best">0</strong>
-          </div>
-        </div>
+        <button class="btn" id="new-game">新游戏</button>
       </header>
       <main class="board" id="board">
         <div class="grid" id="grid"></div>
@@ -500,39 +472,23 @@
           </div>
         </div>
       </main>
-      <footer class="footer">
-        <button class="btn btn-ghost" id="new-game">新游戏</button>
-        <p class="hint">方向键 / WASD · 滑动屏幕</p>
-        <button class="icon-btn" id="theme-toggle" aria-label="切换主题">
-          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20.2 14.6A8.6 8.6 0 1 1 9.4 3.8a6.9 6.9 0 0 0 10.8 10.8Z" />
-          </svg>
-          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4.1" />
-            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.4 5.4l1.5 1.5M17.1 17.1l1.5 1.5M18.6 5.4l-1.5 1.5M6.9 17.1l-1.5 1.5" />
-          </svg>
-        </button>
-      </footer>
+      <p class="hint">方向键 / WASD · 滑动屏幕</p>
     </div>
     <script>
       const SIZE = 4;
       const MOVE_MS = 130;
       const SPAWN_FOUR_RATE = 0.1;
       const WIN_VALUE = 2048;
-      const BEST_KEY = "best";
-      const THEME_KEY = "theme";
       const boardEl = document.getElementById("board");
       const gridEl = document.getElementById("grid");
       const tilesEl = document.getElementById("tiles");
       const scoreEl = document.getElementById("score");
-      const bestEl = document.getElementById("best");
       const scoreBox = document.getElementById("score-box");
       const overlayEl = document.getElementById("overlay");
       const overlayTitle = document.getElementById("overlay-title");
       const overlayText = document.getElementById("overlay-text");
       const overlayAction = document.getElementById("overlay-action");
       const newGameBtn = document.getElementById("new-game");
-      const themeToggle = document.getElementById("theme-toggle");
       const DIRECTIONS = {
         up: { dr: -1, dc: 0 },
         down: { dr: 1, dc: 0 },
@@ -552,7 +508,6 @@
       const state = {
         grid: [],
         score: 0,
-        best: 0,
         over: false,
         won: false,
         locked: false,
@@ -634,11 +589,6 @@
         scoreBox.classList.remove("bump");
         void scoreBox.offsetWidth;
         scoreBox.classList.add("bump");
-        if (state.score > state.best) {
-          state.best = state.score;
-          bestEl.textContent = String(state.best);
-          localStorage.setItem(BEST_KEY, String(state.best));
-        }
       }
       function hasMoves() {
         for (let r = 0; r < SIZE; r += 1) {
@@ -753,17 +703,6 @@
         }
         gridEl.appendChild(fragment);
       }
-      function applyTheme(theme) {
-        document.documentElement.dataset.theme = theme;
-        localStorage.setItem(THEME_KEY, theme);
-      }
-      function toggleTheme() {
-        const current = document.documentElement.dataset.theme;
-        applyTheme(current === "dark" ? "light" : "dark");
-      }
-      function initTheme() {
-        applyTheme(localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light");
-      }
       function handleKeydown(event) {
         if (event.metaKey || event.ctrlKey || event.altKey) return;
         const dir = KEY_MAP[event.key.toLowerCase()];
@@ -814,13 +753,9 @@
         });
       }
       function init() {
-        initTheme();
         buildGridCells();
-        state.best = Number(localStorage.getItem(BEST_KEY)) || 0;
-        bestEl.textContent = String(state.best);
         window.addEventListener("keydown", handleKeydown);
         newGameBtn.addEventListener("click", newGame);
-        themeToggle.addEventListener("click", toggleTheme);
         overlayAction.addEventListener("click", () => {
           const handler = overlayHandler;
           if (handler) handler();

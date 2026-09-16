@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>素数与因数</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
         --bg: #f5f5f7;
@@ -22,14 +17,16 @@
         --shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
         --border: rgba(0, 0, 0, 0.05);
       }
-      [data-theme="dark"] {
-        --bg: #000000;
-        --card-bg: rgba(28, 28, 30, 0.8);
-        --text-primary: #f5f5f7;
-        --text-secondary: #98989d;
-        --input-bg: rgba(118, 118, 128, 0.24);
-        --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        --border: rgba(255, 255, 255, 0.1);
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --card-bg: rgba(28, 28, 30, 0.8);
+          --text-primary: #f5f5f7;
+          --text-secondary: #98989d;
+          --input-bg: rgba(118, 118, 128, 0.24);
+          --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+          --border: rgba(255, 255, 255, 0.1);
+        }
       }
       * {
         margin: 0;
@@ -63,7 +60,6 @@
         width: 100%;
         max-width: 520px;
         padding: 32px;
-        position: relative;
         transition:
           background 0.4s ease,
           box-shadow 0.4s ease,
@@ -73,30 +69,6 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-      }
-      .theme-toggle {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: var(--input-bg);
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        color: var(--text-primary);
-        transition: all 0.3s ease;
-        z-index: 10;
-      }
-      .theme-toggle:active {
-        transform: scale(0.9);
-      }
-      .theme-toggle svg {
-        width: 20px;
-        height: 20px;
       }
       .title {
         font-size: 28px;
@@ -252,22 +224,6 @@
   </head>
   <body>
     <div class="card">
-      <button class="theme-toggle" id="themeToggle">
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </button>
       <h1 class="title">素数与因数</h1>
       <p class="subtitle">输入一个自然数，判断其是否为素数并找出所有因数</p>
       <div class="input-group">
@@ -280,9 +236,6 @@
       const input = document.getElementById("numberInput");
       const btn = document.getElementById("calcBtn");
       const resultContainer = document.getElementById("resultContainer");
-      const themeToggle = document.getElementById("themeToggle");
-      const iconSun = document.querySelector(".icon-sun");
-      const iconMoon = document.querySelector(".icon-moon");
       function calculate() {
         const val = input.value.trim();
         if (!/^\d+$/.test(val)) {
@@ -360,25 +313,6 @@
       input.addEventListener("input", () => {
         input.value = input.value.replace(/\D/g, "");
       });
-      themeToggle.addEventListener("click", () => {
-        const current = document.documentElement.getAttribute("data-theme");
-        const next = current === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", next);
-        localStorage.setItem("theme", next);
-        updateThemeIcon(next);
-      });
-      function updateThemeIcon(theme) {
-        if (theme === "dark") {
-          iconSun.style.display = "none";
-          iconMoon.style.display = "block";
-        } else {
-          iconSun.style.display = "block";
-          iconMoon.style.display = "none";
-        }
-      }
-      const savedTheme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", savedTheme);
-      updateThemeIcon(savedTheme);
     </script>
   </body>
 </html>

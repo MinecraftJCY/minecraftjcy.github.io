@@ -4,14 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>幸运彩票</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
-        --bg: #b8c9b2;
         --bg-gradient: linear-gradient(160deg, #b8c9b2 0%, #c5d4be 30%, #a8bda0 100%);
         --card-bg: #fdfaf3;
         --card-border: 1px solid rgba(0, 0, 0, 0.05);
@@ -22,14 +16,11 @@
         --heading: #2c5f3f;
         --primary: #4a8c6a;
         --primary-hover: #3a7054;
-        --primary-active: #2e5c44;
         --primary-text: #ffffff;
         --danger: #c0553a;
         --danger-hover: #a3442d;
         --danger-text: #ffffff;
         --balance-color: #3d6b4f;
-        --balance-bg: #f2efe8;
-        --balance-border: #e0d8c8;
         --win-bg: #e6f0e4;
         --win-text: #2d5a38;
         --win-border: #c8dcc4;
@@ -40,55 +31,17 @@
         --disabled-bg: #d5cec2;
         --disabled-text: #a89880;
         --divider: #e8e0d2;
-        --toggle-bg: #e8e0d2;
         --toggle-hover: #d8cebc;
         --overlay: rgba(0, 0, 0, 0.04);
         --stat-bg: #faf7f0;
         --stat-border: #ece3d4;
         --transition-speed: 0.35s;
-        --radius-sm: clamp(6px, 1.2vw, 10px);
         --radius-md: clamp(10px, 1.8vw, 16px);
-        --radius-lg: clamp(14px, 2.4vw, 22px);
         --radius-xl: clamp(18px, 3vw, 28px);
         --container-padding: clamp(24px, 4vw, 48px);
         --gap-small: clamp(6px, 1vw, 12px);
         --gap-medium: clamp(10px, 1.6vw, 16px);
-      }
-      [data-theme="dark"] {
-        --bg: #1a1e22;
-        --bg-gradient: linear-gradient(160deg, #1a1e22 0%, #1f2328 30%, #161a1d 100%);
-        --card-bg: #252830;
-        --card-border: 1px solid rgba(255, 255, 255, 0.05);
-        --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.2);
-        --text: #e0d8c8;
-        --text-secondary: #b0a898;
-        --text-muted: #887f70;
-        --heading: #8cc9a0;
-        --primary: #6aaa82;
-        --primary-hover: #5a9870;
-        --primary-active: #4a8460;
-        --primary-text: #1a1e22;
-        --danger: #d36a52;
-        --danger-hover: #bf5540;
-        --danger-text: #fdfaf3;
-        --balance-color: #8cc9a0;
-        --balance-bg: #1f2329;
-        --balance-border: #363840;
-        --win-bg: #253628;
-        --win-text: #8cc9a0;
-        --win-border: #3a5038;
-        --lose-bg: #352320;
-        --lose-text: #e8806a;
-        --lose-border: #4a3028;
-        --result-neutral-bg: #2a2c32;
-        --disabled-bg: #3a3c42;
-        --disabled-text: #5e5c55;
-        --divider: #363840;
-        --toggle-bg: #363840;
-        --toggle-hover: #484a52;
-        --overlay: rgba(255, 255, 255, 0.02);
-        --stat-bg: #2a2c32;
-        --stat-border: #3a3c42;
+        color-scheme: light;
       }
       * {
         margin: 0;
@@ -141,70 +94,38 @@
           border-color var(--transition-speed) ease;
         position: relative;
       }
-      .top-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: clamp(8px, 1.4vw, 16px);
-        flex-wrap: wrap;
-        gap: var(--gap-small);
-      }
       .new-game-btn {
+        position: absolute;
+        top: var(--container-padding);
+        right: var(--container-padding);
         background: var(--stat-bg);
         border: 1px solid var(--stat-border);
-        color: var(--text);
-        padding: clamp(7px, 1.1vw, 12px) clamp(14px, 2vw, 22px);
-        border-radius: clamp(18px, 2.6vw, 28px);
-        font-size: clamp(12px, 1.3vw, 16px);
+        color: var(--text-secondary);
+        padding: clamp(6px, 0.9vw, 10px) clamp(12px, 1.8vw, 18px);
+        border-radius: 999px;
+        font-size: clamp(12px, 1.2vw, 14px);
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.25s ease;
-        display: flex;
-        align-items: center;
-        gap: clamp(3px, 0.5vw, 6px);
-        letter-spacing: 0.03em;
+        transition:
+          background 0.25s ease,
+          color 0.25s ease,
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+        letter-spacing: 0.04em;
         user-select: none;
         -webkit-user-select: none;
         white-space: nowrap;
+        z-index: 2;
       }
       .new-game-btn:hover {
         background: var(--toggle-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        color: var(--text);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       }
       .new-game-btn:active {
         transform: translateY(0);
         box-shadow: none;
-      }
-      .theme-toggle {
-        width: clamp(36px, 5.5vw, 48px);
-        height: clamp(36px, 5.5vw, 48px);
-        border-radius: 50%;
-        border: none;
-        background: var(--toggle-bg);
-        cursor: pointer;
-        font-size: clamp(18px, 2.8vw, 24px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition:
-          background 0.25s ease,
-          transform 0.25s ease,
-          box-shadow 0.25s ease;
-        line-height: 1;
-        user-select: none;
-        -webkit-user-select: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        flex-shrink: 0;
-      }
-      .theme-toggle:hover {
-        background: var(--toggle-hover);
-        transform: scale(1.1);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-      }
-      .theme-toggle:active {
-        transform: scale(0.93);
-        transition: transform 0.1s ease;
       }
       .header-area {
         margin-bottom: clamp(16px, 2.6vw, 28px);
@@ -433,6 +354,40 @@
           transform: translateY(0);
         }
       }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-gradient: linear-gradient(160deg, #1a1e22 0%, #1f2328 30%, #161a1d 100%);
+          --card-bg: #252830;
+          --card-border: 1px solid rgba(255, 255, 255, 0.05);
+          --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.2);
+          --text: #e0d8c8;
+          --text-secondary: #b0a898;
+          --text-muted: #887f70;
+          --heading: #8cc9a0;
+          --primary: #6aaa82;
+          --primary-hover: #5a9870;
+          --primary-text: #1a1e22;
+          --danger: #d36a52;
+          --danger-hover: #bf5540;
+          --danger-text: #fdfaf3;
+          --balance-color: #8cc9a0;
+          --win-bg: #253628;
+          --win-text: #8cc9a0;
+          --win-border: #3a5038;
+          --lose-bg: #352320;
+          --lose-text: #e8806a;
+          --lose-border: #4a3028;
+          --result-neutral-bg: #2a2c32;
+          --disabled-bg: #3a3c42;
+          --disabled-text: #5e5c55;
+          --divider: #363840;
+          --toggle-hover: #484a52;
+          --overlay: rgba(255, 255, 255, 0.02);
+          --stat-bg: #2a2c32;
+          --stat-border: #3a3c42;
+          color-scheme: dark;
+        }
+      }
       @media (max-width: 480px) {
         .game-wrapper {
           max-width: 100%;
@@ -448,10 +403,7 @@
   <body>
     <div class="game-wrapper">
       <div class="game-container">
-        <div class="top-actions">
-          <button class="new-game-btn" id="newGameBtn">新游戏</button>
-          <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换明暗主题">🌙</button>
-        </div>
+        <button class="new-game-btn" id="newGameBtn">新游戏</button>
         <div class="header-area">
           <div class="icon-row">🎰</div>
           <h1 class="title">幸运彩票</h1>
@@ -481,188 +433,92 @@
       </div>
     </div>
     <script>
-      (function () {
-        const STATE_KEY = "lottery_balance";
-        const COUNT_KEY = "lottery_purchase_count";
-        const THEME_KEY = "theme";
-        const INITIAL_BALANCE = 200;
-        const WIN_RATE = 0.5;
-        const balanceDisplay = document.getElementById("balanceDisplay");
-        const purchaseCountDisplay = document.getElementById("purchaseCountDisplay");
-        const resultArea = document.getElementById("resultArea");
-        const resetBtn = document.getElementById("resetBtn");
-        const newGameBtn = document.getElementById("newGameBtn");
-        const betGrid = document.getElementById("betGrid");
-        const themeToggle = document.getElementById("themeToggle");
-        const html = document.documentElement;
-        let balance = INITIAL_BALANCE;
-        let purchaseCount = 0;
-        let betButtons = [];
-        let animFrameId = null;
-        function loadNumber(key, fallback) {
-          try {
-            const saved = localStorage.getItem(key);
-            if (saved !== null) {
-              const parsed = parseFloat(saved);
-              if (!isNaN(parsed) && parsed >= 0 && isFinite(parsed)) {
-                return parsed;
-              }
-            }
-          } catch (_) {}
-          return fallback;
+      const INITIAL_BALANCE = 200;
+      const WIN_RATE = 0.5;
+      const balanceDisplay = document.getElementById("balanceDisplay");
+      const purchaseCountDisplay = document.getElementById("purchaseCountDisplay");
+      const resultArea = document.getElementById("resultArea");
+      const resetBtn = document.getElementById("resetBtn");
+      const newGameBtn = document.getElementById("newGameBtn");
+      const betGrid = document.getElementById("betGrid");
+      const betButtons = Array.from(betGrid.querySelectorAll(".bet-btn"));
+      let balance = INITIAL_BALANCE;
+      let purchaseCount = 0;
+      let pulseTimer = null;
+      function updateBalanceDisplay(animate) {
+        balanceDisplay.textContent = balance.toFixed(2);
+        if (!animate) return;
+        if (pulseTimer) clearTimeout(pulseTimer);
+        balanceDisplay.classList.remove("pulse");
+        void balanceDisplay.offsetWidth;
+        balanceDisplay.classList.add("pulse");
+        pulseTimer = setTimeout(() => {
+          balanceDisplay.classList.remove("pulse");
+          pulseTimer = null;
+        }, 220);
+      }
+      function updatePurchaseCountDisplay() {
+        purchaseCountDisplay.textContent = purchaseCount;
+      }
+      function updateButtonStates() {
+        betButtons.forEach((btn) => {
+          btn.disabled = balance < parseFloat(btn.dataset.bet);
+        });
+      }
+      function getMinBet() {
+        return Math.min(...betButtons.map((b) => parseFloat(b.dataset.bet)));
+      }
+      function isGameOver() {
+        return balance < getMinBet();
+      }
+      function setResult(message, type) {
+        resultArea.textContent = message;
+        resultArea.className = "result-area";
+        void resultArea.offsetWidth;
+        resultArea.classList.add(type === "win" ? "result-win" : type === "lose" ? "result-lose" : "result-neutral");
+      }
+      function handleGameOver() {
+        setResult("余额不足 " + getMinBet().toFixed(0) + " 元，无法继续投注", "lose");
+        resetBtn.classList.add("visible");
+        betButtons.forEach((b) => (b.disabled = true));
+      }
+      function refreshUI(animateBalance) {
+        updateBalanceDisplay(animateBalance);
+        updatePurchaseCountDisplay();
+        updateButtonStates();
+        if (isGameOver()) {
+          handleGameOver();
         }
-        function saveNumber(key, value) {
-          try {
-            localStorage.setItem(key, value.toFixed(0));
-          } catch (_) {}
-        }
-        function loadBalance() {
-          return loadNumber(STATE_KEY, INITIAL_BALANCE);
-        }
-        function loadPurchaseCount() {
-          return loadNumber(COUNT_KEY, 0);
-        }
-        function saveBalance() {
-          try {
-            localStorage.setItem(STATE_KEY, balance.toFixed(2));
-          } catch (_) {}
-        }
-        function savePurchaseCount() {
-          saveNumber(COUNT_KEY, purchaseCount);
-        }
-        function loadTheme() {
-          try {
-            const saved = localStorage.getItem(THEME_KEY);
-            if (saved === "dark" || saved === "light") {
-              return saved;
-            }
-          } catch (_) {}
-          return "light";
-        }
-        function saveTheme(theme) {
-          try {
-            localStorage.setItem(THEME_KEY, theme);
-          } catch (_) {}
-        }
-        function applyTheme(theme) {
-          html.setAttribute("data-theme", theme);
-          themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
-          saveTheme(theme);
-        }
-        function collectBetButtons() {
-          betButtons = Array.from(betGrid.querySelectorAll(".bet-btn"));
-        }
-        function updateBalanceDisplay(animate = false) {
-          balanceDisplay.textContent = balance.toFixed(2);
-          if (animate) {
-            if (animFrameId) cancelAnimationFrame(animFrameId);
-            balanceDisplay.classList.remove("pulse");
-            void balanceDisplay.offsetWidth;
-            balanceDisplay.classList.add("pulse");
-            animFrameId = setTimeout(() => {
-              balanceDisplay.classList.remove("pulse");
-              animFrameId = null;
-            }, 220);
-          }
-        }
-        function updatePurchaseCountDisplay() {
-          purchaseCountDisplay.textContent = purchaseCount;
-        }
-        function updateButtonStates() {
-          betButtons.forEach((btn) => {
-            const betAmount = parseFloat(btn.dataset.bet);
-            btn.disabled = balance < betAmount;
-          });
-        }
-        function isGameOver() {
-          const minBet = Math.min(...betButtons.map((b) => parseFloat(b.dataset.bet)));
-          return balance < minBet;
-        }
-        function setResult(message, type) {
-          resultArea.textContent = message;
-          resultArea.className = "result-area";
-          void resultArea.offsetWidth;
-          resultArea.classList.add(type === "win" ? "result-win" : type === "lose" ? "result-lose" : "result-neutral");
-        }
-        function handleGameOver() {
-          const minBet = Math.min(...betButtons.map((b) => parseFloat(b.dataset.bet)));
-          setResult("余额不足 " + minBet.toFixed(0) + " 元，无法继续投注", "lose");
-          resetBtn.classList.add("visible");
-          betButtons.forEach((b) => (b.disabled = true));
-        }
-        function refreshUI(animateBalance = false) {
-          updateBalanceDisplay(animateBalance);
-          updatePurchaseCountDisplay();
-          updateButtonStates();
-          if (isGameOver()) {
-            handleGameOver();
-          }
-          saveBalance();
-          savePurchaseCount();
-        }
-        function handleBet(betAmount) {
-          if (balance < betAmount) return;
-          const won = Math.random() < WIN_RATE;
-          if (won) {
-            balance += betAmount;
-            setResult("恭喜中奖！投注 " + betAmount.toFixed(0) + " 元，获得 " + betAmount.toFixed(0) + " 元奖励", "win");
-          } else {
-            balance -= betAmount;
-            setResult("未中奖，扣除 " + betAmount.toFixed(0) + " 元", "lose");
-          }
-          purchaseCount++;
-          refreshUI(true);
-        }
-        function resetGame() {
-          balance = INITIAL_BALANCE;
-          purchaseCount = 0;
-          setResult("点击上方按钮开始投注", "neutral");
-          resetBtn.classList.remove("visible");
-          refreshUI(false);
-        }
-        function bindEvents() {
-          betGrid.addEventListener("click", (e) => {
-            const btn = e.target.closest(".bet-btn");
-            if (!btn) return;
-            if (btn.disabled) return;
-            const betAmount = parseFloat(btn.dataset.bet);
-            if (isNaN(betAmount)) return;
-            handleBet(betAmount);
-          });
-          resetBtn.addEventListener("click", resetGame);
-          newGameBtn.addEventListener("click", resetGame);
-          themeToggle.addEventListener("click", () => {
-            const current = html.getAttribute("data-theme");
-            const next = current === "dark" ? "light" : "dark";
-            applyTheme(next);
-          });
-        }
-        function init() {
-          const theme = loadTheme();
-          applyTheme(theme);
-          balance = loadBalance();
-          if (balance < 0 || !isFinite(balance)) balance = INITIAL_BALANCE;
-          purchaseCount = loadPurchaseCount();
-          if (purchaseCount < 0 || !isFinite(purchaseCount)) purchaseCount = 0;
-          collectBetButtons();
-          bindEvents();
-          if (isGameOver()) {
-            handleGameOver();
-          } else {
-            setResult("点击上方按钮开始投注", "neutral");
-          }
-          updateBalanceDisplay(false);
-          updatePurchaseCountDisplay();
-          updateButtonStates();
-          saveBalance();
-          savePurchaseCount();
-        }
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", init);
+      }
+      function handleBet(betAmount) {
+        if (balance < betAmount) return;
+        if (Math.random() < WIN_RATE) {
+          balance += betAmount;
+          setResult("恭喜中奖！投注 " + betAmount.toFixed(0) + " 元，获得 " + betAmount.toFixed(0) + " 元奖励", "win");
         } else {
-          init();
+          balance -= betAmount;
+          setResult("未中奖，扣除 " + betAmount.toFixed(0) + " 元", "lose");
         }
-      })();
+        purchaseCount++;
+        refreshUI(true);
+      }
+      function resetGame() {
+        balance = INITIAL_BALANCE;
+        purchaseCount = 0;
+        setResult("点击上方按钮开始投注", "neutral");
+        resetBtn.classList.remove("visible");
+        refreshUI(false);
+      }
+      betGrid.addEventListener("click", (e) => {
+        const btn = e.target.closest(".bet-btn");
+        if (!btn || btn.disabled) return;
+        const betAmount = parseFloat(btn.dataset.bet);
+        if (isNaN(betAmount)) return;
+        handleBet(betAmount);
+      });
+      resetBtn.addEventListener("click", resetGame);
+      newGameBtn.addEventListener("click", resetGame);
+      refreshUI(false);
     </script>
   </body>
 </html>

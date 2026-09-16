@@ -4,45 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>贪吃蛇</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
-        --bg: #1a2633;
-        --panel-bg: #1e2d3a;
-        --text: #c8d4dc;
-        --text-secondary: #8a9ba8;
-        --accent: #5eeadb;
-        --canvas-bg: #17222b;
-        --canvas-border: #2a4a4f;
-        --grid-line: #1f3038;
-        --btn-bg: #1e4d4a;
-        --btn-hover: #1f5f58;
-        --btn-active: #1a3f3b;
-        --btn-text: #e0f0ed;
-        --btn-restart-bg: #3d3a4a;
-        --btn-restart-hover: #4e4a5c;
-        --btn-restart-active: #2e2b38;
-        --shadow: rgba(0, 0, 0, 0.35);
-        --card-bg: #1e2d3a;
-        --card-border: #2a3d48;
-        --highlight-score: #facc15;
-        --status-idle: #8a9ba8;
-        --status-playing: #5eeadb;
-        --status-paused: #f0c060;
-        --status-over: #f08080;
-        --dpad-bg: rgba(30, 77, 74, 0.75);
-        --dpad-border: rgba(94, 234, 219, 0.38);
-        --dpad-color: #5eeadb;
-        --dpad-hover: rgba(31, 95, 88, 0.9);
-        --dpad-active: rgba(26, 63, 59, 0.98);
-        --dpad-glow: rgba(94, 234, 219, 0.25);
-        --slider-track: #2a3d48;
-      }
-      body.light-theme {
+        color-scheme: light;
         --bg: #f2efe8;
         --panel-bg: #fdfcfa;
         --text: #4a4440;
@@ -61,6 +25,7 @@
         --shadow: rgba(0, 0, 0, 0.1);
         --card-bg: #fdfcfa;
         --card-border: #e6e2d8;
+        --highlight-score: #facc15;
         --status-idle: #8a7e74;
         --status-playing: #1a8a78;
         --status-paused: #a07820;
@@ -72,6 +37,41 @@
         --dpad-active: rgba(168, 207, 194, 0.99);
         --dpad-glow: rgba(45, 157, 142, 0.22);
         --slider-track: #e6e2d8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --bg: #1a2633;
+          --panel-bg: #1e2d3a;
+          --text: #c8d4dc;
+          --text-secondary: #8a9ba8;
+          --accent: #5eeadb;
+          --canvas-bg: #17222b;
+          --canvas-border: #2a4a4f;
+          --grid-line: #1f3038;
+          --btn-bg: #1e4d4a;
+          --btn-hover: #1f5f58;
+          --btn-active: #1a3f3b;
+          --btn-text: #e0f0ed;
+          --btn-restart-bg: #3d3a4a;
+          --btn-restart-hover: #4e4a5c;
+          --btn-restart-active: #2e2b38;
+          --shadow: rgba(0, 0, 0, 0.35);
+          --card-bg: #1e2d3a;
+          --card-border: #2a3d48;
+          --highlight-score: #facc15;
+          --status-idle: #8a9ba8;
+          --status-playing: #5eeadb;
+          --status-paused: #f0c060;
+          --status-over: #f08080;
+          --dpad-bg: rgba(30, 77, 74, 0.75);
+          --dpad-border: rgba(94, 234, 219, 0.38);
+          --dpad-color: #5eeadb;
+          --dpad-hover: rgba(31, 95, 88, 0.9);
+          --dpad-active: rgba(26, 63, 59, 0.98);
+          --dpad-glow: rgba(94, 234, 219, 0.25);
+          --slider-track: #2a3d48;
+        }
       }
       *,
       *::before,
@@ -118,35 +118,13 @@
         letter-spacing: 1px;
         display: flex;
         align-items: center;
-        transition: color 0.25s ease;
-      }
-      .theme-toggle {
-        border-radius: 50%;
-        border: 2px solid var(--card-border);
-        background: var(--card-bg);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-        line-height: 1;
-        padding: 0;
-        transition:
-          transform 0.2s ease,
-          border-color 0.2s ease,
-          background-color 0.25s ease;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .theme-toggle:hover {
-        transform: rotate(20deg);
-        border-color: var(--accent);
-      }
-      .theme-toggle:active {
-        transform: scale(0.9) rotate(20deg);
+        transition: color 0.25s ease;
       }
       .score-panel {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         border-radius: 12px;
@@ -154,11 +132,6 @@
         transition:
           background-color 0.25s ease,
           border-color 0.25s ease;
-      }
-      .score-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
       }
       .score-label {
         color: var(--text-secondary);
@@ -173,11 +146,6 @@
       .score-value.highlight {
         color: var(--highlight-score);
         animation: scorePop 0.4s ease-out;
-      }
-      .high-score-value {
-        color: var(--text-secondary);
-        font-weight: 600;
-        transition: color 0.25s ease;
       }
       .status-bar {
         display: flex;
@@ -446,49 +414,19 @@
           gap: 8px;
         }
         .game-title {
-          position: relative;
-          width: 100%;
-          justify-content: center;
           font-size: 20px;
           gap: 8px;
-          padding: 2px 40px;
+          padding: 2px 0;
           min-height: 34px;
         }
-        .theme-toggle {
-          position: absolute;
-          right: 0;
-          top: 50%;
-          width: 32px;
-          height: 32px;
-          font-size: 15px;
-          transform: translateY(-50%);
-        }
-        .theme-toggle:hover {
-          transform: translateY(-50%) rotate(20deg);
-        }
-        .theme-toggle:active {
-          transform: translateY(-50%) scale(0.9) rotate(20deg);
-        }
         .score-panel {
-          flex-direction: row;
-          justify-content: space-around;
-          align-items: center;
-          padding: 8px 12px;
-          gap: 10px;
-        }
-        .score-row {
-          flex-direction: column;
-          gap: 2px;
-          align-items: center;
+          padding: 8px 14px;
         }
         .score-label {
-          font-size: 11px;
+          font-size: 12px;
         }
         .score-value {
-          font-size: 17px;
-        }
-        .high-score-value {
-          font-size: 15px;
+          font-size: 18px;
         }
         .status-bar {
           padding: 8px 12px;
@@ -572,25 +510,15 @@
           font-size: 23px;
           gap: 10px;
           padding: 2px 0;
-          justify-content: space-between;
-        }
-        .theme-toggle {
-          width: 36px;
-          height: 36px;
-          font-size: 17px;
         }
         .score-panel {
-          padding: 12px 14px;
-          gap: 8px;
+          padding: 14px;
         }
         .score-label {
-          font-size: 13px;
+          font-size: 14px;
         }
         .score-value {
-          font-size: 20px;
-        }
-        .high-score-value {
-          font-size: 15px;
+          font-size: 22px;
         }
         .status-bar {
           padding: 11px 14px;
@@ -639,29 +567,13 @@
     </style>
   </head>
   <body>
-    <script>
-      try {
-        if (localStorage.getItem("theme") !== "dark") {
-          document.body.classList.add("light-theme");
-        }
-      } catch (e) {}
-    </script>
     <div class="app">
       <aside class="panel" id="panel">
         <div class="panel-content">
-          <h1 class="game-title">
-            🐍 贪吃蛇
-            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">🌙</button>
-          </h1>
+          <h1 class="game-title">🐍 贪吃蛇</h1>
           <div class="score-panel">
-            <div class="score-row">
-              <span class="score-label">当前分数</span>
-              <span class="score-value" id="score">0</span>
-            </div>
-            <div class="score-row">
-              <span class="score-label">最高分数</span>
-              <span class="high-score-value" id="highScore">0</span>
-            </div>
+            <span class="score-label">当前分数</span>
+            <span class="score-value" id="score">0</span>
           </div>
           <div class="status-bar" id="statusBar">
             <span class="status-indicator"></span>
@@ -713,11 +625,6 @@
         const DEFAULT_DPAD_OPACITY = 50;
         const RESIZE_DELAYS = [50, 200];
         const ORIENTATION_DELAYS = [120, 320];
-        const STORAGE_KEYS = {
-          theme: "theme",
-          highScore: "snakeGameHighScore",
-          dpadOpacity: "snakeGameDpadOpacity",
-        };
         const STATUS_TEXT = {
           waiting: "等待开始",
           playing: "游戏中",
@@ -757,15 +664,6 @@
           D: "right",
         };
         const THEME_COLORS = {
-          dark: {
-            snakeHead: "#5eeadb",
-            snakeBody: "#3dbda7",
-            snakeBodyAlt: "#35a894",
-            food: "#f0a58f",
-            foodGlow: "#f8c4b4",
-            gridLine: "#1f3038",
-            canvasBg: "#17222b",
-          },
           light: {
             snakeHead: "#23917e",
             snakeBody: "#3db89e",
@@ -775,54 +673,33 @@
             gridLine: "#e6e2d8",
             canvasBg: "#fafaf5",
           },
-        };
-        const storage = {
-          read(key, fallback) {
-            try {
-              const value = window.localStorage.getItem(key);
-              return value === null ? fallback : value;
-            } catch (error) {
-              return fallback;
-            }
-          },
-          write(key, value) {
-            try {
-              window.localStorage.setItem(key, String(value));
-            } catch (error) {}
-          },
-          readInteger(key, fallback) {
-            const raw = storage.read(key, null);
-            if (raw === null) return fallback;
-            const parsed = Number.parseInt(raw, 10);
-            return Number.isFinite(parsed) ? parsed : fallback;
+          dark: {
+            snakeHead: "#5eeadb",
+            snakeBody: "#3dbda7",
+            snakeBodyAlt: "#35a894",
+            food: "#f0a58f",
+            foodGlow: "#f8c4b4",
+            gridLine: "#1f3038",
+            canvasBg: "#17222b",
           },
         };
-        class ThemeManager {
-          constructor(button) {
-            this.button = button;
-            this.current = "light";
-            this.palette = THEME_COLORS.light;
+        class ThemeWatcher {
+          constructor() {
+            this.query = window.matchMedia("(prefers-color-scheme: dark)");
+            this.current = this.query.matches ? "dark" : "light";
             this.listeners = [];
+            this.query.addEventListener("change", (event) => {
+              this.current = event.matches ? "dark" : "light";
+              for (const listener of this.listeners) {
+                listener(this.current);
+              }
+            });
           }
           onChange(listener) {
             this.listeners.push(listener);
           }
-          initialize() {
-            this.apply(storage.read(STORAGE_KEYS.theme, "light"));
-          }
-          toggle() {
-            this.apply(this.current === "dark" ? "light" : "dark");
-          }
-          apply(theme) {
-            this.current = theme === "light" ? "light" : "dark";
-            this.palette = THEME_COLORS[this.current];
-            document.body.classList.toggle("light-theme", this.current === "light");
-            this.button.textContent = this.current === "light" ? "☀️" : "🌙";
-            this.button.setAttribute("aria-label", this.current === "light" ? "切换到暗色主题" : "切换到亮色主题");
-            storage.write(STORAGE_KEYS.theme, this.current);
-            for (const listener of this.listeners) {
-              listener(this.palette);
-            }
+          getPalette() {
+            return THEME_COLORS[this.current];
           }
         }
         class Renderer {
@@ -832,7 +709,7 @@
             this.ctx = canvas.getContext("2d");
             this.gridCount = gridCount;
             this.cellSize = 0;
-            this.palette = THEME_COLORS.dark;
+            this.palette = THEME_COLORS.light;
             this.snapshot = { snake: [], food: { x: -1, y: -1 } };
             this.resizeFrame = 0;
           }
@@ -988,7 +865,6 @@
             this.initialLength = options.initialLength;
             this.initialHead = options.initialHead;
             this.onUpdate = options.onUpdate;
-            this.onGameOver = options.onGameOver;
             this.snake = [];
             this.food = { x: -1, y: -1 };
             this.direction = "right";
@@ -1067,7 +943,6 @@
           finish() {
             this.stopTimer();
             this.status = "over";
-            this.onGameOver(this.score);
             this.emit();
           }
           createInitialSnake() {
@@ -1133,16 +1008,9 @@
           }
         }
         class ScoreBoard {
-          constructor(scoreElement, highScoreElement) {
+          constructor(scoreElement) {
             this.scoreElement = scoreElement;
-            this.highScoreElement = highScoreElement;
-            this.highScore = 0;
             this.lastScore = null;
-          }
-          loadHighScore() {
-            const stored = storage.readInteger(STORAGE_KEYS.highScore, 0);
-            this.highScore = stored > 0 ? stored : 0;
-            this.highScoreElement.textContent = String(this.highScore);
           }
           update(score) {
             if (score === this.lastScore) return;
@@ -1150,17 +1018,11 @@
             this.lastScore = score;
             this.scoreElement.textContent = String(score);
             if (increased) {
-              this.flash(this.scoreElement);
+              this.flash();
             }
           }
-          commitHighScore(score) {
-            if (score <= this.highScore) return;
-            this.highScore = score;
-            this.highScoreElement.textContent = String(score);
-            storage.write(STORAGE_KEYS.highScore, score);
-            this.flash(this.highScoreElement);
-          }
-          flash(element) {
+          flash() {
+            const element = this.scoreElement;
             element.classList.remove("highlight");
             void element.offsetWidth;
             element.classList.add("highlight");
@@ -1184,21 +1046,15 @@
             this.container = options.container;
             this.slider = options.slider;
             this.label = options.label;
-            this.storageKey = options.storageKey;
             this.value = options.defaultValue;
           }
           initialize() {
-            const stored = storage.readInteger(this.storageKey, this.value);
-            this.apply(stored, false);
+            this.apply(this.value);
             this.slider.addEventListener("input", (event) => {
-              this.apply(event.target.value, true);
+              this.apply(event.target.value);
             });
           }
-          sync() {
-            const stored = storage.readInteger(this.storageKey, this.value);
-            this.apply(stored, false);
-          }
-          apply(rawValue, persist) {
+          apply(rawValue) {
             const parsed = Number.parseInt(rawValue, 10);
             const value = Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : 0;
             this.value = value;
@@ -1207,23 +1063,19 @@
             this.label.textContent = `${value}%`;
             this.container.style.opacity = String(value / 100);
             this.container.style.pointerEvents = value > 0 ? "auto" : "none";
-            if (persist) {
-              storage.write(this.storageKey, value);
-            }
           }
         }
         class SnakeApp {
           constructor() {
             this.dom = this.queryDom();
-            this.themeManager = new ThemeManager(this.dom.themeToggle);
+            this.themeWatcher = new ThemeWatcher();
             this.renderer = new Renderer(this.dom.canvas, this.dom.boardArea, GRID_COUNT);
-            this.scoreBoard = new ScoreBoard(this.dom.score, this.dom.highScore);
+            this.scoreBoard = new ScoreBoard(this.dom.score);
             this.statusBar = new StatusBar(this.dom.statusBar, this.dom.statusText);
             this.dpadOpacity = new DpadOpacityController({
               container: this.dom.dpadContainer,
               slider: this.dom.opacitySlider,
               label: this.dom.opacityValue,
-              storageKey: STORAGE_KEYS.dpadOpacity,
               defaultValue: DEFAULT_DPAD_OPACITY,
             });
             this.game = new SnakeGame({
@@ -1233,7 +1085,6 @@
               initialLength: INITIAL_SNAKE_LENGTH,
               initialHead: INITIAL_HEAD,
               onUpdate: (snapshot) => this.handleGameUpdate(snapshot),
-              onGameOver: (score) => this.scoreBoard.commitHighScore(score),
             });
           }
           queryDom() {
@@ -1242,12 +1093,10 @@
               boardArea: document.getElementById("boardArea"),
               canvas: document.getElementById("snakeCanvas"),
               score: document.getElementById("score"),
-              highScore: document.getElementById("highScore"),
               statusBar: document.getElementById("statusBar"),
               statusText: document.getElementById("statusText"),
               pauseBtn: document.getElementById("pauseBtn"),
               restartBtn: document.getElementById("restartBtn"),
-              themeToggle: document.getElementById("themeToggle"),
               dpad: document.getElementById("dpad"),
               dpadContainer: document.getElementById("dpadContainer"),
               opacitySlider: document.getElementById("opacitySlider"),
@@ -1255,9 +1104,10 @@
             };
           }
           start() {
-            this.themeManager.onChange((palette) => this.renderer.setPalette(palette));
-            this.themeManager.initialize();
-            this.scoreBoard.loadHighScore();
+            this.renderer.setPalette(this.themeWatcher.getPalette());
+            this.themeWatcher.onChange((theme) => {
+              this.renderer.setPalette(THEME_COLORS[theme]);
+            });
             this.dpadOpacity.initialize();
             this.bindEvents();
             this.observeResize();
@@ -1271,7 +1121,6 @@
             document.addEventListener("visibilitychange", () => this.handleVisibilityChange());
             this.dom.pauseBtn.addEventListener("click", () => this.game.togglePause());
             this.dom.restartBtn.addEventListener("click", () => this.game.reset());
-            this.dom.themeToggle.addEventListener("click", () => this.themeManager.toggle());
             this.dom.dpad.querySelectorAll(".dpad-btn").forEach((button) => {
               const direction = button.dataset.dir;
               button.addEventListener(
@@ -1317,7 +1166,6 @@
             }
           }
           handlePageShow() {
-            this.dpadOpacity.sync();
             this.renderer.scheduleResize();
           }
           handleVisibilityChange() {
@@ -1325,7 +1173,6 @@
               this.game.pauseIfPlaying();
               return;
             }
-            this.dpadOpacity.sync();
             this.renderer.scheduleResize();
           }
           handleGameUpdate(snapshot) {

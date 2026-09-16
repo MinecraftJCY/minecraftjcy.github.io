@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>扫地机器人</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
         --bg: #f2f2f7;
@@ -27,18 +22,20 @@
         --shadow-sm: 0 2px 10px rgba(20, 25, 45, 0.06);
         --key-shadow: 0 2px 8px rgba(20, 25, 45, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
       }
-      [data-theme="dark"] {
-        --bg: #000000;
-        --surface: #1c1c1e;
-        --surface-2: #2c2c2e;
-        --text: #f5f5f7;
-        --text-2: #8e8e93;
-        --line: rgba(255, 255, 255, 0.08);
-        --cell-a: #1a1a1c;
-        --cell-b: #232326;
-        --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.6);
-        --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
-        --key-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #1c1c1e;
+          --surface-2: #2c2c2e;
+          --text: #f5f5f7;
+          --text-2: #8e8e93;
+          --line: rgba(255, 255, 255, 0.08);
+          --cell-a: #1a1a1c;
+          --cell-b: #232326;
+          --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.6);
+          --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
+          --key-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+        }
       }
       * {
         box-sizing: border-box;
@@ -74,68 +71,59 @@
       .topbar {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
+        gap: 14px;
         flex: 0 0 auto;
+        padding: 0 4px;
       }
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .brand-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15);
-      }
-      .brand h1 {
+      .topbar h1 {
         margin: 0;
         font-size: 17px;
         font-weight: 650;
         letter-spacing: -0.01em;
+        white-space: nowrap;
       }
-      .icon-btn {
-        width: 38px;
-        height: 38px;
-        border: none;
-        border-radius: 50%;
-        background: var(--surface);
-        box-shadow: var(--key-shadow);
-        font-size: 17px;
-        line-height: 1;
-        color: var(--text);
-        cursor: pointer;
-        display: grid;
-        place-items: center;
-        transition:
-          transform 0.15s ease,
-          background 0.3s ease;
+      .hud-bar {
+        position: relative;
+        width: clamp(120px, 34vw, 168px);
+        height: 26px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px var(--line);
+        flex: 0 0 auto;
       }
-      .icon-btn:active {
-        transform: scale(0.9);
+      .hud-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #34c759, #0a84ff);
+        transition: width 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
       }
-      .hud {
+      .hud-text {
+        position: absolute;
+        inset: 0;
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex: 0 0 auto;
-        padding: 0 2px;
-      }
-      .hud-value {
-        font-size: 23px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        font-variant-numeric: tabular-nums;
-        min-width: 58px;
-      }
-      .hud-value small {
+        justify-content: center;
+        gap: 3px;
         font-size: 12px;
-        font-weight: 500;
-        color: var(--text-2);
-        margin-left: 2px;
+        font-weight: 600;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.02em;
+        z-index: 1;
+        white-space: nowrap;
       }
-      .hud-value.bump {
+      #scoreNumber {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      #scoreNumber.bump {
         animation: bump 0.34s cubic-bezier(0.34, 1.4, 0.64, 1);
       }
       @keyframes bump {
@@ -143,38 +131,11 @@
           transform: scale(1);
         }
         42% {
-          transform: scale(1.2);
+          transform: scale(1.22);
         }
         100% {
           transform: scale(1);
         }
-      }
-      .hud-center {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-      .hud-bar {
-        height: 8px;
-        border-radius: 4px;
-        background: var(--surface-2);
-        overflow: hidden;
-      }
-      .hud-fill {
-        width: 0%;
-        height: 100%;
-        border-radius: 4px;
-        background: linear-gradient(90deg, #34c759, #0a84ff);
-        transition: width 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
-      }
-      .hud-goal {
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--text-2);
-        letter-spacing: 0.01em;
-        white-space: nowrap;
       }
       .board-wrap {
         flex: 1 1 auto;
@@ -559,9 +520,6 @@
         .grab-key .label {
           font-size: 10px;
         }
-        .hud-value {
-          font-size: 20px;
-        }
       }
       @media (max-width: 380px) {
         .app {
@@ -571,8 +529,18 @@
         .controls {
           gap: 30px;
         }
-        .hud {
+        .topbar {
           gap: 10px;
+        }
+        .topbar h1 {
+          font-size: 15px;
+        }
+        .hud-bar {
+          width: clamp(104px, 32vw, 140px);
+          height: 24px;
+        }
+        .hud-text {
+          font-size: 11px;
         }
       }
     </style>
@@ -580,19 +548,12 @@
   <body>
     <div class="app">
       <header class="topbar">
-        <div class="brand">
-          <span class="brand-dot"></span>
-          <h1>扫地机器人</h1>
+        <h1>扫地机器人</h1>
+        <div class="hud-bar" id="scoreWrap">
+          <div class="hud-fill" id="progressFill"></div>
+          <span class="hud-text"><span id="scoreNumber">0</span> / 30</span>
         </div>
-        <button class="icon-btn" id="themeBtn" aria-label="切换主题">🌙</button>
       </header>
-      <div class="hud">
-        <div class="hud-value" id="scoreWrap"><span id="scoreNumber">0</span><small>分</small></div>
-        <div class="hud-center">
-          <div class="hud-bar"><div class="hud-fill" id="progressFill"></div></div>
-          <div class="hud-goal">目标 30 分</div>
-        </div>
-      </div>
       <div class="board-wrap">
         <div class="board" id="board">
           <div class="entities" id="entities">
@@ -647,13 +608,11 @@
         var robotEl = document.getElementById("robot");
         var robotEye = robotEl.querySelector(".robot-eye");
         var stunBadge = robotEl.querySelector(".stun-badge");
-        var scoreWrap = document.getElementById("scoreWrap");
         var scoreNumber = document.getElementById("scoreNumber");
         var progressFill = document.getElementById("progressFill");
         var overlay = document.getElementById("overlay");
         var finalScore = document.getElementById("finalScore");
         var grabBtn = document.getElementById("grabBtn");
-        var themeBtn = document.getElementById("themeBtn");
         var state = {
           robot: { r: 2, c: 2 },
           trash: [],
@@ -755,9 +714,9 @@
         function addScore(n) {
           state.score += n;
           scoreNumber.textContent = state.score;
-          scoreWrap.classList.remove("bump");
-          void scoreWrap.offsetWidth;
-          scoreWrap.classList.add("bump");
+          scoreNumber.classList.remove("bump");
+          void scoreNumber.offsetWidth;
+          scoreNumber.classList.add("bump");
           updateProgress();
           checkWin();
         }
@@ -977,15 +936,6 @@
           },
           { passive: true },
         );
-        themeBtn.addEventListener("click", function () {
-          var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-          document.documentElement.dataset.theme = next;
-          themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
-          try {
-            localStorage.setItem("theme", next);
-          } catch (err) {}
-        });
-        themeBtn.textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
         setInterval(function () {
           if (state.over) return;
           if (state.trash.length < MAX_TRASH) spawnTrash();

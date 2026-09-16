@@ -57,40 +57,42 @@
         --gap-panel: clamp(6px, 1.4vw, 10px);
         --gap-action: clamp(5px, 1.2vw, 9px);
       }
-      [data-theme="dark"] {
-        --bg: #1b1e25;
-        --bg-secondary: #21252d;
-        --surface: #262a33;
-        --surface-hover: #2d323c;
-        --surface-active: #343945;
-        --text: #d8d3c8;
-        --text-secondary: #b0a898;
-        --text-muted: #7a7060;
-        --border: #3a3f4a;
-        --border-strong: #505665;
-        --grid-line-thin: #343944;
-        --grid-line-thick: #5a5f6c;
-        --accent: #c99b74;
-        --accent-hover: #d8af8c;
-        --accent-light: #3d3228;
-        --selected: #3d3530;
-        --selected-glow: #5a4a3a;
-        --related: #2a2e37;
-        --same-number: #353028;
-        --error: #d4756b;
-        --error-bg: #3d2020;
-        --correct: #6d9e5e;
-        --correct-bg: #1e2d1e;
-        --fixed-text: #e8e0d4;
-        --user-text: #8ab4d8;
-        --button-bg: #262a33;
-        --button-hover: #303540;
-        --button-active: #3a3f4a;
-        --button-text: #d8d3c8;
-        --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-        --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
-        --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.35);
-        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1b1e25;
+          --bg-secondary: #21252d;
+          --surface: #262a33;
+          --surface-hover: #2d323c;
+          --surface-active: #343945;
+          --text: #d8d3c8;
+          --text-secondary: #b0a898;
+          --text-muted: #7a7060;
+          --border: #3a3f4a;
+          --border-strong: #505665;
+          --grid-line-thin: #343944;
+          --grid-line-thick: #5a5f6c;
+          --accent: #c99b74;
+          --accent-hover: #d8af8c;
+          --accent-light: #3d3228;
+          --selected: #3d3530;
+          --selected-glow: #5a4a3a;
+          --related: #2a2e37;
+          --same-number: #353028;
+          --error: #d4756b;
+          --error-bg: #3d2020;
+          --correct: #6d9e5e;
+          --correct-bg: #1e2d1e;
+          --fixed-text: #e8e0d4;
+          --user-text: #8ab4d8;
+          --button-bg: #262a33;
+          --button-hover: #303540;
+          --button-active: #3a3f4a;
+          --button-text: #d8d3c8;
+          --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+          --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+          --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.35);
+          --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
+        }
       }
       *,
       *::before,
@@ -135,8 +137,8 @@
         width: 100%;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 10px;
+        justify-content: center;
+        gap: 40px;
         flex-wrap: wrap;
       }
       .title-group {
@@ -159,10 +161,6 @@
         letter-spacing: -0.5px;
         box-shadow: var(--shadow-xs);
         flex-shrink: 0;
-        transition: transform var(--transition-fast);
-      }
-      .logo-icon:active {
-        transform: scale(0.9);
       }
       .title {
         font-size: var(--font-title);
@@ -170,51 +168,6 @@
         letter-spacing: -0.02em;
         color: var(--text);
         white-space: nowrap;
-      }
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        flex-shrink: 0;
-      }
-      .theme-toggle {
-        width: clamp(34px, 7vw, 42px);
-        height: clamp(34px, 7vw, 42px);
-        border-radius: 50%;
-        border: 2px solid var(--border);
-        background: var(--surface);
-        cursor: pointer;
-        font-size: clamp(1rem, 3vw, 1.3rem);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all var(--transition-normal);
-        box-shadow: var(--shadow-xs);
-        color: var(--text);
-        flex-shrink: 0;
-        position: relative;
-        overflow: hidden;
-      }
-      .theme-toggle:hover {
-        background: var(--button-hover);
-        border-color: var(--border-strong);
-        transform: rotate(25deg);
-        box-shadow: var(--shadow-sm);
-      }
-      .theme-toggle:active {
-        transform: rotate(25deg) scale(0.88);
-        transition: all 0.08s ease;
-      }
-      .theme-toggle::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: transparent;
-        transition: background var(--transition-fast);
-      }
-      .theme-toggle:active::after {
-        background: rgba(0, 0, 0, 0.06);
       }
       .select-wrapper {
         position: relative;
@@ -676,7 +629,7 @@
           font-size: 0.48rem;
         }
         .header {
-          gap: 5px;
+          gap: 20px;
         }
         .difficulty-select {
           font-size: 0.72rem;
@@ -801,22 +754,19 @@
       }
     </style>
   </head>
-  <body data-theme="light">
+  <body>
     <div class="app-container">
       <header class="header">
         <div class="title-group">
           <div class="logo-icon" aria-hidden="true">9</div>
           <span class="title">数独</span>
         </div>
-        <div class="header-actions">
-          <div class="select-wrapper">
-            <select class="difficulty-select" id="difficultySelect" aria-label="选择难度">
-              <option value="easy">简单</option>
-              <option value="medium" selected>中等</option>
-              <option value="hard">困难</option>
-            </select>
-          </div>
-          <button class="theme-toggle" id="themeToggle" aria-label="切换主题" title="切换亮色/暗色主题">🌙</button>
+        <div class="select-wrapper">
+          <select class="difficulty-select" id="difficultySelect" aria-label="选择难度">
+            <option value="easy">简单</option>
+            <option value="medium" selected>中等</option>
+            <option value="hard">困难</option>
+          </select>
         </div>
       </header>
       <div class="grid-wrapper" id="gridWrapper">
@@ -880,30 +830,14 @@
             this.hintCountDisplay = document.getElementById("hintCount");
             this.toast = document.getElementById("toast");
             this.difficultySelect = document.getElementById("difficultySelect");
-            this.themeToggle = document.getElementById("themeToggle");
             this.btnUndo = document.getElementById("btnUndo");
             this.btnErase = document.getElementById("btnErase");
             this.btnHint = document.getElementById("btnHint");
             this.btnCheck = document.getElementById("btnCheck");
             this.btnNewGame = document.getElementById("btnNewGame");
-            this.initTheme();
             this.bindEvents();
             this.buildNumberPanel();
             this.startNewGame();
-          }
-          initTheme() {
-            const saved = localStorage.getItem("theme");
-            const theme = saved === "dark" ? "dark" : "light";
-            this.setTheme(theme);
-          }
-          setTheme(theme) {
-            document.body.setAttribute("data-theme", theme);
-            this.themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
-            localStorage.setItem("theme", theme);
-          }
-          toggleTheme() {
-            const current = document.body.getAttribute("data-theme");
-            this.setTheme(current === "dark" ? "light" : "dark");
           }
           bindEvents() {
             this.gridContainer.addEventListener("click", (e) => {
@@ -959,7 +893,6 @@
               this.difficulty = this.difficultySelect.value;
               this.startNewGame();
             });
-            this.themeToggle.addEventListener("click", () => this.toggleTheme());
           }
           buildNumberPanel() {
             this.numberPanel.innerHTML = "";

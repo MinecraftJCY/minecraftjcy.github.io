@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>俄罗斯方块</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       *,
       *::before,
@@ -31,19 +26,21 @@
         --cell: 32px;
         --next-size: 104px;
       }
-      [data-theme="dark"] {
-        --bg: #171a16;
-        --glow-a: rgba(120, 165, 95, 0.12);
-        --glow-b: rgba(190, 155, 95, 0.08);
-        --panel: #1d211b;
-        --panel-soft: #262b23;
-        --text: #e2e6d8;
-        --muted: #8b927e;
-        --line: #2c3228;
-        --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
-        --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-        --accent: #9cc47e;
-        --overlay: rgba(23, 26, 22, 0.84);
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #171a16;
+          --glow-a: rgba(120, 165, 95, 0.12);
+          --glow-b: rgba(190, 155, 95, 0.08);
+          --panel: #1d211b;
+          --panel-soft: #262b23;
+          --text: #e2e6d8;
+          --muted: #8b927e;
+          --line: #2c3228;
+          --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+          --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+          --accent: #9cc47e;
+          --overlay: rgba(23, 26, 22, 0.84);
+        }
       }
       html {
         height: 100%;
@@ -184,6 +181,23 @@
         flex-direction: column;
         gap: 12px;
       }
+      .side-head {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 4px 2px;
+      }
+      .side-head h1 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+      }
       .panel {
         border: 1px solid var(--line);
         border-radius: 16px;
@@ -192,34 +206,6 @@
         transition:
           background 0.4s ease,
           border-color 0.4s ease;
-      }
-      .head-panel {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 9px 10px 9px 12px;
-      }
-      .brand {
-        flex: 1 1 auto;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      h1 {
-        margin: 0;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .head-actions {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 6px;
       }
       .icon-btn {
         position: relative;
@@ -254,14 +240,6 @@
         transition:
           opacity 0.3s ease,
           transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-      [data-theme="light"] .icon-moon {
-        opacity: 0;
-        transform: rotate(-90deg) scale(0.55);
-      }
-      [data-theme="dark"] .icon-sun {
-        opacity: 0;
-        transform: rotate(90deg) scale(0.55);
       }
       body:not(.touch) #controlsToggle {
         display: none;
@@ -396,29 +374,27 @@
           align-items: stretch;
           gap: 8px;
         }
+        .side-head {
+          flex: 0 0 auto;
+          flex-direction: column;
+          justify-content: center;
+          gap: 4px;
+          padding: 0 4px;
+        }
+        .side-head h1 {
+          display: block;
+          font-size: 10px;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+        }
         .board-area {
           order: 2;
           flex: 0 0 auto;
-        }
-        .head-panel {
-          flex: 0 0 auto;
-          padding: 6px 8px;
-          gap: 6px;
-        }
-        .brand {
-          flex: 0 0 auto;
-          gap: 6px;
-        }
-        h1 {
-          display: none;
         }
         .icon-btn {
           width: 32px;
           height: 32px;
           border-radius: 10px;
-        }
-        .head-actions {
-          gap: 5px;
         }
         .stats {
           flex: 1 1 auto;
@@ -482,29 +458,16 @@
           </div>
         </div>
         <aside class="side" id="side">
-          <div class="panel head-panel">
-            <div class="brand">
-              <h1>俄罗斯方块</h1>
-            </div>
-            <div class="head-actions">
-              <button class="icon-btn" id="controlsToggle" type="button" aria-label="操作按键">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2.4" y="7" width="19.2" height="10" rx="5" />
-                  <path d="M7.2 12h2.6M8.5 10.7v2.6" />
-                  <circle cx="15.6" cy="10.9" r="1.05" fill="currentColor" stroke="none" />
-                  <circle cx="17.9" cy="13.4" r="1.05" fill="currentColor" stroke="none" />
-                </svg>
-              </button>
-              <button class="icon-btn" id="themeToggle" type="button" aria-label="切换主题">
-                <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                  <circle cx="12" cy="12" r="4.1" />
-                  <path d="M12 2.6v2.1M12 19.3v2.1M4.4 4.4l1.5 1.5M18.1 18.1l1.5 1.5M2.6 12h2.1M19.3 12h2.1M4.4 19.6l1.5-1.5M18.1 5.9l1.5-1.5" />
-                </svg>
-                <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.6 14.4A8.6 8.6 0 1 1 9.6 3.4a6.9 6.9 0 0 0 11 11Z" />
-                </svg>
-              </button>
-            </div>
+          <div class="side-head">
+            <h1>俄罗斯方块</h1>
+            <button class="icon-btn" id="controlsToggle" type="button" aria-label="操作按键">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2.4" y="7" width="19.2" height="10" rx="5" />
+                <path d="M7.2 12h2.6M8.5 10.7v2.6" />
+                <circle cx="15.6" cy="10.9" r="1.05" fill="currentColor" stroke="none" />
+                <circle cx="17.9" cy="13.4" r="1.05" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
           </div>
           <div class="panel stats">
             <div class="stat"><span>分数</span><strong id="score">0</strong></div>
@@ -593,7 +556,6 @@
           },
         };
         var SCORE_TABLE = [0, 100, 300, 500, 800];
-        var THEME_KEY = "theme";
         var NARROW = 860;
         var els = {
           app: document.getElementById("app"),
@@ -610,10 +572,10 @@
           overlayTitle: document.getElementById("overlayTitle"),
           overlayText: document.getElementById("overlayText"),
           overlayBtn: document.getElementById("overlayBtn"),
-          themeToggle: document.getElementById("themeToggle"),
           controlsToggle: document.getElementById("controlsToggle"),
           touchControls: document.getElementById("touchControls"),
         };
+        var mediaDark = window.matchMedia("(prefers-color-scheme: dark)");
         var ctx = els.board.getContext("2d");
         var nctx = els.next.getContext("2d");
         var pal = PALETTES.light;
@@ -1030,12 +992,8 @@
             resize();
           });
         }
-        function applyTheme(name) {
-          document.documentElement.dataset.theme = name;
-          pal = PALETTES[name];
-          try {
-            localStorage.setItem(THEME_KEY, name);
-          } catch (e) {}
+        function syncTheme() {
+          pal = PALETTES[mediaDark.matches ? "dark" : "light"];
           drawNextPreview();
           render();
         }
@@ -1191,9 +1149,6 @@
             var fn = overlayAction;
             if (fn) fn();
           });
-          els.themeToggle.addEventListener("click", function () {
-            applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
-          });
           els.controlsToggle.addEventListener("click", function () {
             var shown = els.touchControls.classList.toggle("show");
             els.controlsToggle.classList.toggle("active", shown);
@@ -1202,6 +1157,7 @@
           document.addEventListener("visibilitychange", function () {
             if (document.hidden && state === "playing") togglePause();
           });
+          mediaDark.addEventListener("change", syncTheme);
           bindTouchButtons();
           bindBoardGestures();
         }
@@ -1217,14 +1173,7 @@
           });
         }
         function init() {
-          var saved = null;
-          try {
-            saved = localStorage.getItem(THEME_KEY);
-          } catch (e) {}
-          if (saved !== "dark" && saved !== "light") {
-            saved = "light";
-          }
-          applyTheme(saved);
+          syncTheme();
           if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
             document.body.classList.add("touch");
           }

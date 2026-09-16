@@ -6,8 +6,8 @@
     <title>消消乐</title>
     <style>
       :root {
+        color-scheme: light;
         --bg: #f5f0e8;
-        --bg-secondary: #ede4d8;
         --board-bg: #e8ddd0;
         --board-shadow: rgba(0, 0, 0, 0.08);
         --text: #4a3f35;
@@ -20,8 +20,9 @@
         --score-bg: #f0e8db;
         --gem-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
         --gem-highlight: rgba(255, 255, 255, 0.5);
-        --gem-highlight-strong: rgba(255, 255, 255, 0.7);
         --pop-text: #5a4a38;
+        --accent-ring: #e8a020;
+        --accent-ring-soft: rgba(232, 160, 32, 0.4);
         --board-padding: 5px;
         --gap-size: 2px;
         --cell-size: 46px;
@@ -32,23 +33,26 @@
         --transition-speed: 0.3s;
         --particle-size: 6px;
       }
-      [data-theme="dark"] {
-        --bg: #1a1b20;
-        --bg-secondary: #22232b;
-        --board-bg: #262730;
-        --board-shadow: rgba(0, 0, 0, 0.4);
-        --text: #d4cfc4;
-        --text-secondary: #a8a398;
-        --header-bg: #1e1f26;
-        --btn-bg: #30313b;
-        --btn-hover: #3c3d48;
-        --btn-text: #d4cfc4;
-        --btn-active: #4a4b56;
-        --score-bg: #25262f;
-        --gem-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-        --gem-highlight: rgba(255, 255, 255, 0.28);
-        --gem-highlight-strong: rgba(255, 255, 255, 0.45);
-        --pop-text: #e0d8c8;
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --bg: #1a1b20;
+          --board-bg: #262730;
+          --board-shadow: rgba(0, 0, 0, 0.4);
+          --text: #d4cfc4;
+          --text-secondary: #a8a398;
+          --header-bg: #1e1f26;
+          --btn-bg: #30313b;
+          --btn-hover: #3c3d48;
+          --btn-text: #d4cfc4;
+          --btn-active: #4a4b56;
+          --score-bg: #25262f;
+          --gem-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+          --gem-highlight: rgba(255, 255, 255, 0.28);
+          --pop-text: #e0d8c8;
+          --accent-ring: #f0c060;
+          --accent-ring-soft: rgba(240, 192, 96, 0.4);
+        }
       }
       * {
         margin: 0;
@@ -86,7 +90,6 @@
         height: 100%;
         width: 100dvw;
         height: 100dvh;
-        padding: 0;
       }
       .game-container {
         display: flex;
@@ -114,7 +117,6 @@
           box-shadow var(--transition-speed);
         gap: 12px;
         flex-shrink: 0;
-        box-sizing: border-box;
       }
       .game-title {
         font-size: var(--title-scale);
@@ -122,12 +124,6 @@
         letter-spacing: 0.02em;
         color: var(--text);
         white-space: nowrap;
-        transition: color var(--transition-speed);
-      }
-      .header-center {
-        display: flex;
-        align-items: center;
-        gap: 14px;
       }
       .score-display {
         display: flex;
@@ -144,7 +140,6 @@
         color: var(--text-secondary);
         font-weight: 500;
         letter-spacing: 0.03em;
-        transition: color var(--transition-speed);
       }
       .score-value {
         font-size: calc(var(--font-scale) * 1.25);
@@ -152,16 +147,11 @@
         color: var(--text);
         min-width: 2.8em;
         text-align: right;
-        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
         display: inline-block;
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
       .score-value.pop {
         transform: scale(1.35);
-      }
-      .header-actions {
-        display: flex;
-        gap: 8px;
-        align-items: center;
       }
       .btn {
         padding: 8px 14px;
@@ -176,32 +166,20 @@
         transition:
           background 0.2s,
           transform 0.15s,
-          box-shadow 0.2s,
-          color var(--transition-speed);
+          box-shadow 0.2s;
         white-space: nowrap;
         outline: none;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
       }
-      .btn:active {
-        transform: scale(0.94);
-        background: var(--btn-active);
-      }
       .btn:hover {
         background: var(--btn-hover);
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
-      .btn-theme {
-        font-size: calc(var(--font-scale) * 1.1);
-        padding: 8px;
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        min-width: 38px;
-        min-height: 38px;
+      .btn:active {
+        transform: scale(0.94);
+        background: var(--btn-active);
       }
       .board-outer {
         position: relative;
@@ -234,9 +212,9 @@
         border-radius: var(--gem-border-radius);
         cursor: pointer;
         position: relative;
+        background: transparent;
         transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
         -webkit-tap-highlight-color: transparent;
-        background: transparent;
       }
       .gem {
         width: 100%;
@@ -244,10 +222,11 @@
         border-radius: var(--gem-border-radius);
         position: relative;
         box-shadow: var(--gem-shadow);
+        overflow: hidden;
         transition:
           box-shadow 0.25s,
-          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        overflow: hidden;
+          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+          filter 0.2s ease;
       }
       .gem::after {
         content: "";
@@ -279,21 +258,67 @@
       .gem-type-5 {
         background: linear-gradient(145deg, #b89ae0, #8b5fbf);
       }
-      .cell.drag-source .gem {
-        transform: scale(1.12);
+      @media (hover: hover) {
+        .cell:hover .gem {
+          transform: scale(1.05);
+          filter: brightness(1.1);
+        }
+      }
+      .cell.selected {
+        z-index: 3;
+      }
+      .cell.selected .gem {
+        transform: scale(1.1);
         box-shadow:
-          0 0 18px rgba(255, 215, 0, 0.85),
-          0 0 32px rgba(255, 215, 0, 0.35),
+          0 0 0 3px var(--accent-ring),
+          0 0 18px var(--accent-ring-soft),
           var(--gem-shadow);
+      }
+      .cell.drag-source {
+        z-index: 4;
+      }
+      .cell.drag-source .gem {
+        transform: translate(var(--drag-x, 0px), var(--drag-y, 0px)) scale(1.16);
+        box-shadow:
+          0 0 20px rgba(255, 215, 0, 0.85),
+          0 0 36px rgba(255, 215, 0, 0.35),
+          var(--gem-shadow);
+        transition: box-shadow 0.2s ease;
+      }
+      .cell.drag-target {
         z-index: 2;
       }
       .cell.drag-target .gem {
-        transform: scale(1.07);
+        transform: scale(1.08);
         box-shadow:
           0 0 16px rgba(255, 255, 255, 0.75),
           0 0 24px rgba(255, 255, 255, 0.3),
           var(--gem-shadow);
         filter: brightness(1.2);
+      }
+      .cell.invalid .gem {
+        animation: gem-shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      }
+      @keyframes gem-shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        15% {
+          transform: translateX(-5px);
+        }
+        30% {
+          transform: translateX(5px);
+        }
+        45% {
+          transform: translateX(-4px);
+        }
+        60% {
+          transform: translateX(4px);
+        }
+        80% {
+          transform: translateX(-2px);
+        }
       }
       .cell.matched .gem {
         animation: pop-out 0.28s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
@@ -355,13 +380,15 @@
         font-weight: 700;
         font-size: calc(var(--font-scale) * 1.1);
         color: var(--pop-text);
-        animation: float-up 0.9s ease-out forwards;
-        z-index: 15;
         white-space: nowrap;
+        z-index: 15;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        animation: float-up 0.9s ease-out forwards;
       }
-      [data-theme="dark"] .float-text {
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      @media (prefers-color-scheme: dark) {
+        .float-text {
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
       }
       @keyframes float-up {
         0% {
@@ -381,10 +408,10 @@
         text-align: center;
         font-size: calc(var(--font-scale) * 0.7);
         color: var(--text-secondary);
-        transition: color var(--transition-speed);
         letter-spacing: 0.03em;
         flex-shrink: 0;
         padding: 2px 0;
+        transition: color var(--transition-speed);
       }
       @media (max-width: 360px) {
         :root {
@@ -405,20 +432,12 @@
           padding: 5px 8px;
           font-size: calc(var(--font-scale) * 0.8);
         }
-        .btn-theme {
-          padding: 5px;
-          min-width: 30px;
-          min-height: 30px;
-        }
         .score-display {
           padding: 5px 10px;
         }
         .game-container {
           gap: 5px;
           padding: 2px 3px;
-        }
-        .header-center {
-          gap: 8px;
         }
       }
       @media (max-width: 320px) {
@@ -440,20 +459,12 @@
           padding: 4px 7px;
           font-size: calc(var(--font-scale) * 0.75);
         }
-        .btn-theme {
-          padding: 4px;
-          min-width: 26px;
-          min-height: 26px;
-        }
         .score-display {
           padding: 3px 7px;
         }
         .game-container {
           gap: 4px;
           padding: 1px 2px;
-        }
-        .header-center {
-          gap: 6px;
         }
       }
       @media (min-width: 420px) and (max-width: 500px) {
@@ -563,19 +574,9 @@
         .game-footer {
           display: none;
         }
-        .header-center {
-          flex-direction: column;
-          gap: 6px;
-        }
         .btn {
           padding: 5px 8px;
           font-size: 10px;
-        }
-        .btn-theme {
-          padding: 5px;
-          min-width: 28px;
-          min-height: 28px;
-          font-size: 12px;
         }
         .score-display {
           padding: 4px 8px;
@@ -605,14 +606,17 @@
           font-size: 9px;
           border-radius: 5px;
         }
-        .btn-theme {
-          padding: 3px;
-          min-width: 24px;
-          min-height: 24px;
-          font-size: 10px;
-        }
         .score-display {
           padding: 2px 6px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
@@ -622,77 +626,71 @@
       <div class="game-container">
         <div class="game-header">
           <span class="game-title">消消乐</span>
-          <div class="header-center">
-            <div class="score-display">
-              <span class="score-label">得分</span>
-              <span class="score-value" id="scoreValue">0</span>
-            </div>
-            <div class="header-actions">
-              <button class="btn" id="btnRestart">重新开始</button>
-              <button class="btn btn-theme" id="btnTheme" aria-label="切换主题">🌓</button>
-            </div>
+          <div class="score-display">
+            <span class="score-label">得分</span>
+            <span class="score-value" id="scoreValue">0</span>
           </div>
+          <button class="btn" id="btnRestart">重新开始</button>
         </div>
         <div class="board-outer" id="boardOuter">
           <div class="board" id="board"></div>
         </div>
-        <div class="game-footer">按住宝石拖动到相邻位置交换</div>
+        <div class="game-footer">拖动相邻宝石交换 · 或点选两个相邻宝石</div>
       </div>
     </div>
     <script>
       (function () {
+        "use strict";
         const ROWS = 8;
         const COLS = 8;
         const TYPES = 6;
-        const ANIM_MATCH_DURATION = 280;
-        const ANIM_APPEAR_DURATION = 350;
         const POINTS_PER_GEM = 10;
-        const DRAG_THRESHOLD = 8;
         const PARTICLE_COUNT = 6;
         const MAX_CHAIN_ITERATIONS = 50;
+        const DRAG_THRESHOLD = 6;
+        const SWIPE_RATIO = 0.4;
+        const ANIM_MATCH = 280;
+        const ANIM_APPEAR = 350;
+        const ANIM_SWAP = 190;
+        const ANIM_INVALID = 340;
+        const GEM_COLORS = ["#f78b8b", "#f7b87a", "#f7da5c", "#7ecb8a", "#7ab8e8", "#b89ae0"];
         const boardEl = document.getElementById("board");
         const boardOuter = document.getElementById("boardOuter");
         const scoreValueEl = document.getElementById("scoreValue");
         const btnRestart = document.getElementById("btnRestart");
-        const btnTheme = document.getElementById("btnTheme");
-        const gemColors = ["#f78b8b", "#f7b87a", "#f7da5c", "#7ecb8a", "#7ab8e8", "#b89ae0"];
         let boardData = [];
         let isProcessing = false;
         let score = 0;
         let comboCount = 0;
-        let pointerActive = false;
-        let pointerStartPos = null;
-        let pointerStartCell = null;
-        let pointerMoved = false;
-        let pointerId = null;
-        let currentDragSource = null;
-        let currentDragTarget = null;
-        function getStoredTheme() {
-          try {
-            return localStorage.getItem("theme");
-          } catch (e) {
-            return null;
-          }
-        }
-        function setStoredTheme(theme) {
-          try {
-            localStorage.setItem("theme", theme);
-          } catch (e) {}
-        }
-        function applyTheme(theme) {
-          document.body.setAttribute("data-theme", theme);
-          btnTheme.textContent = theme === "dark" ? "☀️" : "🌙";
-        }
-        function toggleTheme() {
-          const current = document.body.getAttribute("data-theme") || "light";
-          const next = current === "dark" ? "light" : "dark";
-          applyTheme(next);
-          setStoredTheme(next);
-        }
-        function initTheme() {
-          const stored = getStoredTheme();
-          applyTheme(stored === "dark" ? "dark" : "light");
-        }
+        let selectedCell = null;
+        let dragSource = null;
+        let dragTarget = null;
+        const pointer = {
+          active: false,
+          id: null,
+          startX: 0,
+          startY: 0,
+          startRow: -1,
+          startCol: -1,
+          dragging: false,
+        };
+        const wait = (ms) =>
+          new Promise((resolve) => {
+            setTimeout(resolve, ms);
+          });
+        const getCellEl = (row, col) => boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        const inBounds = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
+        const isAdjacent = (a, b) => {
+          if (!a || !b) return false;
+          const dr = Math.abs(a.row - b.row);
+          const dc = Math.abs(a.col - b.col);
+          return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
+        };
+        const getCellStep = () => {
+          const a = getCellEl(0, 0);
+          const b = getCellEl(0, 1);
+          return a && b ? b.getBoundingClientRect().left - a.getBoundingClientRect().left : 0;
+        };
         function createBoardData() {
           const data = [];
           for (let r = 0; r < ROWS; r++) {
@@ -709,7 +707,7 @@
         }
         function wouldMatch(data, r, c, type) {
           if (c >= 2 && data[r][c - 1] === type && data[r][c - 2] === type) return true;
-          if (r >= 2 && data[r - 1] && data[r - 1][c] === type && data[r - 2] && data[r - 2][c] === type) return true;
+          if (r >= 2 && data[r - 1][c] === type && data[r - 2][c] === type) return true;
           return false;
         }
         function findAllMatches(data) {
@@ -723,9 +721,9 @@
                 while (end + 1 < COLS && data[r][end + 1] === type) end++;
                 for (let k = c; k <= end; k++) matched.add(r * COLS + k);
               }
-              if (r + 2 < ROWS && data[r + 1] && data[r + 1][c] === type && data[r + 2] && data[r + 2][c] === type) {
+              if (r + 2 < ROWS && data[r + 1][c] === type && data[r + 2][c] === type) {
                 let end = r + 2;
-                while (end + 1 < ROWS && data[end + 1] && data[end + 1][c] === type) end++;
+                while (end + 1 < ROWS && data[end + 1][c] === type) end++;
                 for (let k = r; k <= end; k++) matched.add(k * COLS + c);
               }
             }
@@ -754,17 +752,89 @@
         }
         function removeMatches(data, matchedSet) {
           for (const idx of matchedSet) {
-            const r = Math.floor(idx / COLS);
-            const c = idx % COLS;
-            data[r][c] = -1;
+            data[Math.floor(idx / COLS)][idx % COLS] = -1;
           }
         }
+        function swapData(data, r1, c1, r2, c2) {
+          const temp = data[r1][c1];
+          data[r1][c1] = data[r2][c2];
+          data[r2][c2] = temp;
+        }
+        function hasPossibleMoves(data) {
+          for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+              if (c + 1 < COLS) {
+                swapData(data, r, c, r, c + 1);
+                const found = findAllMatches(data).size > 0;
+                swapData(data, r, c, r, c + 1);
+                if (found) return true;
+              }
+              if (r + 1 < ROWS) {
+                swapData(data, r, c, r + 1, c);
+                const found = findAllMatches(data).size > 0;
+                swapData(data, r, c, r + 1, c);
+                if (found) return true;
+              }
+            }
+          }
+          return false;
+        }
+        function renderBoard(data, matchedSet, newGemSet) {
+          const frag = document.createDocumentFragment();
+          for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+              const type = data[r][c];
+              const cell = document.createElement("div");
+              cell.className = "cell";
+              cell.dataset.row = r;
+              cell.dataset.col = c;
+              const gem = document.createElement("div");
+              gem.className = "gem gem-type-" + (type >= 0 ? type : 0);
+              cell.appendChild(gem);
+              if (type < 0) cell.style.visibility = "hidden";
+              const idx = r * COLS + c;
+              if (matchedSet && matchedSet.has(idx)) {
+                cell.classList.add("matched");
+              }
+              if (newGemSet && newGemSet.has(idx) && type >= 0) {
+                cell.classList.add("new-gem");
+                const delay = (ROWS - 1 - r) * 30 + "ms";
+                cell.style.animationDelay = delay;
+                gem.style.animationDelay = delay;
+              }
+              frag.appendChild(cell);
+            }
+          }
+          boardEl.replaceChildren(frag);
+          if (dragSource) {
+            const el = getCellEl(dragSource.row, dragSource.col);
+            if (el) el.classList.add("drag-source");
+          }
+          if (dragTarget) {
+            const el = getCellEl(dragTarget.row, dragTarget.col);
+            if (el) el.classList.add("drag-target");
+          }
+          if (selectedCell) {
+            const el = getCellEl(selectedCell.row, selectedCell.col);
+            if (el) el.classList.add("selected");
+          }
+        }
+        function setSelection(cell) {
+          if (selectedCell) {
+            const prev = getCellEl(selectedCell.row, selectedCell.col);
+            if (prev) prev.classList.remove("selected");
+          }
+          selectedCell = cell;
+          if (!cell) return;
+          const el = getCellEl(cell.row, cell.col);
+          if (el) el.classList.add("selected");
+        }
         function getParticleSize() {
-          const style = getComputedStyle(document.documentElement);
-          return parseFloat(style.getPropertyValue("--particle-size").trim()) || 6;
+          const raw = getComputedStyle(document.documentElement).getPropertyValue("--particle-size").trim();
+          return parseFloat(raw) || 6;
         }
         function spawnParticles(row, col, color) {
-          const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+          const cellEl = getCellEl(row, col);
           if (!cellEl) return;
           const boardRect = boardOuter.getBoundingClientRect();
           const cellRect = cellEl.getBoundingClientRect();
@@ -778,26 +848,59 @@
             const distance = 18 + Math.random() * 28;
             const tx = Math.cos(angle) * distance;
             const ty = Math.sin(angle) * distance;
-            particle.style.cssText = "left:" + cx + "px;top:" + cy + "px;width:" + pSize + "px;height:" + pSize + "px;background:" + color + ";--tx:" + tx + "px;--ty:" + ty + "px;";
+            particle.style.cssText = `left:${cx}px;top:${cy}px;width:${pSize}px;height:${pSize}px;background:${color};--tx:${tx}px;--ty:${ty}px;`;
             boardOuter.appendChild(particle);
-            particle.addEventListener("animationend", function () {
-              particle.remove();
-            });
+            particle.addEventListener("animationend", () => particle.remove());
           }
         }
         function spawnFloatText(row, col, text) {
-          const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+          const cellEl = getCellEl(row, col);
           if (!cellEl) return;
           const boardRect = boardOuter.getBoundingClientRect();
           const cellRect = cellEl.getBoundingClientRect();
-          const floatEl = document.createElement("span");
-          floatEl.className = "float-text";
-          floatEl.textContent = text;
-          floatEl.style.left = cellRect.left - boardRect.left + cellRect.width / 2 + "px";
-          floatEl.style.top = cellRect.top - boardRect.top + "px";
-          boardOuter.appendChild(floatEl);
-          floatEl.addEventListener("animationend", function () {
-            floatEl.remove();
+          const el = document.createElement("span");
+          el.className = "float-text";
+          el.textContent = text;
+          el.style.left = cellRect.left - boardRect.left + cellRect.width / 2 + "px";
+          el.style.top = cellRect.top - boardRect.top + "px";
+          boardOuter.appendChild(el);
+          el.addEventListener("animationend", () => el.remove());
+        }
+        function clearFloatingElements() {
+          boardOuter.querySelectorAll(".particle, .float-text").forEach((el) => el.remove());
+        }
+        function flashInvalid(cells) {
+          for (const cell of cells) {
+            const el = getCellEl(cell.row, cell.col);
+            if (!el) continue;
+            el.classList.add("invalid");
+            setTimeout(() => el.classList.remove("invalid"), ANIM_INVALID);
+          }
+        }
+        function animateSwap(r1, c1, r2, c2) {
+          return new Promise((resolve) => {
+            const cellA = getCellEl(r1, c1);
+            const cellB = getCellEl(r2, c2);
+            if (!cellA || !cellB) return resolve();
+            const gemA = cellA.querySelector(".gem");
+            const gemB = cellB.querySelector(".gem");
+            if (!gemA || !gemB) return resolve();
+            const ra = cellA.getBoundingClientRect();
+            const rb = cellB.getBoundingClientRect();
+            const dx = rb.left - ra.left;
+            const dy = rb.top - ra.top;
+            const ease = "cubic-bezier(0.32, 0.72, 0.28, 1)";
+            gemA.style.transition = `transform ${ANIM_SWAP}ms ${ease}`;
+            gemB.style.transition = `transform ${ANIM_SWAP}ms ${ease}`;
+            gemA.style.zIndex = "5";
+            gemB.style.zIndex = "5";
+            gemA.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
+            gemB.style.transform = `translate(${-dx}px, ${-dy}px) scale(1.06)`;
+            setTimeout(() => {
+              gemA.style.cssText = "";
+              gemB.style.cssText = "";
+              resolve();
+            }, ANIM_SWAP + 12);
           });
         }
         function updateScore(points, matchedCells) {
@@ -807,187 +910,111 @@
           void scoreValueEl.offsetWidth;
           scoreValueEl.classList.add("pop");
           if (matchedCells && matchedCells.size > 0) {
-            const first = [...matchedCells][0];
+            const first = matchedCells.values().next().value;
             spawnFloatText(Math.floor(first / COLS), first % COLS, "+" + points);
           }
         }
-        function renderBoard(data, matchedSet, newGemSet) {
-          boardEl.innerHTML = "";
-          for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-              const type = data[r][c];
-              const cell = document.createElement("div");
-              cell.className = "cell";
-              cell.dataset.row = r;
-              cell.dataset.col = c;
-              const gem = document.createElement("div");
-              gem.className = "gem gem-type-" + (type >= 0 ? type : 0);
-              cell.appendChild(gem);
-              if (type < 0) {
-                cell.style.visibility = "hidden";
-              }
-              const idx = r * COLS + c;
-              if (matchedSet && matchedSet.has(idx)) {
-                cell.classList.add("matched");
-              }
-              if (newGemSet && newGemSet.has(idx) && type >= 0) {
-                cell.classList.add("new-gem");
-                const delay = (ROWS - 1 - r) * 30;
-                cell.style.animationDelay = delay + "ms";
-                gem.style.animationDelay = delay + "ms";
-              }
-              boardEl.appendChild(cell);
-            }
+        function updateDragOffset(dx, dy) {
+          if (!dragSource) return;
+          const el = getCellEl(dragSource.row, dragSource.col);
+          const gem = el && el.querySelector(".gem");
+          if (!gem) return;
+          gem.style.setProperty("--drag-x", dx + "px");
+          gem.style.setProperty("--drag-y", dy + "px");
+        }
+        function updateDragTarget(x, y) {
+          if (!dragSource) return;
+          const hover = getCellFromPoint(x, y);
+          let next = null;
+          if (hover && isAdjacent(dragSource, hover) && boardData[hover.row][hover.col] >= 0) {
+            next = { row: hover.row, col: hover.col };
           }
-          if (currentDragSource) {
-            const sourceCell = boardEl.querySelector('[data-row="' + currentDragSource.row + '"][data-col="' + currentDragSource.col + '"]');
-            if (sourceCell) sourceCell.classList.add("drag-source");
+          if (dragTarget && next && dragTarget.row === next.row && dragTarget.col === next.col) return;
+          if (dragTarget) {
+            const old = getCellEl(dragTarget.row, dragTarget.col);
+            if (old) old.classList.remove("drag-target");
           }
-          if (currentDragTarget) {
-            const targetCell = boardEl.querySelector('[data-row="' + currentDragTarget.row + '"][data-col="' + currentDragTarget.col + '"]');
-            if (targetCell) targetCell.classList.add("drag-target");
+          dragTarget = next;
+          if (next) {
+            const el = getCellEl(next.row, next.col);
+            if (el) el.classList.add("drag-target");
           }
         }
-        function clearFloatingElements() {
-          const particles = boardOuter.querySelectorAll(".particle");
-          const floats = boardOuter.querySelectorAll(".float-text");
-          particles.forEach(function (p) {
-            p.remove();
-          });
-          floats.forEach(function (f) {
-            f.remove();
-          });
+        function clearDragEffects() {
+          if (dragSource) {
+            const el = getCellEl(dragSource.row, dragSource.col);
+            if (el) {
+              el.classList.remove("drag-source");
+              const gem = el.querySelector(".gem");
+              if (gem) {
+                gem.style.removeProperty("--drag-x");
+                gem.style.removeProperty("--drag-y");
+              }
+            }
+          }
+          if (dragTarget) {
+            const el = getCellEl(dragTarget.row, dragTarget.col);
+            if (el) el.classList.remove("drag-target");
+          }
+          dragSource = null;
+          dragTarget = null;
+        }
+        async function performSwap(r1, c1, r2, c2) {
+          if (isProcessing) return;
+          if (boardData[r1][c1] < 0 || boardData[r2][c2] < 0) return;
+          isProcessing = true;
+          setSelection(null);
+          clearDragEffects();
+          await animateSwap(r1, c1, r2, c2);
+          swapData(boardData, r1, c1, r2, c2);
+          const matches = findAllMatches(boardData);
+          if (matches.size === 0) {
+            swapData(boardData, r1, c1, r2, c2);
+            renderBoard(boardData, null, null);
+            flashInvalid([
+              { row: r1, col: c1 },
+              { row: r2, col: c2 },
+            ]);
+            await wait(ANIM_INVALID);
+            isProcessing = false;
+            return;
+          }
+          renderBoard(boardData, null, null);
+          await processMatchChain();
         }
         async function processMatchChain() {
           comboCount = 0;
-          let chainData = boardData;
           let iteration = 0;
           while (iteration < MAX_CHAIN_ITERATIONS) {
             iteration++;
-            const matches = findAllMatches(chainData);
+            const matches = findAllMatches(boardData);
             if (matches.size === 0) break;
             comboCount++;
-            const pointsThisRound = matches.size * POINTS_PER_GEM * comboCount;
-            renderBoard(chainData, matches, null);
+            const points = matches.size * POINTS_PER_GEM * comboCount;
+            renderBoard(boardData, matches, null);
             for (const idx of matches) {
               const r = Math.floor(idx / COLS);
               const c = idx % COLS;
-              const type = chainData[r][c];
-              if (type >= 0 && type < gemColors.length) {
-                spawnParticles(r, c, gemColors[type]);
+              const type = boardData[r][c];
+              if (type >= 0 && type < GEM_COLORS.length) {
+                spawnParticles(r, c, GEM_COLORS[type]);
               }
             }
             const matchedCopy = new Set(matches);
-            await wait(ANIM_MATCH_DURATION + 60);
-            removeMatches(chainData, matchedCopy);
-            const newGems = applyGravity(chainData);
-            renderBoard(chainData, null, newGems);
-            updateScore(pointsThisRound, matchedCopy);
-            await wait(ANIM_APPEAR_DURATION + 80);
+            await wait(ANIM_MATCH + 60);
+            removeMatches(boardData, matchedCopy);
+            const newGems = applyGravity(boardData);
+            renderBoard(boardData, null, newGems);
+            updateScore(points, matchedCopy);
+            await wait(ANIM_APPEAR + 80);
           }
-          boardData = chainData;
           if (findAllMatches(boardData).size === 0 && !hasPossibleMoves(boardData)) {
             await wait(400);
             resetGame();
             return;
           }
           isProcessing = false;
-          currentDragSource = null;
-          currentDragTarget = null;
           renderBoard(boardData, null, null);
-        }
-        function hasPossibleMoves(data) {
-          for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-              if (c + 1 < COLS) {
-                swapData(data, r, c, r, c + 1);
-                if (findAllMatches(data).size > 0) {
-                  swapData(data, r, c, r, c + 1);
-                  return true;
-                }
-                swapData(data, r, c, r, c + 1);
-              }
-              if (r + 1 < ROWS) {
-                swapData(data, r, c, r + 1, c);
-                if (findAllMatches(data).size > 0) {
-                  swapData(data, r, c, r + 1, c);
-                  return true;
-                }
-                swapData(data, r, c, r + 1, c);
-              }
-            }
-          }
-          return false;
-        }
-        function swapData(data, r1, c1, r2, c2) {
-          const temp = data[r1][c1];
-          data[r1][c1] = data[r2][c2];
-          data[r2][c2] = temp;
-        }
-        function wait(ms) {
-          return new Promise(function (resolve) {
-            setTimeout(resolve, ms);
-          });
-        }
-        function getCellFromPoint(x, y) {
-          const cells = boardEl.children;
-          for (let i = 0; i < cells.length; i++) {
-            const rect = cells[i].getBoundingClientRect();
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-              const row = parseInt(cells[i].dataset.row);
-              const col = parseInt(cells[i].dataset.col);
-              if (!isNaN(row) && !isNaN(col)) {
-                return { row: row, col: col };
-              }
-            }
-          }
-          return null;
-        }
-        function isAdjacent(cell1, cell2) {
-          if (!cell1 || !cell2) return false;
-          const dr = Math.abs(cell1.row - cell2.row);
-          const dc = Math.abs(cell1.col - cell2.col);
-          return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
-        }
-        function clearDragEffects() {
-          if (currentDragSource) {
-            const src = boardEl.querySelector('[data-row="' + currentDragSource.row + '"][data-col="' + currentDragSource.col + '"]');
-            if (src) src.classList.remove("drag-source");
-          }
-          if (currentDragTarget) {
-            const tgt = boardEl.querySelector('[data-row="' + currentDragTarget.row + '"][data-col="' + currentDragTarget.col + '"]');
-            if (tgt) tgt.classList.remove("drag-target");
-          }
-          currentDragSource = null;
-          currentDragTarget = null;
-        }
-        function clearPointerState() {
-          pointerActive = false;
-          pointerStartPos = null;
-          pointerStartCell = null;
-          pointerMoved = false;
-          if (pointerId !== null) {
-            try {
-              boardEl.releasePointerCapture(pointerId);
-            } catch (e) {}
-            pointerId = null;
-          }
-          clearDragEffects();
-        }
-        async function performSwap(r1, c1, r2, c2) {
-          isProcessing = true;
-          comboCount = 0;
-          clearDragEffects();
-          swapData(boardData, r1, c1, r2, c2);
-          const matches = findAllMatches(boardData);
-          if (matches.size === 0) {
-            swapData(boardData, r1, c1, r2, c2);
-            renderBoard(boardData, null, null);
-            isProcessing = false;
-            return;
-          }
-          renderBoard(boardData, null, null);
-          await processMatchChain();
         }
         function resetGame() {
           isProcessing = false;
@@ -995,6 +1022,9 @@
           comboCount = 0;
           scoreValueEl.textContent = "0";
           clearFloatingElements();
+          setSelection(null);
+          clearDragEffects();
+          resetPointer();
           boardData = createBoardData();
           while (findAllMatches(boardData).size > 0) {
             boardData = createBoardData();
@@ -1005,86 +1035,126 @@
               if (boardData[r][c] >= 0) newGems.add(r * COLS + c);
             }
           }
-          clearDragEffects();
-          clearPointerState();
           renderBoard(boardData, null, newGems);
+        }
+        function getCellFromPoint(x, y) {
+          const cells = boardEl.children;
+          for (let i = 0; i < cells.length; i++) {
+            const rect = cells[i].getBoundingClientRect();
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+              const row = Number(cells[i].dataset.row);
+              const col = Number(cells[i].dataset.col);
+              if (!Number.isNaN(row) && !Number.isNaN(col)) return { row, col };
+            }
+          }
+          return null;
+        }
+        function getSwipeTarget(start, dx, dy) {
+          if (!start) return null;
+          const step = getCellStep();
+          if (step <= 0) return null;
+          const ax = Math.abs(dx);
+          const ay = Math.abs(dy);
+          if (Math.max(ax, ay) < step * SWIPE_RATIO) return null;
+          const dr = ax >= ay ? 0 : dy > 0 ? 1 : -1;
+          const dc = ax >= ay ? (dx > 0 ? 1 : -1) : 0;
+          const r = start.row + dr;
+          const c = start.col + dc;
+          if (!inBounds(r, c) || boardData[r][c] < 0) return null;
+          return { row: r, col: c };
+        }
+        function handleTap(cell) {
+          if (isProcessing) return;
+          if (!cell || boardData[cell.row][cell.col] < 0) return;
+          if (!selectedCell) {
+            setSelection(cell);
+            return;
+          }
+          if (selectedCell.row === cell.row && selectedCell.col === cell.col) {
+            setSelection(null);
+            return;
+          }
+          if (isAdjacent(selectedCell, cell)) {
+            const from = selectedCell;
+            setSelection(null);
+            performSwap(from.row, from.col, cell.row, cell.col);
+            return;
+          }
+          setSelection(cell);
+        }
+        function resetPointer() {
+          pointer.active = false;
+          pointer.dragging = false;
+          pointer.startRow = -1;
+          pointer.startCol = -1;
+          if (pointer.id !== null) {
+            try {
+              boardEl.releasePointerCapture(pointer.id);
+            } catch (err) {}
+            pointer.id = null;
+          }
+          clearDragEffects();
         }
         function onPointerDown(e) {
           if (isProcessing) return;
-          e.preventDefault();
           const cell = getCellFromPoint(e.clientX, e.clientY);
-          if (!cell) return;
-          if (boardData[cell.row][cell.col] < 0) return;
-          pointerActive = true;
-          pointerStartPos = { x: e.clientX, y: e.clientY };
-          pointerStartCell = { row: cell.row, col: cell.col };
-          pointerMoved = false;
-          pointerId = e.pointerId;
-          boardEl.setPointerCapture(e.pointerId);
-          clearDragEffects();
-          currentDragSource = { row: cell.row, col: cell.col };
-          const sourceEl = boardEl.querySelector('[data-row="' + cell.row + '"][data-col="' + cell.col + '"]');
-          if (sourceEl) sourceEl.classList.add("drag-source");
+          if (!cell || boardData[cell.row][cell.col] < 0) return;
+          e.preventDefault();
+          pointer.active = true;
+          pointer.id = e.pointerId;
+          pointer.startX = e.clientX;
+          pointer.startY = e.clientY;
+          pointer.startRow = cell.row;
+          pointer.startCol = cell.col;
+          pointer.dragging = false;
+          try {
+            boardEl.setPointerCapture(e.pointerId);
+          } catch (err) {}
         }
         function onPointerMove(e) {
-          if (!pointerActive || isProcessing) return;
+          if (!pointer.active || isProcessing) return;
+          const dx = e.clientX - pointer.startX;
+          const dy = e.clientY - pointer.startY;
+          if (!pointer.dragging) {
+            if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
+            pointer.dragging = true;
+            setSelection(null);
+            dragSource = { row: pointer.startRow, col: pointer.startCol };
+            const srcEl = getCellEl(dragSource.row, dragSource.col);
+            if (srcEl) srcEl.classList.add("drag-source");
+          }
           e.preventDefault();
-          if (!pointerStartPos) return;
-          const dx = e.clientX - pointerStartPos.x;
-          const dy = e.clientY - pointerStartPos.y;
-          if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
-            pointerMoved = true;
-          }
-          if (pointerMoved && currentDragSource) {
-            const hoverCell = getCellFromPoint(e.clientX, e.clientY);
-            if (hoverCell && isAdjacent(currentDragSource, hoverCell) && boardData[hoverCell.row][hoverCell.col] >= 0) {
-              if (!currentDragTarget || currentDragTarget.row !== hoverCell.row || currentDragTarget.col !== hoverCell.col) {
-                if (currentDragTarget) {
-                  const old = boardEl.querySelector('[data-row="' + currentDragTarget.row + '"][data-col="' + currentDragTarget.col + '"]');
-                  if (old) old.classList.remove("drag-target");
-                }
-                currentDragTarget = { row: hoverCell.row, col: hoverCell.col };
-                const targetEl = boardEl.querySelector('[data-row="' + hoverCell.row + '"][data-col="' + hoverCell.col + '"]');
-                if (targetEl) targetEl.classList.add("drag-target");
-              }
-            } else {
-              if (currentDragTarget) {
-                const old = boardEl.querySelector('[data-row="' + currentDragTarget.row + '"][data-col="' + currentDragTarget.col + '"]');
-                if (old) old.classList.remove("drag-target");
-                currentDragTarget = null;
-              }
-            }
-          }
+          updateDragOffset(dx, dy);
+          updateDragTarget(e.clientX, e.clientY);
         }
         function onPointerUp(e) {
-          if (!pointerActive || isProcessing) {
-            clearPointerState();
+          if (!pointer.active || isProcessing) {
+            resetPointer();
             return;
           }
           e.preventDefault();
-          const endCell = getCellFromPoint(e.clientX, e.clientY);
-          const swapTarget = currentDragTarget || endCell;
-          const startCell = pointerStartCell ? { row: pointerStartCell.row, col: pointerStartCell.col } : null;
-          const didMove = pointerMoved;
-          clearPointerState();
-          if (startCell && swapTarget && didMove && isAdjacent(startCell, swapTarget) && boardData[startCell.row][startCell.col] >= 0 && boardData[swapTarget.row][swapTarget.col] >= 0) {
-            performSwap(startCell.row, startCell.col, swapTarget.row, swapTarget.col);
+          const start = { row: pointer.startRow, col: pointer.startCol };
+          const wasDragging = pointer.dragging;
+          const dx = e.clientX - pointer.startX;
+          const dy = e.clientY - pointer.startY;
+          const target = wasDragging ? dragTarget || getSwipeTarget(start, dx, dy) : null;
+          resetPointer();
+          if (wasDragging) {
+            if (target) performSwap(start.row, start.col, target.row, target.col);
+          } else {
+            handleTap(start);
           }
-        }
-        function onPointerCancel(e) {
-          clearPointerState();
         }
         boardEl.addEventListener("pointerdown", onPointerDown);
         boardEl.addEventListener("pointermove", onPointerMove);
         boardEl.addEventListener("pointerup", onPointerUp);
-        boardEl.addEventListener("pointercancel", onPointerCancel);
-        btnRestart.addEventListener("click", function () {
-          if (isProcessing) return;
-          resetGame();
+        boardEl.addEventListener("pointercancel", () => resetPointer());
+        boardEl.addEventListener("contextmenu", (e) => e.preventDefault());
+        boardEl.addEventListener("dragstart", (e) => e.preventDefault());
+        btnRestart.addEventListener("click", () => {
+          if (!isProcessing) resetGame();
         });
-        btnTheme.addEventListener("click", toggleTheme);
         function init() {
-          initTheme();
           boardData = createBoardData();
           while (findAllMatches(boardData).size > 0) {
             boardData = createBoardData();
@@ -1096,7 +1166,6 @@
             }
           }
           renderBoard(boardData, null, newGems);
-          scoreValueEl.textContent = "0";
         }
         init();
       })();

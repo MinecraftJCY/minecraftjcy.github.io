@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>汉诺塔</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
         --bg: #eaf3e8;
@@ -55,41 +50,81 @@
         --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         --transition-theme: 0.35s ease;
       }
-      [data-theme="dark"] {
-        --bg: #1b241e;
-        --bg-radial: #161f19;
-        --surface: #222c26;
-        --surface-elevated: #2a352e;
-        --text: #c5d1c8;
-        --text-dim: #8a9c8e;
-        --text-heading: #9ab89e;
-        --accent: #6b8a70;
-        --accent-hover: #7d9c82;
-        --accent-active: #557058;
-        --accent-glow: #4a634e;
-        --danger: #b07070;
-        --success: #5a8a68;
-        --rod-light: #5c5248;
-        --rod-mid: #4a4038;
-        --rod-dark: #332b24;
-        --base-light: #50463c;
-        --base-dark: #3a322a;
-        --border-subtle: rgba(120, 140, 125, 0.15);
-        --border-control: rgba(120, 140, 125, 0.3);
-        --border-outline: rgba(120, 140, 125, 0.4);
-        --border-outline-hover: rgba(120, 140, 125, 0.6);
-        --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
-        --shadow-disk: 0 3px 6px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(255, 255, 255, 0.08) inset;
-        --shadow-disk-lift: 0 8px 18px rgba(0, 0, 0, 0.4), 0 0 12px rgba(107, 138, 112, 0.45);
-        --shadow-btn: 0 4px 10px rgba(0, 0, 0, 0.25);
-        --shadow-btn-hover: 0 6px 14px rgba(0, 0, 0, 0.35);
-        --shadow-rod-inset: inset 2px 0 4px rgba(255, 255, 255, 0.08), inset -2px 0 4px rgba(0, 0, 0, 0.4);
-        --shadow-base: 0 6px 14px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08);
-        --disk-brightness: 0.72;
-        --disk-saturate: 0.65;
-        --overlay-bg: rgba(10, 16, 12, 0.55);
-        --victory-bg: #2a352e;
-        --victory-text: #9ab89e;
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1b241e;
+          --bg-radial: #161f19;
+          --surface: #222c26;
+          --surface-elevated: #2a352e;
+          --text: #c5d1c8;
+          --text-dim: #8a9c8e;
+          --text-heading: #9ab89e;
+          --accent: #6b8a70;
+          --accent-hover: #7d9c82;
+          --accent-active: #557058;
+          --accent-glow: #4a634e;
+          --danger: #b07070;
+          --success: #5a8a68;
+          --rod-light: #5c5248;
+          --rod-mid: #4a4038;
+          --rod-dark: #332b24;
+          --base-light: #50463c;
+          --base-dark: #3a322a;
+          --border-subtle: rgba(120, 140, 125, 0.15);
+          --border-control: rgba(120, 140, 125, 0.3);
+          --border-outline: rgba(120, 140, 125, 0.4);
+          --border-outline-hover: rgba(120, 140, 125, 0.6);
+          --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+          --shadow-disk: 0 3px 6px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(255, 255, 255, 0.08) inset;
+          --shadow-disk-lift: 0 8px 18px rgba(0, 0, 0, 0.4), 0 0 12px rgba(107, 138, 112, 0.45);
+          --shadow-btn: 0 4px 10px rgba(0, 0, 0, 0.25);
+          --shadow-btn-hover: 0 6px 14px rgba(0, 0, 0, 0.35);
+          --shadow-rod-inset: inset 2px 0 4px rgba(255, 255, 255, 0.08), inset -2px 0 4px rgba(0, 0, 0, 0.4);
+          --shadow-base: 0 6px 14px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+          --disk-brightness: 0.72;
+          --disk-saturate: 0.65;
+          --overlay-bg: rgba(10, 16, 12, 0.55);
+          --victory-bg: #2a352e;
+          --victory-text: #9ab89e;
+        }
+        .game-title {
+          background: linear-gradient(180deg, #8aae8e 0%, #6a8e6e 80%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        }
+        .layer-number {
+          color: #8aae8e;
+          text-shadow: 0 0 8px rgba(107, 138, 112, 0.3);
+        }
+        .stat-value {
+          color: #8aae8e;
+          text-shadow: 0 0 6px rgba(107, 138, 112, 0.3);
+        }
+        .btn-accent {
+          background: linear-gradient(135deg, #6b8a70 0%, #557058 100%);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .btn-accent:hover:not(:disabled) {
+          background: linear-gradient(135deg, #7d9c82 0%, #638268 100%);
+          box-shadow: 0 8px 18px rgba(107, 138, 112, 0.35);
+        }
+        .tower-label {
+          color: #8a9c8e;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .disk:hover:not(.disk-selected) {
+          box-shadow:
+            0 5px 10px rgba(0, 0, 0, 0.3),
+            0 1px 3px rgba(255, 255, 255, 0.06) inset;
+        }
+        .victory-title {
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .victory-perfect {
+          color: #7aae8a;
+          text-shadow: 0 0 6px rgba(122, 174, 138, 0.3);
+        }
       }
       * {
         margin: 0;
@@ -144,12 +179,6 @@
         background-clip: text;
         filter: drop-shadow(0 1px 2px rgba(46, 61, 52, 0.2));
         margin-bottom: 4px;
-      }
-      [data-theme="dark"] .game-title {
-        background: linear-gradient(180deg, #8aae8e 0%, #6a8e6e 80%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
       }
       .game-subtitle {
         font-size: clamp(12px, 2vw, 15px);
@@ -222,10 +251,6 @@
         text-shadow: 0 0 8px rgba(143, 168, 138, 0.3);
         transition: color var(--transition-theme);
       }
-      [data-theme="dark"] .layer-number {
-        color: #8aae8e;
-        text-shadow: 0 0 8px rgba(107, 138, 112, 0.3);
-      }
       .stats {
         display: flex;
         align-items: baseline;
@@ -256,10 +281,6 @@
         line-height: 1;
         text-shadow: 0 0 6px rgba(143, 168, 138, 0.3);
         transition: color var(--transition-theme);
-      }
-      [data-theme="dark"] .stat-value {
-        color: #8aae8e;
-        text-shadow: 0 0 6px rgba(107, 138, 112, 0.3);
       }
       .stat-optimal {
         font-size: clamp(0.65rem, 1.1vw, 0.75rem);
@@ -318,39 +339,6 @@
         box-shadow: 0 8px 18px rgba(143, 168, 138, 0.35);
         transform: translateY(-1px);
       }
-      [data-theme="dark"] .btn-accent {
-        background: linear-gradient(135deg, #6b8a70 0%, #557058 100%);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-      }
-      [data-theme="dark"] .btn-accent:hover:not(:disabled) {
-        background: linear-gradient(135deg, #7d9c82 0%, #638268 100%);
-        box-shadow: 0 8px 18px rgba(107, 138, 112, 0.35);
-      }
-      .theme-toggle {
-        width: clamp(34px, 5.5vw, 42px);
-        height: clamp(34px, 5.5vw, 42px);
-        border-radius: 50%;
-        border: 1px solid var(--border-outline);
-        background: var(--surface-elevated);
-        cursor: pointer;
-        font-size: clamp(1.1rem, 2vw, 1.4rem);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all var(--transition-smooth);
-        box-shadow: 0 2px 8px rgba(46, 61, 52, 0.08);
-        flex-shrink: 0;
-        line-height: 1;
-        padding: 0;
-      }
-      .theme-toggle:hover {
-        transform: scale(1.08);
-        box-shadow: var(--shadow-btn-hover);
-        border-color: var(--border-outline-hover);
-      }
-      .theme-toggle:active {
-        transform: scale(0.9);
-      }
       .game-area {
         display: flex;
         justify-content: center;
@@ -374,9 +362,6 @@
       }
       .tower.tower-selected .tower-rod-bg {
         filter: brightness(1.15) drop-shadow(0 0 8px rgba(143, 168, 138, 0.7));
-      }
-      [data-theme="dark"] .tower.tower-selected .tower-rod-bg {
-        filter: brightness(1.25) drop-shadow(0 0 10px rgba(107, 138, 112, 0.7));
       }
       .tower.tower-invalid {
         animation: shake 0.45s ease;
@@ -457,10 +442,6 @@
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
         transition: color var(--transition-theme);
       }
-      [data-theme="dark"] .tower-label {
-        color: #8a9c8e;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      }
       .disk {
         height: var(--disk-thickness);
         border-radius: var(--border-radius-md);
@@ -490,11 +471,6 @@
         box-shadow:
           0 5px 10px rgba(46, 61, 52, 0.2),
           0 1px 3px rgba(255, 255, 255, 0.4) inset;
-      }
-      [data-theme="dark"] .disk:hover:not(.disk-selected) {
-        box-shadow:
-          0 5px 10px rgba(0, 0, 0, 0.3),
-          0 1px 3px rgba(255, 255, 255, 0.06) inset;
       }
       .disk-0 {
         background: linear-gradient(180deg, #e0a0a0 0%, #c07878 55%, #9a5a5a 100%);
@@ -592,9 +568,6 @@
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
         transition: color var(--transition-theme);
       }
-      [data-theme="dark"] .victory-title {
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      }
       .victory-detail {
         font-size: clamp(0.85rem, 1.6vw, 0.95rem);
         color: var(--text-dim);
@@ -607,10 +580,6 @@
         font-weight: 700;
         font-size: clamp(0.9rem, 1.7vw, 1rem);
         text-shadow: 0 0 6px rgba(106, 158, 120, 0.3);
-      }
-      [data-theme="dark"] .victory-perfect {
-        color: #7aae8a;
-        text-shadow: 0 0 6px rgba(122, 174, 138, 0.3);
       }
       .victory-btn {
         margin-top: 22px;
@@ -644,11 +613,6 @@
         .tower-label {
           font-size: 12px;
           margin-top: 5px;
-        }
-        .theme-toggle {
-          width: 34px;
-          height: 34px;
-          font-size: 1.1rem;
         }
         .game-area {
           gap: 6px;
@@ -689,11 +653,6 @@
         .stat-item {
           font-size: 0.7rem;
         }
-        .theme-toggle {
-          width: 28px;
-          height: 28px;
-          font-size: 1rem;
-        }
         .control-panel {
           gap: 4px;
         }
@@ -733,7 +692,6 @@
           <button class="btn btn-outline" id="btnReset">重置</button>
           <button class="btn btn-accent" id="btnAutoSolve">自动求解</button>
         </div>
-        <button class="theme-toggle" id="btnThemeToggle" aria-label="切换深色/浅色模式" title="切换深色/浅色模式">🌙</button>
       </div>
       <div class="game-area" id="gameArea">
         <div class="tower" data-tower="0" id="tower0">
@@ -773,7 +731,6 @@
     </div>
     <script>
       (() => {
-        const THEME_KEY = "theme";
         const DISK_MIN = 3;
         const DISK_MAX = 8;
         const TOWER_COUNT = 3;
@@ -784,7 +741,6 @@
           btnReset: document.getElementById("btnReset"),
           btnAutoSolve: document.getElementById("btnAutoSolve"),
           btnVictoryRestart: document.getElementById("btnVictoryRestart"),
-          btnThemeToggle: document.getElementById("btnThemeToggle"),
           layerDisplay: document.getElementById("layerDisplay"),
           movesCount: document.getElementById("movesCount"),
           movesOptimal: document.getElementById("movesOptimal"),
@@ -802,38 +758,8 @@
           moves: 0,
           selectedTowerIndex: null,
           isAnimating: false,
-          animationAbortFlag: false,
-          theme: "light",
+          runId: 0,
         };
-        function saveThemePreference(theme) {
-          try {
-            localStorage.setItem(THEME_KEY, theme);
-          } catch {}
-        }
-        function loadThemePreference() {
-          try {
-            return localStorage.getItem(THEME_KEY);
-          } catch {
-            return null;
-          }
-        }
-        function applyTheme(theme) {
-          state.theme = theme;
-          document.documentElement.setAttribute("data-theme", theme);
-          dom.btnThemeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
-          dom.btnThemeToggle.setAttribute("aria-label", theme === "dark" ? "切换浅色模式" : "切换深色模式");
-          dom.btnThemeToggle.title = theme === "dark" ? "切换浅色模式" : "切换深色模式";
-        }
-        function toggleTheme() {
-          const next = state.theme === "dark" ? "light" : "dark";
-          applyTheme(next);
-          saveThemePreference(next);
-        }
-        function initTheme() {
-          const saved = loadThemePreference();
-          const theme = saved === "dark" ? "dark" : "light";
-          applyTheme(theme);
-        }
         function getOptimalMoves(n) {
           return Math.pow(2, n) - 1;
         }
@@ -849,8 +775,8 @@
           state.towers = populateTowers(numDisks);
           state.moves = 0;
           state.selectedTowerIndex = null;
-          state.animationAbortFlag = false;
           state.isAnimating = false;
+          state.runId++;
         }
         function updateDisplay() {
           dom.movesCount.textContent = state.moves;
@@ -919,7 +845,7 @@
           dom.victoryOverlay.classList.add("hidden");
         }
         function setControlsEnabled(enabled) {
-          const buttons = dom.controlPanel.querySelectorAll("button:not(#btnThemeToggle)");
+          const buttons = dom.controlPanel.querySelectorAll("button");
           buttons.forEach((b) => (b.disabled = !enabled));
         }
         function enableControls() {
@@ -988,8 +914,6 @@
           dom.btnReset.disabled = false;
         }
         function reset() {
-          state.animationAbortFlag = true;
-          state.isAnimating = false;
           init(state.numDisks);
         }
         function changeLayers(delta) {
@@ -1016,12 +940,14 @@
         async function autoSolve() {
           if (state.isAnimating) return;
           if (state.towers[TARGET_TOWER].length === state.numDisks) return;
+          let myRun = state.runId;
           if (state.towers[0].length !== state.numDisks && state.towers[1].length !== state.numDisks) {
             reset();
+            myRun = state.runId;
             await delay(180);
+            if (myRun !== state.runId) return;
           }
           state.isAnimating = true;
-          state.animationAbortFlag = false;
           state.selectedTowerIndex = null;
           disableControls();
           dom.btnReset.disabled = false;
@@ -1029,9 +955,9 @@
           generateSolution(state.numDisks, 0, TARGET_TOWER, 1, solutionMoves);
           const stepDelay = getAutoSolveDelay(solutionMoves.length);
           for (const [from, to] of solutionMoves) {
-            if (state.animationAbortFlag) break;
+            if (myRun !== state.runId) return;
             await delay(stepDelay);
-            if (state.animationAbortFlag) break;
+            if (myRun !== state.runId) return;
             executeMove(from, to);
             state.moves++;
             updateDisplay();
@@ -1041,8 +967,8 @@
               break;
             }
           }
+          if (myRun !== state.runId) return;
           state.isAnimating = false;
-          state.animationAbortFlag = false;
           if (!checkWin()) {
             enableControls();
           }
@@ -1093,7 +1019,6 @@
             hideVictory();
             reset();
           });
-          dom.btnThemeToggle.addEventListener("click", () => toggleTheme());
           dom.victoryOverlay.addEventListener("click", (e) => {
             if (e.target === dom.victoryOverlay) {
               hideVictory();
@@ -1102,7 +1027,6 @@
           });
         }
         function initAll() {
-          initTheme();
           bindTowerEvents();
           bindControlEvents();
           init(state.numDisks);

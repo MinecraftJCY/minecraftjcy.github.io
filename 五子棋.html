@@ -4,13 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>五子棋</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
+        color-scheme: light;
         --bg-gradient: linear-gradient(160deg, #fdf6e3 0%, #f5e6d3 30%, #eedcc8 60%, #f0e0c8 100%);
         --panel-bg: #fefaf3;
         --panel-shadow-side: 8px 0 40px rgba(120, 80, 40, 0.16);
@@ -39,46 +35,45 @@
         --stone-black-end: #1a0a00;
         --stone-white-start: #fefefe;
         --stone-white-end: #d8d0c4;
-        --theme-toggle-bg: #f0e6d8;
-        --theme-toggle-icon: #6b5a4a;
         --fab-bg: #fefaf3;
         --fab-color: #6b5a4a;
         --backdrop: rgba(40, 25, 10, 0.4);
       }
-      [data-theme="dark"] {
-        --bg-gradient: linear-gradient(160deg, #1e2328 0%, #252d34 30%, #1c2428 60%, #222a30 100%);
-        --panel-bg: #252d34;
-        --panel-shadow-side: 8px 0 40px rgba(0, 0, 0, 0.4);
-        --panel-shadow-bottom: 0 -8px 40px rgba(0, 0, 0, 0.4);
-        --text-primary: #d8cfc0;
-        --text-secondary: #b8afa0;
-        --text-muted: #988f80;
-        --accent: #b8a878;
-        --board-bg: linear-gradient(145deg, #5c4330, #4a3525);
-        --board-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 2px 8px rgba(255, 255, 255, 0.04);
-        --btn-primary-bg: linear-gradient(135deg, #6b7a5e 0%, #5a6a4e 100%);
-        --btn-primary-hover: linear-gradient(135deg, #7b8a6e 0%, #6a7a5e 100%);
-        --btn-primary-text: #e8e0d0;
-        --btn-danger-bg: linear-gradient(135deg, #8b5e4e 0%, #7a4e3e 100%);
-        --btn-danger-hover: linear-gradient(135deg, #9b6e5e 0%, #8a5e4e 100%);
-        --btn-danger-text: #e8e0d0;
-        --btn-disabled-bg: #3a3a3a;
-        --btn-disabled-text: #6a6a6a;
-        --stone-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
-        --current-turn-bg: #2a323a;
-        --info-card-bg: #2a323a;
-        --winner-bg: linear-gradient(135deg, #6b7a5e 0%, #5a6a4e 100%);
-        --winner-text: #e8e0d0;
-        --divider: #3a3530;
-        --stone-black-start: #2a1a0a;
-        --stone-black-end: #0a0000;
-        --stone-white-start: #f5f0e8;
-        --stone-white-end: #c8c0b0;
-        --theme-toggle-bg: #353d44;
-        --theme-toggle-icon: #d8cfc0;
-        --fab-bg: #2f3840;
-        --fab-color: #d8cfc0;
-        --backdrop: rgba(0, 0, 0, 0.55);
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --bg-gradient: linear-gradient(160deg, #1e2328 0%, #252d34 30%, #1c2428 60%, #222a30 100%);
+          --panel-bg: #252d34;
+          --panel-shadow-side: 8px 0 40px rgba(0, 0, 0, 0.4);
+          --panel-shadow-bottom: 0 -8px 40px rgba(0, 0, 0, 0.4);
+          --text-primary: #d8cfc0;
+          --text-secondary: #b8afa0;
+          --text-muted: #988f80;
+          --accent: #b8a878;
+          --board-bg: linear-gradient(145deg, #5c4330, #4a3525);
+          --board-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 2px 8px rgba(255, 255, 255, 0.04);
+          --btn-primary-bg: linear-gradient(135deg, #6b7a5e 0%, #5a6a4e 100%);
+          --btn-primary-hover: linear-gradient(135deg, #7b8a6e 0%, #6a7a5e 100%);
+          --btn-primary-text: #e8e0d0;
+          --btn-danger-bg: linear-gradient(135deg, #8b5e4e 0%, #7a4e3e 100%);
+          --btn-danger-hover: linear-gradient(135deg, #9b6e5e 0%, #8a5e4e 100%);
+          --btn-danger-text: #e8e0d0;
+          --btn-disabled-bg: #3a3a3a;
+          --btn-disabled-text: #6a6a6a;
+          --stone-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+          --current-turn-bg: #2a323a;
+          --info-card-bg: #2a323a;
+          --winner-bg: linear-gradient(135deg, #6b7a5e 0%, #5a6a4e 100%);
+          --winner-text: #e8e0d0;
+          --divider: #3a3530;
+          --stone-black-start: #2a1a0a;
+          --stone-black-end: #0a0000;
+          --stone-white-start: #f5f0e8;
+          --stone-white-end: #c8c0b0;
+          --fab-bg: #2f3840;
+          --fab-color: #d8cfc0;
+          --backdrop: rgba(0, 0, 0, 0.55);
+        }
       }
       *,
       *::before,
@@ -234,49 +229,14 @@
           transform: translateY(0);
         }
       }
-      .panel-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
       .panel-title {
         font-size: 1.35rem;
         font-weight: 700;
         letter-spacing: 0.04em;
         color: var(--text-primary);
         line-height: 1.2;
+        text-align: center;
         transition: color 0.4s ease;
-      }
-      .icon-btn {
-        width: 44px;
-        height: 44px;
-        flex: 0 0 auto;
-        border-radius: 50%;
-        border: none;
-        background: var(--theme-toggle-bg);
-        color: var(--theme-toggle-icon);
-        font-size: 1.15rem;
-        line-height: 1;
-        cursor: pointer;
-        display: grid;
-        place-items: center;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease,
-          background 0.4s ease,
-          color 0.4s ease;
-      }
-      .icon-btn:hover {
-        transform: scale(1.06);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
-      }
-      .icon-btn:active {
-        transform: scale(0.94);
-      }
-      .icon-btn:focus-visible {
-        outline: 3px solid var(--accent);
-        outline-offset: 2px;
       }
       .status-row,
       .stat-row {
@@ -423,10 +383,7 @@
       <button class="fab" id="fab" aria-label="打开操作面板" aria-controls="panel" aria-expanded="false">⚙</button>
       <div class="backdrop" id="backdrop"></div>
       <aside class="panel" id="panel" aria-label="操作面板">
-        <header class="panel-head">
-          <h1 class="panel-title">五子棋</h1>
-          <button class="icon-btn" id="theme-toggle" aria-label="切换主题">🌙</button>
-        </header>
+        <h1 class="panel-title">五子棋</h1>
         <div class="status-row" id="status-row">
           <span class="status-label" id="status-label">当前回合</span>
           <span class="stone-dot black" id="turn-stone"></span>
@@ -446,7 +403,6 @@
         "use strict";
         const SIZE = 15;
         const WIN_COUNT = 5;
-        const THEME_KEY = "theme";
         const MAX_DPR = 2.5;
         const EDGE = 8;
         const DIRS = [
@@ -510,12 +466,14 @@
             hoverDot: "#b8956e",
           },
         };
+        const themeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        let currentTheme = themeQuery.matches ? "dark" : "light";
+        let palette = THEMES[currentTheme];
         const canvas = document.getElementById("board");
         const ctx = canvas.getContext("2d");
         const fab = document.getElementById("fab");
         const backdrop = document.getElementById("backdrop");
         const panel = document.getElementById("panel");
-        const themeToggle = document.getElementById("theme-toggle");
         const statusRow = document.getElementById("status-row");
         const statusLabel = document.getElementById("status-label");
         const turnStone = document.getElementById("turn-stone");
@@ -532,7 +490,6 @@
         let cssSize = 0;
         let padding = 0;
         let cellSize = 0;
-        let palette = THEMES.light;
         let hoverRow = -1;
         let hoverCol = -1;
         let resizeRaf = 0;
@@ -733,20 +690,6 @@
           hoverCol = -1;
           render();
         };
-        const setTheme = (theme) => {
-          document.documentElement.setAttribute("data-theme", theme);
-          palette = THEMES[theme];
-          themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
-          themeToggle.setAttribute("aria-label", theme === "dark" ? "切换到亮色主题" : "切换到暗色主题");
-          render();
-        };
-        const initialTheme = () => {
-          try {
-            const saved = localStorage.getItem(THEME_KEY);
-            if (saved === "dark" || saved === "light") return saved;
-          } catch (_) {}
-          return "light";
-        };
         canvas.addEventListener("click", (e) => {
           const { row, col } = getPos(e.clientX, e.clientY);
           makeMove(row, col);
@@ -783,12 +726,10 @@
           closePanel();
           newGame();
         });
-        themeToggle.addEventListener("click", () => {
-          const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          setTheme(next);
-          try {
-            localStorage.setItem(THEME_KEY, next);
-          } catch (_) {}
+        themeQuery.addEventListener("change", (event) => {
+          currentTheme = event.matches ? "dark" : "light";
+          palette = THEMES[currentTheme];
+          render();
         });
         window.addEventListener("resize", scheduleResize);
         window.addEventListener("orientationchange", () => {
@@ -803,7 +744,6 @@
         if (document.fonts && document.fonts.ready) {
           document.fonts.ready.then(scheduleResize).catch(() => {});
         }
-        setTheme(initialTheme());
         newGame();
         resizeBoard();
         requestAnimationFrame(scheduleResize);

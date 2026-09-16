@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>乘法口诀表</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       *,
       *::before,
@@ -25,19 +20,19 @@
         --border: rgba(60, 60, 67, 0.08);
         --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.05);
         --card-shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.06), 0 10px 22px rgba(0, 0, 0, 0.09);
-        --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.06);
       }
-      :root[data-theme="dark"] {
-        color-scheme: dark;
-        --bg: #0b0b0d;
-        --card: #1c1c1e;
-        --card-hover: #242426;
-        --text: #f2f2f7;
-        --accent: #0a84ff;
-        --border: rgba(255, 255, 255, 0.07);
-        --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-        --card-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.45);
-        --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --bg: #0b0b0d;
+          --card: #1c1c1e;
+          --card-hover: #242426;
+          --text: #f2f2f7;
+          --accent: #0a84ff;
+          --border: rgba(255, 255, 255, 0.07);
+          --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+          --card-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.45);
+        }
       }
       body {
         margin: 0;
@@ -59,10 +54,6 @@
         padding: clamp(16px, 3vw, 40px) clamp(10px, 3vw, 32px) clamp(24px, 4vw, 56px);
       }
       .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
         margin-bottom: clamp(16px, 2.5vw, 28px);
       }
       .topbar h1 {
@@ -70,49 +61,6 @@
         font-size: clamp(20px, 2.4vw, 28px);
         font-weight: 700;
         letter-spacing: -0.02em;
-      }
-      .theme-toggle {
-        position: relative;
-        flex: none;
-        display: grid;
-        place-items: center;
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border: 1px solid var(--border);
-        border-radius: 50%;
-        background: var(--card);
-        color: var(--text);
-        box-shadow: var(--btn-shadow);
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition:
-          transform 0.18s ease,
-          background-color 0.3s ease,
-          box-shadow 0.3s ease;
-      }
-      .theme-toggle:active {
-        transform: scale(0.92);
-      }
-      .theme-toggle .icon {
-        position: absolute;
-        width: 19px;
-        height: 19px;
-        transition:
-          opacity 0.28s ease,
-          transform 0.28s ease;
-      }
-      .icon-moon {
-        opacity: 0;
-        transform: rotate(-60deg) scale(0.6);
-      }
-      :root[data-theme="dark"] .icon-sun {
-        opacity: 0;
-        transform: rotate(60deg) scale(0.6);
-      }
-      :root[data-theme="dark"] .icon-moon {
-        opacity: 1;
-        transform: none;
       }
       .board {
         display: grid;
@@ -157,9 +105,6 @@
         color: var(--accent);
       }
       @media (hover: hover) and (pointer: fine) {
-        .theme-toggle:hover {
-          background: var(--card-hover);
-        }
         .cell:hover {
           z-index: 2;
           transform: translateY(-2px);
@@ -204,54 +149,20 @@
     <div class="app">
       <header class="topbar">
         <h1>乘法口诀表</h1>
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换到深色模式">
-          <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4.1" />
-            <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.5 5.5l1.5 1.5M17 17l1.5 1.5M18.5 5.5L17 7M7 17l-1.5 1.5" />
-          </svg>
-          <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 13.2A8.6 8.6 0 0 1 10.8 3a7 7 0 1 0 10.2 10.2Z" />
-          </svg>
-        </button>
       </header>
       <main class="board" id="board"></main>
     </div>
     <script>
       (function () {
         "use strict";
-        const STORAGE_KEY = "theme";
-        const root = document.documentElement;
         const board = document.getElementById("board");
-        const toggle = document.getElementById("themeToggle");
-        function buildBoard() {
-          const cells = [];
-          for (let row = 1; row <= 9; row += 1) {
-            for (let col = 1; col <= row; col += 1) {
-              cells.push('<div class="cell" style="grid-area:' + row + "/" + col + '"><span class="expr">' + col + "×" + row + '</span><span class="op">=</span><span class="product">' + col * row + "</span></div>");
-            }
+        const cells = [];
+        for (let row = 1; row <= 9; row += 1) {
+          for (let col = 1; col <= row; col += 1) {
+            cells.push('<div class="cell" style="grid-area:' + row + "/" + col + '"><span class="expr">' + col + "×" + row + '</span><span class="op">=</span><span class="product">' + col * row + "</span></div>");
           }
-          board.innerHTML = cells.join("");
         }
-        function applyTheme(theme) {
-          if (theme === "dark") {
-            root.dataset.theme = "dark";
-          } else {
-            delete root.dataset.theme;
-          }
-          toggle.setAttribute("aria-label", theme === "dark" ? "切换到浅色模式" : "切换到深色模式");
-        }
-        function saveTheme(theme) {
-          try {
-            localStorage.setItem(STORAGE_KEY, theme);
-          } catch (e) {}
-        }
-        toggle.addEventListener("click", function () {
-          const next = root.dataset.theme === "dark" ? "light" : "dark";
-          applyTheme(next);
-          saveTheme(next);
-        });
-        applyTheme(root.dataset.theme === "dark" ? "dark" : "light");
-        buildBoard();
+        board.innerHTML = cells.join("");
       })();
     </script>
   </body>

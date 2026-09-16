@@ -4,13 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>字符统计</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
+        color-scheme: light;
         --bg-primary: #f2f2f7;
         --bg-secondary: #ffffff;
         --text-primary: #1c1c1e;
@@ -21,8 +17,6 @@
         --accent-hover: rgba(0, 122, 255, 0.15);
         --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
         --border: rgba(0, 0, 0, 0.05);
-        --toggle-bg: #e5e5ea;
-        --toggle-knob: #ffffff;
         --color-han: #34c759;
         --color-alpha: #007aff;
         --color-digit: #ff9500;
@@ -30,22 +24,24 @@
         --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
         --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
       }
-      [data-theme="dark"] {
-        --bg-primary: #000000;
-        --bg-secondary: #1c1c1e;
-        --text-primary: #f5f5f7;
-        --text-secondary: #98989d;
-        --text-tertiary: #636366;
-        --accent: #0a84ff;
-        --accent-light: rgba(10, 132, 255, 0.15);
-        --accent-hover: rgba(10, 132, 255, 0.25);
-        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-        --border: rgba(255, 255, 255, 0.08);
-        --toggle-bg: #48484a;
-        --color-han: #30d158;
-        --color-alpha: #0a84ff;
-        --color-digit: #ff9f0a;
-        --color-other: #bf5af2;
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --bg-primary: #000000;
+          --bg-secondary: #1c1c1e;
+          --text-primary: #f5f5f7;
+          --text-secondary: #98989d;
+          --text-tertiary: #636366;
+          --accent: #0a84ff;
+          --accent-light: rgba(10, 132, 255, 0.15);
+          --accent-hover: rgba(10, 132, 255, 0.25);
+          --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+          --border: rgba(255, 255, 255, 0.08);
+          --color-han: #30d158;
+          --color-alpha: #0a84ff;
+          --color-digit: #ff9f0a;
+          --color-other: #bf5af2;
+        }
       }
       * {
         box-sizing: border-box;
@@ -73,14 +69,9 @@
       header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 12px;
         padding-bottom: 24px;
         flex-shrink: 0;
-      }
-      .header-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
       }
       .logo {
         width: 40px;
@@ -91,6 +82,7 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
+        flex-shrink: 0;
       }
       .logo svg {
         width: 22px;
@@ -108,56 +100,6 @@
         font-size: 0.8rem;
         color: var(--text-secondary);
         margin: 2px 0 0;
-      }
-      .theme-toggle {
-        position: relative;
-        width: 52px;
-        height: 32px;
-        border-radius: 16px;
-        background: var(--toggle-bg);
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.2s;
-      }
-      .theme-toggle::after {
-        content: "";
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: var(--toggle-knob);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        transition: transform 0.4s var(--ease-spring);
-      }
-      [data-theme="dark"] .theme-toggle::after {
-        transform: translateX(20px);
-      }
-      .toggle-icon {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 16px;
-        height: 16px;
-        fill: var(--text-secondary);
-        transition: opacity 0.2s;
-        pointer-events: none;
-      }
-      .icon-sun {
-        left: 8px;
-        opacity: 1;
-      }
-      .icon-moon {
-        right: 8px;
-        opacity: 0.4;
-      }
-      [data-theme="dark"] .icon-sun {
-        opacity: 0.4;
-      }
-      [data-theme="dark"] .icon-moon {
-        opacity: 1;
       }
       .stats-grid {
         display: grid;
@@ -236,6 +178,7 @@
         padding: 4px 10px;
         border-radius: 8px;
         border: 1px solid var(--border);
+        font-variant-numeric: tabular-nums;
       }
       .action-btns {
         display: flex;
@@ -377,19 +320,13 @@
   <body>
     <div class="app">
       <header>
-        <div class="header-left">
-          <div class="logo">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h6v1.5H8V16zm0-6h3v1.5H8V10z" /></svg>
-          </div>
-          <div class="title-group">
-            <h1>字符统计</h1>
-            <p>实时分析文本内容</p>
-          </div>
+        <div class="logo">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h6v1.5H8V16zm0-6h3v1.5H8V10z" /></svg>
         </div>
-        <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
-          <svg class="toggle-icon icon-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-3a1 1 0 01-1-1V1a1 1 0 112 0v2a1 1 0 01-1 1zm0 18a1 1 0 01-1-1v-2a1 1 0 112 0v2a1 1 0 01-1 1zm9-9a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM5 12a1 1 0 01-1 1H2a1 1 0 110-2h2a1 1 0 011 1zm14.07-6.36a1 1 0 01-.7.3 1 1 0 01-.71-.3l-1.41-1.41a1 1 0 111.41-1.41l1.41 1.41a1 1 0 010 1.41zM6.34 18.37a1 1 0 01-.7.29 1 1 0 01-.71-.3l-1.41-1.4a1 1 0 111.41-1.42l1.41 1.41a1 1 0 010 1.42zM19.07 18.37a1 1 0 010-1.42l1.41-1.41a1 1 0 111.41 1.42l-1.41 1.4a1 1 0 01-1.41.01zM6.34 6.34a1 1 0 010-1.41L7.75 3.52a1 1 0 011.41 1.41L7.75 6.34a1 1 0 01-1.41 0z" /></svg>
-          <svg class="toggle-icon icon-moon" viewBox="0 0 24 24"><path d="M21.64 13a1 1 0 00-1.05-.14 8.05 8.05 0 01-3.37.73A8.15 8.15 0 019.08 5.49a8.59 8.59 0 01.25-2 1 1 0 00-.35-1A1 1 0 008 2.36a10.14 10.14 0 1014 11.69 1 1 0 00-.36-1.05z" /></svg>
-        </button>
+        <div class="title-group">
+          <h1>字符统计</h1>
+          <p>实时分析文本内容</p>
+        </div>
       </header>
       <div class="stats-grid">
         <div class="stat-card han">
@@ -435,8 +372,6 @@
     <script>
       (function () {
         const els = {
-          html: document.documentElement,
-          toggle: document.getElementById("themeToggle"),
           input: document.getElementById("textInput"),
           han: document.getElementById("hanCount"),
           alpha: document.getElementById("alphaCount"),
@@ -447,19 +382,6 @@
           pasteBtn: document.getElementById("pasteBtn"),
           clearBtn: document.getElementById("clearBtn"),
         };
-        const getPreferredTheme = () => {
-          const saved = localStorage.getItem("theme");
-          return saved === "dark" ? "dark" : "light";
-        };
-        const setTheme = (theme) => {
-          els.html.setAttribute("data-theme", theme);
-          localStorage.setItem("theme", theme);
-        };
-        setTheme(getPreferredTheme());
-        els.toggle.addEventListener("click", () => {
-          const current = els.html.getAttribute("data-theme");
-          setTheme(current === "light" ? "dark" : "light");
-        });
         const updateStats = () => {
           const text = els.input.value;
           const len = text.length;
@@ -478,12 +400,12 @@
             el.classList.add("animate-pop");
           });
         };
-        els.input.addEventListener("input", updateStats);
         const showToast = (msg) => {
           els.toast.textContent = msg;
           els.toast.classList.add("show");
           setTimeout(() => els.toast.classList.remove("show"), 2000);
         };
+        els.input.addEventListener("input", updateStats);
         els.pasteBtn.addEventListener("click", async () => {
           try {
             const text = await navigator.clipboard.readText();

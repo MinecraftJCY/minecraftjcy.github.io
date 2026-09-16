@@ -4,38 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitHub主页</title>
-    <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("theme") === "dark" ? "dark" : "light";
-      } catch (e) {}
-    </script>
     <style>
       :root {
-        --bg-gradient: linear-gradient(135deg, #1a1d2e 0%, #252040 40%, #1e1b2e 100%);
-        --bg-fallback: #1a1d2e;
-        --text: #e8e6f0;
-        --text-muted: rgba(220, 218, 230, 0.8);
-        --glow-1: rgba(255, 255, 255, 0.05);
-        --glow-2: rgba(255, 255, 255, 0.04);
-        --nav-bg: rgba(30, 28, 48, 0.55);
-        --nav-border: rgba(255, 255, 255, 0.12);
-        --nav-shadow: 0 10px 34px rgba(0, 0, 0, 0.38);
-        --tab-active-bg: rgba(255, 255, 255, 0.16);
-        --tab-active-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
-        --card-bg: rgba(255, 255, 255, 0.06);
-        --card-bg-hover: rgba(255, 255, 255, 0.12);
-        --card-border: rgba(255, 255, 255, 0.1);
-        --card-border-hover: rgba(255, 255, 255, 0.3);
-        --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-        --card-shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.4);
-        --card-icon-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
-        --footer-border: rgba(255, 255, 255, 0.08);
-        --footer-text: rgba(220, 218, 230, 0.55);
-        --ease-bounce: cubic-bezier(0.34, 1.25, 0.64, 1);
-        --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
-        --theme-duration: 0.45s;
-      }
-      [data-theme="light"] {
         --bg-gradient: linear-gradient(155deg, #fdf6f0 0%, #f8f1e8 35%, #f5eff8 70%, #fdf6f0 100%);
         --bg-fallback: #fdf6f0;
         --text: #3d3a45;
@@ -56,6 +26,33 @@
         --card-icon-shadow: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.12));
         --footer-border: rgba(0, 0, 0, 0.07);
         --footer-text: rgba(60, 55, 65, 0.5);
+        --ease-bounce: cubic-bezier(0.34, 1.25, 0.64, 1);
+        --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
+        --theme-duration: 0.45s;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-gradient: linear-gradient(135deg, #1a1d2e 0%, #252040 40%, #1e1b2e 100%);
+          --bg-fallback: #1a1d2e;
+          --text: #e8e6f0;
+          --text-muted: rgba(220, 218, 230, 0.8);
+          --glow-1: rgba(255, 255, 255, 0.05);
+          --glow-2: rgba(255, 255, 255, 0.04);
+          --nav-bg: rgba(30, 28, 48, 0.55);
+          --nav-border: rgba(255, 255, 255, 0.12);
+          --nav-shadow: 0 10px 34px rgba(0, 0, 0, 0.38);
+          --tab-active-bg: rgba(255, 255, 255, 0.16);
+          --tab-active-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
+          --card-bg: rgba(255, 255, 255, 0.06);
+          --card-bg-hover: rgba(255, 255, 255, 0.12);
+          --card-border: rgba(255, 255, 255, 0.1);
+          --card-border-hover: rgba(255, 255, 255, 0.3);
+          --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+          --card-shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.4);
+          --card-icon-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+          --footer-border: rgba(255, 255, 255, 0.08);
+          --footer-text: rgba(220, 218, 230, 0.55);
+        }
       }
       *,
       *::before,
@@ -113,12 +110,9 @@
         position: sticky;
         top: 1rem;
         z-index: 100;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
         width: fit-content;
         margin: 0 auto 3.5rem;
-        padding: 0.3rem 0.35rem 0.3rem 0.4rem;
+        padding: 0.3rem 0.4rem;
         border: 1px solid var(--nav-border);
         border-radius: 999px;
         background: var(--nav-bg);
@@ -185,51 +179,6 @@
         color: var(--text);
       }
       .tab-btn:focus-visible {
-        outline: 2px solid var(--card-border-hover);
-        outline-offset: 3px;
-      }
-      .nav-divider {
-        flex-shrink: 0;
-        width: 1px;
-        height: 20px;
-        margin: 0 0.15rem;
-        background: var(--nav-border);
-        transition: background var(--theme-duration) ease;
-      }
-      .theme-toggle {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border: 1px solid transparent;
-        border-radius: 50%;
-        background: transparent;
-        color: var(--text);
-        font-size: 1.1rem;
-        line-height: 1;
-        cursor: pointer;
-        outline: none;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        transition:
-          background 0.25s ease,
-          border-color 0.25s ease,
-          transform 0.25s ease;
-      }
-      @media (hover: hover) {
-        .theme-toggle:hover {
-          background: var(--tab-active-bg);
-          border-color: var(--nav-border);
-          transform: scale(1.07) rotate(12deg);
-        }
-      }
-      .theme-toggle:active {
-        transform: scale(0.9);
-        transition: transform 0.12s ease;
-      }
-      .theme-toggle:focus-visible {
         outline: 2px solid var(--card-border-hover);
         outline-offset: 3px;
       }
@@ -397,11 +346,6 @@
           padding: 0.5rem 1.05rem;
           font-size: 0.9rem;
         }
-        .theme-toggle {
-          width: 36px;
-          height: 36px;
-          font-size: 1rem;
-        }
       }
       @media (min-width: 1400px) {
         .projects-grid {
@@ -432,10 +376,6 @@
         <div class="tabs" role="tablist">
           <span class="tab-indicator" aria-hidden="true"></span>
         </div>
-        <span class="nav-divider" aria-hidden="true"></span>
-        <button class="theme-toggle" type="button" aria-label="切换主题" title="切换亮色/暗色主题">
-          <span class="theme-toggle-icon">☀️</span>
-        </button>
       </nav>
       <main class="projects-grid"></main>
       <footer>
@@ -473,35 +413,16 @@
           { id: "fun", label: "娱乐" },
           { id: "tools", label: "工具" },
         ];
-        const STORAGE_KEYS = { theme: "theme", category: "category" };
-        const THEMES = { light: "light", dark: "dark" };
         const DEFAULT_CATEGORY = CATEGORIES[0].id;
         const CARD_STAGGER = 0.05;
         const CARD_DURATION = 0.55;
         const FOOTER_BUFFER = 0.2;
         const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const dom = {
-          root: document.documentElement,
           tabs: document.querySelector(".tabs"),
           indicator: document.querySelector(".tab-indicator"),
           grid: document.querySelector(".projects-grid"),
           footer: document.querySelector("footer"),
-          themeToggle: document.querySelector(".theme-toggle"),
-          themeIcon: document.querySelector(".theme-toggle-icon"),
-        };
-        const storage = {
-          read(key) {
-            try {
-              return localStorage.getItem(key);
-            } catch {
-              return null;
-            }
-          },
-          write(key, value) {
-            try {
-              localStorage.setItem(key, value);
-            } catch {}
-          },
         };
         const createElement = (tag, { className, text, ...attributes } = {}, ...children) => {
           const node = document.createElement(tag);
@@ -511,30 +432,6 @@
           node.append(...children);
           return node;
         };
-        const themeController = (() => {
-          let current = THEMES.dark;
-          const stored = () => {
-            const value = storage.read(STORAGE_KEYS.theme);
-            return value === THEMES.light || value === THEMES.dark ? value : null;
-          };
-          const apply = (theme) => {
-            current = theme;
-            const light = theme === THEMES.light;
-            if (light) dom.root.setAttribute("data-theme", THEMES.light);
-            else dom.root.removeAttribute("data-theme");
-            dom.themeIcon.textContent = light ? "🌙" : "☀️";
-          };
-          const toggle = () => {
-            const next = current === THEMES.light ? THEMES.dark : THEMES.light;
-            apply(next);
-            storage.write(STORAGE_KEYS.theme, next);
-          };
-          const init = () => {
-            apply(stored() ?? THEMES.light);
-            dom.themeToggle.addEventListener("click", toggle);
-          };
-          return { init };
-        })();
         const tabsController = (() => {
           let buttons = [];
           let cards = [];
@@ -596,29 +493,17 @@
             });
             dom.grid.append(fragment);
           };
-          const restoreCategory = () => {
-            const saved = storage.read(STORAGE_KEYS.category);
-            return cardsByCategory.has(saved) ? saved : DEFAULT_CATEGORY;
-          };
           const bindTabs = () => {
             buttons.forEach((button) => {
               button.addEventListener("click", () => {
                 const category = button.dataset.category;
                 if (category === activeCategory) return;
                 activate(category);
-                storage.write(STORAGE_KEYS.category, category);
               });
             });
           };
           const bindViewport = () => {
             window.addEventListener("resize", () => moveIndicator(activeButton()));
-            window.addEventListener("pageshow", ({ persisted }) => {
-              if (!persisted) return;
-              const restored = storage.read(STORAGE_KEYS.category);
-              if (!buttons.some((button) => button.dataset.category === restored)) return;
-              if (restored === activeCategory) return;
-              activate(restored, { instant: true });
-            });
             if (document.fonts?.ready) {
               document.fonts.ready.then(() => moveIndicator(activeButton()));
             }
@@ -630,13 +515,12 @@
             cards = [...dom.grid.querySelectorAll(".project-card")];
             cardsByCategory = new Map(CATEGORIES.map(({ id }) => [id, cards.filter((card) => card.dataset.category === id)]));
             bindTabs();
-            activate(restoreCategory(), { instant: true });
+            activate(DEFAULT_CATEGORY, { instant: true });
             syncFooterDelay();
             bindViewport();
           };
           return { init };
         })();
-        themeController.init();
         tabsController.init();
       })();
     </script>
