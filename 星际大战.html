@@ -1,7 +1,8 @@
 <!doctype html>
+<html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>星际大战</title>
     <style>
       *,
@@ -469,7 +470,7 @@
               bh = 48;
             const bx = W / 2 - bw / 2;
             const ry = H * 0.5;
-            const rr = H * 0.64;
+            const rr = ry + bh + 14;
             if (x >= bx && x <= bx + bw) {
               if (y >= ry && y <= ry + bh) {
                 S.mode = MODE.PLAYING;
