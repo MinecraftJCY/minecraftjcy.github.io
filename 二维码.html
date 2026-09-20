@@ -1,0 +1,370 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>二维码生成器</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <style>
+      :root {
+        --bg: #f5f5f7;
+        --card: #ffffff;
+        --fill: rgba(120, 120, 128, 0.08);
+        --text: #1d1d1f;
+        --muted: #6e6e73;
+        --border: rgba(0, 0, 0, 0.06);
+        --accent: #0071e3;
+        --accent-soft: rgba(0, 113, 227, 0.18);
+        --seg-bg: rgba(120, 120, 128, 0.1);
+        --seg-thumb: #ffffff;
+        --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 18px 40px -16px rgba(0, 0, 0, 0.18);
+        --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --card: #1c1c1e;
+          --fill: rgba(120, 120, 128, 0.18);
+          --text: #f5f5f7;
+          --muted: #98989d;
+          --border: rgba(255, 255, 255, 0.08);
+          --accent: #0a84ff;
+          --accent-soft: rgba(10, 132, 255, 0.3);
+          --seg-bg: rgba(120, 120, 128, 0.22);
+          --seg-thumb: #48484a;
+          --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.6), 0 18px 40px -16px rgba(0, 0, 0, 0.8);
+          --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        height: 100%;
+      }
+      body {
+        min-height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        transition:
+          background-color 0.35s ease,
+          color 0.35s ease;
+      }
+      .app {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(16px, 5vw, 48px);
+        padding-top: max(clamp(16px, 5vw, 48px), env(safe-area-inset-top));
+        padding-bottom: max(clamp(16px, 5vw, 48px), env(safe-area-inset-bottom));
+      }
+      .shell {
+        width: min(100%, 460px);
+        display: grid;
+        gap: clamp(18px, 4vw, 26px);
+      }
+      .hero {
+        text-align: center;
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(24px, 5.5vw, 28px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .card {
+        display: grid;
+        gap: 18px;
+        padding: clamp(18px, 4.5vw, 24px);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow-card);
+        transition:
+          background-color 0.35s ease,
+          border-color 0.35s ease,
+          box-shadow 0.35s ease;
+      }
+      .field {
+        padding: 14px 16px;
+        background: var(--fill);
+        border: 1.5px solid transparent;
+        border-radius: 16px;
+        transition:
+          border-color 0.25s ease,
+          box-shadow 0.25s ease,
+          background-color 0.35s ease;
+      }
+      .field:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3.5px var(--accent-soft);
+      }
+      .field textarea {
+        display: block;
+        width: 100%;
+        min-height: 84px;
+        padding: 0;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        resize: none;
+      }
+      .field textarea::placeholder {
+        color: var(--muted);
+        opacity: 0.85;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px 12px;
+      }
+      .control-label {
+        font-size: 13px;
+        letter-spacing: -0.01em;
+        color: var(--muted);
+      }
+      .segmented {
+        position: relative;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        width: 172px;
+        max-width: 100%;
+        padding: 2px;
+        border-radius: 11px;
+        background: var(--seg-bg);
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 0.35s ease;
+      }
+      .thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        bottom: 2px;
+        width: calc((100% - 4px) / 4);
+        border-radius: 9px;
+        background: var(--seg-thumb);
+        box-shadow: var(--shadow-thumb);
+        pointer-events: none;
+        transition:
+          transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+          background-color 0.35s ease;
+      }
+      .segment {
+        position: relative;
+        z-index: 1;
+        padding: 7px 0;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.25s ease;
+      }
+      .segment.is-active {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .segment:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .qr-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      .qr {
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transform: scale(0.94);
+        transition:
+          opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+          transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      .qr-wrap.has-qr .qr {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .qr svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .hint {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        margin: 0;
+        padding: 0 28px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        color: var(--muted);
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .qr-wrap.has-qr .hint {
+        opacity: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <div class="shell">
+        <header class="hero">
+          <h1>二维码生成器</h1>
+        </header>
+        <section class="card">
+          <div class="field">
+            <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="输入文本、链接或任意字符串…"></textarea>
+          </div>
+          <div class="controls">
+            <span class="control-label">纠错等级</span>
+            <div class="segmented" id="segmented" role="radiogroup" aria-label="纠错等级">
+              <span class="thumb" id="thumb"></span>
+              <button type="button" class="segment" role="radio" aria-checked="false" data-level="L">L</button>
+              <button type="button" class="segment is-active" role="radio" aria-checked="true" data-level="M">M</button>
+              <button type="button" class="segment" role="radio" aria-checked="false" data-level="Q">Q</button>
+              <button type="button" class="segment" role="radio" aria-checked="false" data-level="H">H</button>
+            </div>
+          </div>
+          <div class="qr-wrap" id="qrWrap">
+            <div class="qr" id="qr"></div>
+            <p class="hint" id="hint">输入内容后显示二维码</p>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script>
+      (function () {
+        "use strict";
+        var HINT_EMPTY = "输入内容后显示二维码";
+        var HINT_ERROR = "内容过长，无法生成二维码";
+        var LEVELS = ["L", "M", "Q", "H"];
+        var DEBOUNCE = 200;
+        var els = {
+          input: document.getElementById("input"),
+          qrWrap: document.getElementById("qrWrap"),
+          qr: document.getElementById("qr"),
+          hint: document.getElementById("hint"),
+          segmented: document.getElementById("segmented"),
+          thumb: document.getElementById("thumb"),
+        };
+        var level = "M";
+        var revision = 0;
+        var timer = 0;
+        function setHint(message) {
+          els.hint.textContent = message;
+        }
+        function clearQR() {
+          revision++;
+          els.qr.innerHTML = "";
+          els.qrWrap.classList.remove("has-qr");
+        }
+        function paint(text) {
+          var rev = ++revision;
+          var handle = function (err, svg) {
+            if (rev !== revision) return;
+            if (err || !svg) {
+              clearQR();
+              setHint(HINT_ERROR);
+              return;
+            }
+            els.qr.innerHTML = svg;
+            els.qrWrap.classList.add("has-qr");
+          };
+          try {
+            QRCode.toString(
+              text,
+              {
+                type: "svg",
+                margin: 2,
+                color: { dark: "#0b0b0f", light: "#ffffff" },
+                errorCorrectionLevel: level,
+              },
+              handle,
+            );
+          } catch (err) {
+            if (rev === revision) {
+              clearQR();
+              setHint(HINT_ERROR);
+            }
+          }
+        }
+        function render(immediate) {
+          clearTimeout(timer);
+          var text = els.input.value;
+          if (text.trim() === "") {
+            clearQR();
+            setHint(HINT_EMPTY);
+            return;
+          }
+          if (immediate) {
+            paint(text);
+          } else {
+            timer = setTimeout(function () {
+              paint(text);
+            }, DEBOUNCE);
+          }
+        }
+        function setLevel(next) {
+          if (level === next) return;
+          level = next;
+          els.thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
+          els.segmented.querySelectorAll(".segment").forEach(function (button) {
+            var active = button.dataset.level === level;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-checked", String(active));
+          });
+          if (els.input.value.trim() !== "") render(true);
+        }
+        els.input.addEventListener("input", function () {
+          render(false);
+        });
+        els.segmented.addEventListener("click", function (event) {
+          var button = event.target.closest(".segment");
+          if (button) setLevel(button.dataset.level);
+        });
+        els.thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
+      })();
+    </script>
+  </body>
+</html>
