@@ -5,426 +5,352 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>字符统计</title>
     <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
       :root {
         color-scheme: light;
-        --bg-primary: #f2f2f7;
-        --bg-secondary: #ffffff;
-        --text-primary: #1c1c1e;
-        --text-secondary: #6e6e73;
-        --text-tertiary: #aeaeb2;
-        --accent: #007aff;
-        --accent-light: rgba(0, 122, 255, 0.1);
-        --accent-hover: rgba(0, 122, 255, 0.15);
-        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-        --border: rgba(0, 0, 0, 0.05);
-        --color-han: #34c759;
-        --color-alpha: #007aff;
-        --color-digit: #ff9500;
-        --color-other: #af52de;
-        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-        --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+        --bg: #e9edf3;
+        --shadow-dark: #c2c8d3;
+        --shadow-light: #ffffff;
+        --text: #2c313a;
+        --muted: #5a6270;
+        --faint: #aeb6c4;
+        --raise: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+        --raise-sm: 5px 5px 12px var(--shadow-dark), -5px -5px 12px var(--shadow-light);
+        --sink: inset 6px 6px 14px var(--shadow-dark), inset -6px -6px 14px var(--shadow-light);
       }
       @media (prefers-color-scheme: dark) {
         :root {
           color-scheme: dark;
-          --bg-primary: #000000;
-          --bg-secondary: #1c1c1e;
-          --text-primary: #f5f5f7;
-          --text-secondary: #98989d;
-          --text-tertiary: #636366;
-          --accent: #0a84ff;
-          --accent-light: rgba(10, 132, 255, 0.15);
-          --accent-hover: rgba(10, 132, 255, 0.25);
-          --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-          --border: rgba(255, 255, 255, 0.08);
-          --color-han: #30d158;
-          --color-alpha: #0a84ff;
-          --color-digit: #ff9f0a;
-          --color-other: #bf5af2;
+          --bg: #24272e;
+          --shadow-dark: #191b20;
+          --shadow-light: #2f333c;
+          --text: #e2e6ee;
+          --muted: #9aa2b2;
+          --faint: #5c6373;
         }
       }
-      * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
+      html {
+        height: 100%;
       }
-      html,
       body {
         margin: 0;
-        padding: 0;
-        height: 100%;
-        background: var(--bg-primary);
-        color: var(--text-primary);
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        padding: 48px 32px;
+        background: var(--bg);
+        color: var(--text);
         transition:
-          background 0.3s var(--ease-smooth),
-          color 0.3s var(--ease-smooth);
+          background-color 0.35s ease,
+          color 0.35s ease;
       }
       .app {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 24px 20px 40px;
-        min-height: 100vh;
+        margin: auto;
+        width: 100%;
+        max-width: 760px;
         display: flex;
         flex-direction: column;
+        gap: 32px;
       }
-      header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding-bottom: 24px;
-        flex-shrink: 0;
-      }
-      .logo {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, var(--accent), #5856d6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
-        flex-shrink: 0;
-      }
-      .logo svg {
-        width: 22px;
-        height: 22px;
-        fill: #fff;
-      }
-      .title-group h1 {
-        font-size: 1.35rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+      .title {
         margin: 0;
-        line-height: 1.2;
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-indent: 0.18em;
+        transition: color 0.35s ease;
       }
-      .title-group p {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        margin: 2px 0 0;
-      }
-      .stats-grid {
+      .stats {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 12px;
-        margin-bottom: 24px;
-        flex-shrink: 0;
-      }
-      .stat-card {
-        background: var(--bg-secondary);
-        border-radius: 16px;
-        padding: 16px 8px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--border);
-        text-align: center;
+        padding: 26px 20px;
+        border-radius: 26px;
+        background: var(--bg);
+        box-shadow: var(--sink);
         transition:
-          transform 0.2s var(--ease-smooth),
-          box-shadow 0.2s;
+          box-shadow 0.28s ease,
+          background-color 0.35s ease;
       }
-      .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-      }
-      .stat-label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        margin-bottom: 6px;
-      }
-      .stat-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        line-height: 1;
-        font-variant-numeric: tabular-nums;
-      }
-      .stat-card.han .stat-value {
-        color: var(--color-han);
-      }
-      .stat-card.alpha .stat-value {
-        color: var(--color-alpha);
-      }
-      .stat-card.digit .stat-value {
-        color: var(--color-digit);
-      }
-      .stat-card.other .stat-value {
-        color: var(--color-other);
-      }
-      .input-section {
-        flex: 1;
+      .stat {
         display: flex;
         flex-direction: column;
-        min-height: 0;
-      }
-      .input-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        flex-shrink: 0;
-      }
-      .label-group {
-        display: flex;
         align-items: center;
         gap: 10px;
+        padding: 6px 4px;
       }
-      .input-title {
+      .stat-label {
         font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-      }
-      .total-badge {
-        font-size: 0.75rem;
         font-weight: 500;
-        color: var(--text-tertiary);
-        background: var(--bg-secondary);
-        padding: 4px 10px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
+        letter-spacing: 0.08em;
+        text-indent: 0.08em;
+        transition: color 0.35s ease;
+      }
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: 0.02em;
         font-variant-numeric: tabular-nums;
+        transition: color 0.35s ease;
       }
-      .action-btns {
-        display: flex;
-        gap: 8px;
-      }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border-radius: 10px;
-        border: none;
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .btn svg {
-        width: 14px;
-        height: 14px;
-      }
-      .btn-ghost {
-        background: var(--accent-light);
-        color: var(--accent);
-      }
-      .btn-ghost:hover {
-        background: var(--accent-hover);
-      }
-      .btn-ghost:active {
-        transform: scale(0.96);
-      }
-      .btn-danger {
-        background: rgba(255, 59, 48, 0.1);
-        color: #ff3b30;
-      }
-      .btn-danger:hover {
-        background: rgba(255, 59, 48, 0.18);
-      }
-      .btn-danger:active {
-        transform: scale(0.96);
-      }
-      .textarea-wrap {
-        flex: 1;
-        position: relative;
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-      }
-      textarea {
-        width: 100%;
-        flex: 1;
-        min-height: 200px;
-        padding: 18px 20px;
-        border-radius: 18px;
-        border: 1.5px solid var(--border);
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        font-size: 1rem;
-        line-height: 1.6;
-        resize: none;
-        outline: none;
-        box-shadow: var(--card-shadow);
-        transition:
-          border-color 0.2s,
-          box-shadow 0.2s;
-      }
-      textarea::placeholder {
-        color: var(--text-tertiary);
-      }
-      textarea:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-light);
-      }
-      .toast {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%) translateY(100px);
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(10px);
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        opacity: 0;
-        transition: all 0.3s var(--ease-spring);
-        pointer-events: none;
-        z-index: 100;
-        white-space: nowrap;
-      }
-      .toast.show {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-      @keyframes pop {
-        0% {
-          transform: scale(0.9);
+      @keyframes valuePop {
+        from {
+          transform: scale(0.94);
           opacity: 0.5;
         }
-        100% {
+        to {
           transform: scale(1);
           opacity: 1;
         }
       }
-      .animate-pop {
-        animation: pop 0.3s var(--ease-spring);
+      .pop {
+        animation: valuePop 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
       }
-      @media (max-width: 600px) {
-        .stats-grid {
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
+      .input {
+        width: 100%;
+        height: 300px;
+        padding: 26px 28px;
+        border: none;
+        outline: none;
+        resize: none;
+        border-radius: 26px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        box-shadow: var(--sink);
+        scrollbar-width: thin;
+        scrollbar-color: var(--faint) transparent;
+        transition:
+          box-shadow 0.28s ease,
+          background-color 0.35s ease,
+          color 0.35s ease;
+      }
+      .input::placeholder {
+        color: var(--faint);
+      }
+      .input:focus,
+      .input:focus-visible {
+        outline: none;
+      }
+      .input::-webkit-scrollbar {
+        width: 10px;
+      }
+      .input::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .input::-webkit-scrollbar-thumb {
+        background: var(--faint);
+        background-clip: content-box;
+        border: 3px solid transparent;
+        border-radius: 10px;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+      .total {
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        transition: color 0.35s ease;
+      }
+      .actions {
+        display: flex;
+        gap: 16px;
+      }
+      .btn {
+        padding: 14px 34px;
+        border: none;
+        border-radius: 16px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 1.05rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-indent: 0.1em;
+        cursor: pointer;
+        box-shadow: var(--raise-sm);
+        transition:
+          box-shadow 0.22s ease,
+          color 0.22s ease,
+          background-color 0.35s ease;
+      }
+      .btn:active {
+        box-shadow: var(--sink);
+      }
+      .btn:focus-visible {
+        box-shadow:
+          var(--raise-sm),
+          0 0 0 2px var(--faint);
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 40px;
+        transform: translate(-50%, 14px);
+        padding: 14px 28px;
+        border-radius: 16px;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+        text-indent: 0.1em;
+        white-space: nowrap;
+        box-shadow: var(--raise);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 10;
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+          background-color 0.35s ease,
+          color 0.35s ease;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      @media (max-width: 640px) {
+        body {
+          padding: 32px 20px;
         }
         .app {
-          padding: 16px;
+          gap: 22px;
         }
-        header {
-          padding-bottom: 16px;
+        .title {
+          font-size: 1.3rem;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px 12px;
+          padding: 22px 16px;
+          border-radius: 22px;
+        }
+        .stat-label {
+          font-size: 0.8rem;
         }
         .stat-value {
-          font-size: 1.5rem;
+          font-size: 1.6rem;
         }
-        textarea {
-          padding: 14px;
+        .input {
+          height: 240px;
+          padding: 20px;
           font-size: 16px;
+          border-radius: 22px;
         }
-        .input-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 10px;
-        }
-        .action-btns {
+        .actions {
           width: 100%;
-          justify-content: flex-end;
+        }
+        .btn {
+          flex: 1;
+          padding: 13px 18px;
+          font-size: 0.95rem;
+        }
+        .total {
+          font-size: 0.85rem;
+        }
+        .toast {
+          bottom: 28px;
+          padding: 12px 22px;
+          font-size: 0.85rem;
         }
       }
     </style>
   </head>
   <body>
-    <div class="app">
-      <header>
-        <div class="logo">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h6v1.5H8V16zm0-6h3v1.5H8V10z" /></svg>
+    <main class="app">
+      <h1 class="title">字符统计</h1>
+      <section class="stats">
+        <div class="stat">
+          <span class="stat-label">汉字</span>
+          <span class="stat-value" id="hanCount">0</span>
         </div>
-        <div class="title-group">
-          <h1>字符统计</h1>
-          <p>实时分析文本内容</p>
+        <div class="stat">
+          <span class="stat-label">字母</span>
+          <span class="stat-value" id="alphaCount">0</span>
         </div>
-      </header>
-      <div class="stats-grid">
-        <div class="stat-card han">
-          <div class="stat-label">汉字</div>
-          <div class="stat-value" id="hanCount">0</div>
+        <div class="stat">
+          <span class="stat-label">数字</span>
+          <span class="stat-value" id="digitCount">0</span>
         </div>
-        <div class="stat-card alpha">
-          <div class="stat-label">字母</div>
-          <div class="stat-value" id="alphaCount">0</div>
+        <div class="stat">
+          <span class="stat-label">其他符号</span>
+          <span class="stat-value" id="otherCount">0</span>
         </div>
-        <div class="stat-card digit">
-          <div class="stat-label">数字</div>
-          <div class="stat-value" id="digitCount">0</div>
-        </div>
-        <div class="stat-card other">
-          <div class="stat-label">其他符号</div>
-          <div class="stat-value" id="otherCount">0</div>
-        </div>
-      </div>
-      <div class="input-section">
-        <div class="input-header">
-          <div class="label-group">
-            <span class="input-title">输入文本</span>
-            <span class="total-badge" id="totalBadge">共 0 字符</span>
-          </div>
-          <div class="action-btns">
-            <button class="btn btn-ghost" id="pasteBtn">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z" /></svg>
-              粘贴
-            </button>
-            <button class="btn btn-danger" id="clearBtn">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
-              清空
-            </button>
-          </div>
-        </div>
-        <div class="textarea-wrap">
-          <textarea id="textInput" placeholder="在此输入或粘贴文本…" spellcheck="false"></textarea>
+      </section>
+      <textarea class="input" id="textInput" placeholder="在此输入或粘贴文本…" spellcheck="false"></textarea>
+      <div class="toolbar">
+        <span class="total" id="totalBadge">共 0 字符</span>
+        <div class="actions">
+          <button class="btn" id="clearBtn" type="button">清空</button>
         </div>
       </div>
-    </div>
+    </main>
     <div class="toast" id="toast"></div>
     <script>
       (function () {
-        const els = {
-          input: document.getElementById("textInput"),
-          han: document.getElementById("hanCount"),
-          alpha: document.getElementById("alphaCount"),
-          digit: document.getElementById("digitCount"),
-          other: document.getElementById("otherCount"),
-          total: document.getElementById("totalBadge"),
-          toast: document.getElementById("toast"),
-          pasteBtn: document.getElementById("pasteBtn"),
-          clearBtn: document.getElementById("clearBtn"),
+        const byId = (id) => document.getElementById(id);
+        const input = byId("textInput");
+        const total = byId("totalBadge");
+        const toast = byId("toast");
+        const clearBtn = byId("clearBtn");
+        const counters = [
+          { el: byId("hanCount"), pattern: /[\u4e00-\u9fa5]/g },
+          { el: byId("alphaCount"), pattern: /[a-zA-Z]/g },
+          { el: byId("digitCount"), pattern: /[0-9]/g },
+          { el: byId("otherCount"), pattern: null },
+        ];
+        const countMatches = (text, pattern) => (text.match(pattern) || []).length;
+        const playPop = (el) => {
+          el.classList.remove("pop");
+          void el.offsetWidth;
+          el.classList.add("pop");
         };
-        const updateStats = () => {
-          const text = els.input.value;
-          const len = text.length;
-          const han = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
-          const alpha = (text.match(/[a-zA-Z]/g) || []).length;
-          const digit = (text.match(/[0-9]/g) || []).length;
-          const other = len - han - alpha - digit;
-          els.han.textContent = han;
-          els.alpha.textContent = alpha;
-          els.digit.textContent = digit;
-          els.other.textContent = other;
-          els.total.textContent = `共 ${len} 字符`;
-          [els.han, els.alpha, els.digit, els.other].forEach((el) => {
-            el.classList.remove("animate-pop");
-            void el.offsetWidth;
-            el.classList.add("animate-pop");
+        const update = () => {
+          const text = input.value;
+          const han = countMatches(text, counters[0].pattern);
+          const alpha = countMatches(text, counters[1].pattern);
+          const digit = countMatches(text, counters[2].pattern);
+          const values = [han, alpha, digit, text.length - han - alpha - digit];
+          counters.forEach(({ el }, i) => {
+            const next = String(values[i]);
+            if (el.textContent !== next) {
+              el.textContent = next;
+              playPop(el);
+            }
           });
+          total.textContent = `共 ${text.length} 字符`;
         };
-        const showToast = (msg) => {
-          els.toast.textContent = msg;
-          els.toast.classList.add("show");
-          setTimeout(() => els.toast.classList.remove("show"), 2000);
+        let toastTimer;
+        const showToast = (message) => {
+          toast.textContent = message;
+          toast.classList.add("show");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
         };
-        els.input.addEventListener("input", updateStats);
-        els.pasteBtn.addEventListener("click", async () => {
-          try {
-            const text = await navigator.clipboard.readText();
-            els.input.value = text;
-            updateStats();
-            els.input.focus();
-            showToast("已粘贴");
-          } catch (err) {
-            showToast("无法访问剪贴板");
-          }
-        });
-        els.clearBtn.addEventListener("click", () => {
-          if (!els.input.value) return;
-          els.input.value = "";
-          updateStats();
-          els.input.focus();
+        input.addEventListener("input", update);
+        clearBtn.addEventListener("click", () => {
+          if (!input.value) return;
+          input.value = "";
+          update();
+          input.focus();
           showToast("已清空");
         });
-        updateStats();
+        update();
       })();
     </script>
   </body>
