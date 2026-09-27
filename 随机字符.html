@@ -12,35 +12,29 @@
       }
       :root {
         color-scheme: light dark;
-        --bg: #f5f5f7;
-        --surface: #ffffff;
-        --surface-2: #f0f0f3;
-        --surface-3: #e6e6eb;
-        --text: #1d1d1f;
-        --text-2: #6e6e73;
-        --border: rgba(0, 0, 0, 0.08);
-        --track: rgba(0, 0, 0, 0.1);
-        --accent: #0071e3;
-        --accent-active: #0062c4;
-        --shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 14px 34px rgba(0, 0, 0, 0.07);
-        --success: #34c759;
-        --focus: 0 0 0 3px rgba(0, 113, 227, 0.22);
+        --bg: #e8ecf3;
+        --text: #3c4456;
+        --text-soft: #9aa2b4;
+        --text-mute: #b6bdcb;
+        --success: #1e9e5a;
+        --shade: rgba(163, 177, 198, 0.62);
+        --light: rgba(255, 255, 255, 0.92);
+        --r-card: 2rem;
+        --r-control: 1.25rem;
+        --raise-lg: 10px 10px 20px var(--shade), -10px -10px 20px var(--light);
+        --raise: 6px 6px 12px var(--shade), -6px -6px 12px var(--light);
+        --press-lg: inset 8px 8px 16px var(--shade), inset -8px -8px 16px var(--light);
+        --press: inset 5px 5px 10px var(--shade), inset -5px -5px 10px var(--light);
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #000000;
-          --surface: #1c1c1e;
-          --surface-2: #2c2c2e;
-          --surface-3: #3a3a3c;
-          --text: #f5f5f7;
-          --text-2: #98989d;
-          --border: rgba(255, 255, 255, 0.09);
-          --track: rgba(255, 255, 255, 0.16);
-          --accent: #0a84ff;
-          --accent-active: #409cff;
-          --shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 34px rgba(0, 0, 0, 0.45);
-          --success: #30d158;
-          --focus: 0 0 0 3px rgba(10, 132, 255, 0.32);
+          --bg: #2b2e35;
+          --text: #dfe3ec;
+          --text-soft: #838b9c;
+          --text-mute: #6d7585;
+          --success: #4fd68a;
+          --shade: rgba(0, 0, 0, 0.55);
+          --light: rgba(255, 255, 255, 0.08);
         }
       }
       html {
@@ -51,9 +45,10 @@
         min-height: 100vh;
         min-height: 100dvh;
         display: flex;
-        padding: 24px 16px;
+        padding: 1.75rem 1.25rem;
         background: var(--bg);
         color: var(--text);
+        font-family: system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
         -webkit-tap-highlight-color: transparent;
         transition:
@@ -63,280 +58,183 @@
       .app {
         margin: auto;
         width: 100%;
-        max-width: 520px;
+        max-width: 34rem;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 1.5rem;
       }
-      .header {
-        text-align: center;
-        padding: 0 8px 4px;
-      }
-      .header h1 {
+      .title {
         margin: 0;
         font-size: 1.5rem;
         font-weight: 600;
-        letter-spacing: -0.02em;
+        letter-spacing: 0.02em;
+        text-align: center;
       }
-      .card,
+      .panel,
+      .card {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        border-radius: var(--r-card);
+        background: var(--bg);
+        box-shadow: var(--raise-lg);
+      }
       .panel {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 22px;
-        box-shadow: var(--shadow);
-        transition:
-          background-color 0.35s ease,
-          border-color 0.35s ease;
+        gap: 1.75rem;
       }
       .card {
-        padding: 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .panel {
-        padding: 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
-      .password-box {
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 18px 16px;
-        max-height: 180px;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        transition:
-          background-color 0.35s ease,
-          border-color 0.35s ease;
-      }
-      .password-box::-webkit-scrollbar {
-        width: 6px;
-      }
-      .password-box::-webkit-scrollbar-thumb {
-        background: var(--track);
-        border-radius: 999px;
-      }
-      .password {
-        margin: 0;
-        font-size: 1.0625rem;
-        line-height: 1.6;
-        letter-spacing: 0.02em;
-        word-break: break-all;
-        user-select: all;
-        -webkit-user-select: all;
-      }
-      .password.flash {
-        animation: flash 0.3s ease;
-      }
-      @keyframes flash {
-        from {
-          opacity: 0.35;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      .actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .btn {
-        appearance: none;
-        border: none;
-        border-radius: 14px;
-        padding: 14px 16px;
-        font: inherit;
-        font-size: 0.9375rem;
-        font-weight: 500;
-        cursor: pointer;
-        user-select: none;
-        transition:
-          background-color 0.22s ease,
-          transform 0.15s ease,
-          color 0.22s ease;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .btn:active {
-        transform: scale(0.97);
-      }
-      .btn:focus-visible {
-        outline: none;
-        box-shadow: var(--focus);
-      }
-      .btn-primary {
-        background: var(--accent);
-        color: #ffffff;
-      }
-      .btn-primary:hover {
-        background: var(--accent-active);
-      }
-      .btn-primary.is-copied {
-        background: var(--success);
-      }
-      .btn-secondary {
-        background: var(--surface-2);
-        color: var(--text);
-      }
-      .btn-secondary:hover {
-        background: var(--surface-3);
+        gap: 1.5rem;
       }
       .field-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 14px;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
       }
       .label {
         font-size: 0.9375rem;
-        font-weight: 500;
+        font-weight: 600;
+        letter-spacing: 0.02em;
       }
       .length-input {
-        width: 76px;
-        padding: 7px 10px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        background: var(--surface-2);
+        width: 5rem;
+        padding: 0.6rem 0.5rem;
+        border: none;
+        border-radius: var(--r-control);
+        background: var(--bg);
         color: var(--text);
         font: inherit;
-        font-size: 0.9375rem;
+        font-size: 1rem;
+        font-weight: 600;
         font-variant-numeric: tabular-nums;
         text-align: center;
         outline: none;
         appearance: textfield;
         -moz-appearance: textfield;
-        transition:
-          border-color 0.2s ease,
-          box-shadow 0.2s ease,
-          background-color 0.35s ease;
+        box-shadow: var(--press);
       }
       .length-input::-webkit-outer-spin-button,
       .length-input::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }
-      .length-input:focus-visible {
-        border-color: var(--accent);
-        box-shadow: var(--focus);
-      }
-      input[type="range"] {
+      .range {
         -webkit-appearance: none;
         appearance: none;
         display: block;
         width: 100%;
-        height: 24px;
+        height: 2rem;
         margin: 0;
         background: transparent;
         cursor: pointer;
       }
-      input[type="range"]::-webkit-slider-runnable-track {
-        height: 4px;
-        border-radius: 999px;
-        background: linear-gradient(to right, var(--accent) 0 var(--p, 0%), var(--track) var(--p, 0%) 100%);
-      }
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 22px;
-        height: 22px;
-        margin-top: -9px;
-        border-radius: 50%;
-        background: #ffffff;
-        box-shadow:
-          0 1px 3px rgba(0, 0, 0, 0.28),
-          0 0 0 0.5px rgba(0, 0, 0, 0.06);
-        transition: transform 0.15s ease;
-      }
-      input[type="range"]:hover::-webkit-slider-thumb {
-        transform: scale(1.08);
-      }
-      input[type="range"]:active::-webkit-slider-thumb {
-        transform: scale(0.94);
-      }
-      input[type="range"]:focus-visible {
+      .range:focus {
         outline: none;
       }
-      input[type="range"]:focus-visible::-webkit-slider-thumb {
-        box-shadow:
-          0 1px 3px rgba(0, 0, 0, 0.28),
-          var(--focus);
-      }
-      input[type="range"]::-moz-range-track {
-        height: 4px;
+      .range::-webkit-slider-runnable-track {
+        height: 1rem;
         border-radius: 999px;
-        background: var(--track);
+        background: var(--bg);
+        box-shadow: var(--press);
       }
-      input[type="range"]::-moz-range-progress {
-        height: 4px;
-        border-radius: 999px;
-        background: var(--accent);
-      }
-      input[type="range"]::-moz-range-thumb {
-        width: 22px;
-        height: 22px;
+      .range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 1.75rem;
+        height: 1.75rem;
+        margin-top: -0.375rem;
         border: none;
         border-radius: 50%;
-        background: #ffffff;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+        background: var(--bg);
+        box-shadow: var(--raise);
+        transition:
+          box-shadow 0.18s ease,
+          transform 0.18s ease;
+      }
+      .range:active::-webkit-slider-thumb {
+        box-shadow: var(--press);
+        transform: scale(0.94);
+      }
+      .range::-moz-range-track {
+        height: 1rem;
+        border-radius: 999px;
+        background: var(--bg);
+        box-shadow: var(--press);
+      }
+      .range::-moz-range-progress {
+        height: 1rem;
+        border-radius: 999px;
+        background: transparent;
+      }
+      .range::-moz-range-thumb {
+        width: 1.75rem;
+        height: 1.75rem;
+        border: none;
+        border-radius: 50%;
+        background: var(--bg);
+        box-shadow: var(--raise);
+        transition:
+          box-shadow 0.18s ease,
+          transform 0.18s ease;
+      }
+      .range:active::-moz-range-thumb {
+        box-shadow: var(--press);
+        transform: scale(0.94);
       }
       .chips {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 0.875rem;
+      }
+      .chip,
+      .btn {
+        border: none;
+        border-radius: var(--r-control);
+        background: var(--bg);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        box-shadow: var(--raise);
+        transition:
+          box-shadow 0.2s ease,
+          color 0.2s ease;
+      }
+      .chip:focus,
+      .btn:focus {
+        outline: none;
+      }
+      .chip:active,
+      .btn:active {
+        box-shadow: var(--press);
       }
       .chip {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
-        padding: 13px 14px;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        background: var(--surface-2);
-        color: var(--text);
-        font: inherit;
-        font-size: 0.875rem;
-        font-weight: 500;
+        gap: 0.5rem;
+        padding: 0.9rem 1.1rem;
+        font-size: 0.9375rem;
         text-align: left;
-        cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        transition:
-          background-color 0.22s ease,
-          color 0.22s ease,
-          border-color 0.22s ease,
-          transform 0.15s ease;
-      }
-      .chip:hover {
-        background: var(--surface-3);
-      }
-      .chip:active {
-        transform: scale(0.97);
-      }
-      .chip:focus-visible {
-        outline: none;
-        box-shadow: var(--focus);
+        color: var(--text-soft);
       }
       .chip[aria-pressed="true"] {
-        background: var(--accent);
-        border-color: transparent;
-        color: #ffffff;
+        color: var(--text);
+        box-shadow: var(--press);
       }
-      .chip[aria-pressed="true"]:hover {
-        background: var(--accent-active);
+      .chip-name {
+        font-weight: 600;
       }
-      .chip-sample {
-        font-size: 0.75rem;
-        font-weight: 400;
-        color: var(--text-2);
-        transition: color 0.22s ease;
+      .chip-hint {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-mute);
+        transition: color 0.2s ease;
       }
-      .chip[aria-pressed="true"] .chip-sample {
-        color: rgba(255, 255, 255, 0.72);
+      .chip[aria-pressed="true"] .chip-hint {
+        color: var(--text-soft);
       }
       .chip.shake {
         animation: shake 0.3s ease;
@@ -353,24 +251,94 @@
           transform: translateX(4px);
         }
       }
-      @media (max-width: 420px) {
+      .output {
+        height: 7rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 1.375rem;
+        border-radius: var(--r-control);
+        background: var(--bg);
+        box-shadow: var(--press-lg);
+      }
+      .output::-webkit-scrollbar {
+        width: 8px;
+      }
+      .output::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: var(--shade);
+      }
+      .password {
+        margin: 0;
+        font-size: 1.125rem;
+        line-height: 1.75;
+        letter-spacing: 0.04em;
+        word-break: break-all;
+      }
+      .password.flash {
+        animation: flash 0.35s ease;
+      }
+      @keyframes flash {
+        from {
+          opacity: 0.25;
+          transform: translateY(2px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .btn {
+        padding: 1.1rem 1.25rem;
+        font-size: 0.9375rem;
+        letter-spacing: 0.02em;
+        color: var(--text);
+      }
+      .btn.is-copied {
+        color: var(--success);
+      }
+      @media (min-width: 768px) {
         body {
-          padding: 16px 12px;
+          padding: 2.5rem 1.5rem;
         }
-        .header h1 {
-          font-size: 1.3125rem;
+        .app {
+          max-width: 38rem;
+          gap: 1.75rem;
         }
-        .card,
+        .title {
+          font-size: 1.75rem;
+        }
+        .panel,
+        .card {
+          padding: 2rem;
+        }
         .panel {
-          border-radius: 18px;
-          padding: 15px;
+          gap: 2rem;
         }
-        .password {
-          font-size: 1rem;
+        .length-input {
+          width: 5.5rem;
+          font-size: 1.0625rem;
         }
         .chip {
-          font-size: 0.8125rem;
-          padding: 12px 12px;
+          font-size: 1rem;
+        }
+        .output {
+          height: 8rem;
+        }
+        .password {
+          font-size: 1.25rem;
+        }
+      }
+      @media (max-width: 360px) {
+        .chips {
+          grid-template-columns: 1fr;
+        }
+        .actions {
+          gap: 0.75rem;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -386,48 +354,46 @@
   </head>
   <body>
     <main class="app">
-      <header class="header">
-        <h1>随机字符生成器</h1>
-      </header>
+      <h1 class="title">随机字符生成器</h1>
       <section class="panel">
         <div class="field">
           <div class="field-head">
             <label class="label" for="lengthInput">长度</label>
-            <input class="length-input" id="lengthInput" type="number" min="1" max="512" inputmode="numeric" value="12" aria-label="密码长度" />
+            <input class="length-input" id="lengthInput" type="number" min="1" max="512" inputmode="numeric" value="16" aria-label="字符长度" />
           </div>
-          <input id="lengthRange" type="range" min="1" max="512" step="1" value="12" aria-label="密码长度滑块" />
+          <input class="range" id="lengthRange" type="range" min="1" max="512" step="1" value="16" aria-label="字符长度滑块" />
         </div>
         <div class="field">
           <div class="field-head">
-            <span class="label">字符类型</span>
+            <span class="label" id="charsetLabel">字符类型</span>
           </div>
-          <div class="chips" id="chips">
+          <div class="chips" id="chips" role="group" aria-labelledby="charsetLabel">
             <button class="chip" type="button" data-set="lower" aria-pressed="true">
-              <span>小写字母</span>
-              <span class="chip-sample">a-z</span>
+              <span class="chip-name">小写字母</span>
+              <span class="chip-hint">a-z</span>
             </button>
             <button class="chip" type="button" data-set="upper" aria-pressed="true">
-              <span>大写字母</span>
-              <span class="chip-sample">A-Z</span>
+              <span class="chip-name">大写字母</span>
+              <span class="chip-hint">A-Z</span>
             </button>
             <button class="chip" type="button" data-set="digit" aria-pressed="true">
-              <span>数字</span>
-              <span class="chip-sample">0-9</span>
+              <span class="chip-name">数字</span>
+              <span class="chip-hint">0-9</span>
             </button>
             <button class="chip" type="button" data-set="symbol" aria-pressed="false">
-              <span>特殊符号</span>
-              <span class="chip-sample">!@#</span>
+              <span class="chip-name">特殊符号</span>
+              <span class="chip-hint">!@#</span>
             </button>
           </div>
         </div>
       </section>
       <section class="card">
-        <div class="password-box">
+        <div class="output">
           <p class="password" id="password"></p>
         </div>
         <div class="actions">
-          <button class="btn btn-secondary" id="regenerateBtn" type="button">重新生成</button>
-          <button class="btn btn-primary" id="copyBtn" type="button">复制</button>
+          <button class="btn" id="regenerateBtn" type="button">重新生成</button>
+          <button class="btn" id="copyBtn" type="button">复制</button>
         </div>
       </section>
     </main>
@@ -440,46 +406,49 @@
           digit: "0123456789",
           symbol: "!@#$%^&*()-_=+[]{}<>?/",
         };
-        const LENGTH_MIN = 1;
-        const LENGTH_MAX = 512;
-        const DEFAULT_LENGTH = 12;
-        const DEFAULT_ENABLED = ["lower", "upper", "digit"];
-        const state = {
-          length: DEFAULT_LENGTH,
-          enabled: new Set(DEFAULT_ENABLED),
-        };
-        const els = {
+        const MIN = 1;
+        const MAX = 512;
+        const DEFAULT = 16;
+        const DEFAULT_SETS = ["lower", "upper", "digit"];
+        const UINT32 = 4294967296;
+        const el = {
           password: document.getElementById("password"),
           lengthRange: document.getElementById("lengthRange"),
-          lengthInput: document.getElementById("lengthInput"),
+          lengthNumber: document.getElementById("lengthInput"),
           chips: document.getElementById("chips"),
-          regenerateBtn: document.getElementById("regenerateBtn"),
-          copyBtn: document.getElementById("copyBtn"),
+          regenerate: document.getElementById("regenerateBtn"),
+          copy: document.getElementById("copyBtn"),
         };
-        const UINT32_RANGE = 4294967296;
-        const randomBuffer = new Uint32Array(1);
+        const state = {
+          length: DEFAULT,
+          enabled: new Set(DEFAULT_SETS),
+        };
+        const buf = new Uint32Array(1);
         function randomInt(max) {
-          const limit = Math.floor(UINT32_RANGE / max) * max;
+          const limit = Math.floor(UINT32 / max) * max;
           let value;
           do {
-            crypto.getRandomValues(randomBuffer);
-            value = randomBuffer[0];
+            crypto.getRandomValues(buf);
+            value = buf[0];
           } while (value >= limit);
           return value % max;
         }
-        function generatePassword(length) {
-          const pools = [...state.enabled].map((key) => CHARSETS[key]);
-          const all = pools.join("");
-          if (!all) return "";
+        function pick(source) {
+          return source[randomInt(source.length)];
+        }
+        function generate(length) {
+          const pools = [];
+          for (const key of state.enabled) {
+            const pool = CHARSETS[key];
+            if (pool) pools.push(pool);
+          }
+          if (!pools.length) return "";
+          const combined = pools.join("");
           const chars = [];
           if (length >= pools.length) {
-            for (const pool of pools) {
-              chars.push(pool[randomInt(pool.length)]);
-            }
+            for (const pool of pools) chars.push(pick(pool));
           }
-          while (chars.length < length) {
-            chars.push(all[randomInt(all.length)]);
-          }
+          while (chars.length < length) chars.push(pick(combined));
           for (let i = chars.length - 1; i > 0; i -= 1) {
             const j = randomInt(i + 1);
             const swap = chars[i];
@@ -489,68 +458,75 @@
           return chars.join("");
         }
         function render() {
-          els.password.textContent = generatePassword(state.length);
-          els.password.classList.remove("flash");
-          void els.password.offsetWidth;
-          els.password.classList.add("flash");
+          el.password.textContent = generate(state.length);
+          el.password.classList.remove("flash");
+          void el.password.offsetWidth;
+          el.password.classList.add("flash");
         }
-        function syncLength(value) {
-          const next = Math.min(LENGTH_MAX, Math.max(LENGTH_MIN, Math.round(value)));
+        function clamp(value) {
+          return Math.min(MAX, Math.max(MIN, Math.round(value)));
+        }
+        function setLength(value, syncNumber) {
+          const next = clamp(value);
           state.length = next;
-          els.lengthRange.value = next;
-          els.lengthInput.value = next;
-          els.lengthRange.style.setProperty("--p", `${((next - LENGTH_MIN) / (LENGTH_MAX - LENGTH_MIN)) * 100}%`);
+          el.lengthRange.value = String(next);
+          if (syncNumber) el.lengthNumber.value = String(next);
           render();
         }
-        async function copyToClipboard(text) {
+        async function copy(text) {
           if (navigator.clipboard && window.isSecureContext) {
             try {
               await navigator.clipboard.writeText(text);
               return true;
             } catch {}
           }
-          const textarea = document.createElement("textarea");
-          textarea.value = text;
-          textarea.setAttribute("readonly", "");
-          textarea.style.cssText = "position:fixed;top:-1000px;opacity:0";
-          document.body.appendChild(textarea);
-          textarea.select();
-          let success = false;
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0";
+          document.body.appendChild(helper);
+          helper.select();
+          let done = false;
           try {
-            success = document.execCommand("copy");
+            done = document.execCommand("copy");
           } catch {}
-          textarea.remove();
-          return success;
+          helper.remove();
+          return done;
         }
-        let copyTimer = null;
+        let copyTimer;
         function showCopied() {
           clearTimeout(copyTimer);
-          els.copyBtn.textContent = "已复制";
-          els.copyBtn.classList.add("is-copied");
+          el.copy.textContent = "已复制";
+          el.copy.classList.add("is-copied");
           copyTimer = setTimeout(() => {
-            els.copyBtn.textContent = "复制";
-            els.copyBtn.classList.remove("is-copied");
+            el.copy.textContent = "复制";
+            el.copy.classList.remove("is-copied");
           }, 1600);
         }
-        els.regenerateBtn.addEventListener("click", render);
-        els.copyBtn.addEventListener("click", async () => {
-          const text = els.password.textContent;
-          if (!text) return;
-          if (await copyToClipboard(text)) showCopied();
+        el.regenerate.addEventListener("click", render);
+        el.copy.addEventListener("click", async () => {
+          const text = el.password.textContent;
+          if (text && (await copy(text))) showCopied();
         });
-        els.lengthRange.addEventListener("input", (event) => {
-          syncLength(Number(event.target.value));
+        el.lengthRange.addEventListener("input", (event) => {
+          setLength(Number(event.target.value), true);
         });
-        els.lengthInput.addEventListener("input", (event) => {
+        el.lengthNumber.addEventListener("input", (event) => {
           const raw = event.target.value.trim();
-          if (raw === "") return;
+          if (!raw) return;
           const parsed = Number.parseInt(raw, 10);
-          if (!Number.isNaN(parsed)) syncLength(parsed);
+          if (Number.isNaN(parsed) || parsed < MIN) return;
+          if (parsed > MAX) {
+            el.lengthNumber.value = String(MAX);
+            setLength(MAX, false);
+            return;
+          }
+          setLength(parsed, false);
         });
-        els.lengthInput.addEventListener("blur", () => {
-          els.lengthInput.value = state.length;
+        el.lengthNumber.addEventListener("blur", () => {
+          el.lengthNumber.value = String(state.length);
         });
-        els.chips.addEventListener("click", (event) => {
+        el.chips.addEventListener("click", (event) => {
           const chip = event.target.closest(".chip");
           if (!chip) return;
           const key = chip.dataset.set;
@@ -569,12 +545,12 @@
           }
           render();
         });
-        els.chips.addEventListener("animationend", (event) => {
+        el.chips.addEventListener("animationend", (event) => {
           if (event.animationName === "shake") {
             event.target.classList.remove("shake");
           }
         });
-        syncLength(state.length);
+        setLength(DEFAULT, true);
       })();
     </script>
   </body>
