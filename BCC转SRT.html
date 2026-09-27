@@ -6,425 +6,486 @@
     <title>BCC 转 SRT</title>
     <style>
       :root {
-        --bg-color: #f5f5f7;
-        --card-bg: rgba(255, 255, 255, 0.8);
-        --text-primary: #1d1d1f;
-        --text-secondary: #86868b;
-        --accent-color: #007aff;
-        --accent-hover: #0062cc;
-        --border-color: rgba(0, 0, 0, 0.1);
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-        --radius-lg: 20px;
-        --radius-md: 12px;
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        color-scheme: light dark;
+        --bg: #e7eaf1;
+        --surface: #e7eaf1;
+        --light: #ffffff;
+        --dark: #c0c6d6;
+        --text: #3a4053;
+        --muted: #858ca2;
+        --success: #2f9e6b;
+        --danger: #d4504a;
+        --radius-xl: 34px;
+        --radius-lg: 22px;
+        --radius-md: 14px;
+        --raise: 6px 6px 14px var(--dark), -6px -6px 14px var(--light);
+        --raise-hover: 7px 7px 17px var(--dark), -7px -7px 17px var(--light);
+        --sink: inset 5px 5px 12px var(--dark), inset -5px -5px 12px var(--light);
+        --sink-deep: inset 7px 7px 16px var(--dark), inset -7px -7px 16px var(--light);
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg-color: #000000;
-          --card-bg: rgba(28, 28, 30, 0.8);
-          --text-primary: #f5f5f7;
-          --text-secondary: #86868b;
-          --accent-color: #0a84ff;
-          --accent-hover: #409cff;
-          --border-color: rgba(255, 255, 255, 0.15);
-          --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-          --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-        .file-info {
-          background: rgba(255, 255, 255, 0.05);
+          --bg: #23252b;
+          --surface: #23252b;
+          --light: #2f323a;
+          --dark: #15161a;
+          --text: #d9dde7;
+          --muted: #838a9c;
+          --success: #4cc38a;
+          --danger: #f07a72;
         }
       }
       * {
         box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
         -webkit-tap-highlight-color: transparent;
       }
       body {
-        background-color: var(--bg-color);
-        color: var(--text-primary);
+        margin: 0;
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.5s ease;
-        padding: 20px;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: clamp(18px, 5vw, 48px);
+        background: var(--bg);
+        color: var(--text);
+        transition:
+          background-color 0.4s var(--ease),
+          color 0.4s var(--ease);
       }
-      .container {
+      [hidden] {
+        display: none !important;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+      :focus-visible {
+        outline: 2px solid var(--text);
+        outline-offset: 4px;
+      }
+      .shell {
         width: 100%;
         max-width: 600px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
+        display: grid;
+        gap: clamp(20px, 5vw, 32px);
       }
-      header {
+      .hero {
+        display: grid;
+        gap: 10px;
         text-align: center;
-        margin-bottom: 10px;
       }
-      h1 {
-        font-size: 28px;
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(1.6rem, 6vw, 2.1rem);
         font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 8px;
+        letter-spacing: -0.02em;
       }
-      p.subtitle {
-        color: var(--text-secondary);
-        font-size: 15px;
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: clamp(0.85rem, 3.2vw, 0.95rem);
       }
-      .card {
-        background: var(--card-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+      .panel {
+        display: grid;
+        gap: clamp(18px, 4vw, 24px);
+        padding: clamp(22px, 6vw, 40px);
+        border-radius: var(--radius-xl);
+        background: var(--surface);
+        box-shadow: var(--raise);
+        transition: box-shadow 0.4s var(--ease);
+      }
+      .drop {
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+        width: 100%;
+        padding: clamp(34px, 9vw, 56px) clamp(18px, 6vw, 32px);
         border-radius: var(--radius-lg);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-md);
-        padding: 30px;
-        transition: var(--transition);
-      }
-      .upload-area {
-        border: 2px dashed var(--border-color);
-        border-radius: var(--radius-md);
-        padding: 40px 20px;
+        background: var(--surface);
+        color: var(--text);
         text-align: center;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
+        box-shadow: var(--sink);
+        transition: box-shadow 0.35s var(--ease);
       }
-      .upload-area:hover,
-      .upload-area.drag-over {
-        border-color: var(--accent-color);
-        background-color: rgba(0, 122, 255, 0.05);
+      .drop__icon {
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        transition: transform 0.35s var(--ease);
       }
-      .upload-icon {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-        fill: var(--text-secondary);
-        transition: var(--transition);
+      .drop__icon svg {
+        width: 32px;
+        height: 32px;
       }
-      .upload-area:hover .upload-icon {
-        fill: var(--accent-color);
-        transform: translateY(-2px);
+      .drop__title {
+        font-size: clamp(0.95rem, 3.6vw, 1.05rem);
+        font-weight: 600;
       }
-      .upload-text {
-        font-size: 16px;
-        font-weight: 500;
-        color: var(--text-primary);
-        margin-bottom: 4px;
+      .drop.is-dragging {
+        box-shadow:
+          var(--sink-deep),
+          0 0 0 3px var(--text);
       }
-      .upload-hint {
-        font-size: 13px;
-        color: var(--text-secondary);
-      }
-      input[type="file"] {
-        display: none;
-      }
-      .file-info {
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-        background: rgba(0, 0, 0, 0.03);
-        border-radius: var(--radius-md);
-        margin-top: 20px;
-      }
-      .file-details {
+      .file {
         display: flex;
         align-items: center;
-        gap: 12px;
-        overflow: hidden;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--sink);
+        animation: appear 0.35s var(--ease);
       }
-      .file-name {
-        font-weight: 500;
+      .file__icon {
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+      }
+      .file__icon svg {
+        width: 24px;
+        height: 24px;
+      }
+      .file__meta {
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+      }
+      .file__name {
+        font-size: 0.95rem;
+        font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 200px;
       }
-      .file-size {
-        font-size: 12px;
-        color: var(--text-secondary);
+      .file__size {
+        color: var(--muted);
+        font-size: 0.78rem;
       }
-      .btn-remove {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 8px;
+      .icon-btn {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
-        color: var(--text-secondary);
-        transition: var(--transition);
+        background: var(--surface);
+        color: var(--muted);
+        box-shadow: var(--raise);
+        transition: box-shadow 0.35s var(--ease);
       }
-      .btn-remove:hover {
-        background: rgba(255, 59, 48, 0.1);
-        color: #ff3b30;
-      }
-      .actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
+      .icon-btn svg {
+        width: 18px;
+        height: 18px;
       }
       .btn {
-        flex: 1;
-        padding: 14px;
-        border-radius: var(--radius-md);
-        border: none;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        width: 100%;
+        padding: 18px 24px;
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        color: var(--text);
+        font-size: clamp(0.95rem, 3.6vw, 1rem);
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        box-shadow: var(--raise);
+        transition:
+          box-shadow 0.35s var(--ease),
+          color 0.35s var(--ease);
       }
-      .btn-primary {
-        background-color: var(--accent-color);
-        color: white;
-      }
-      .btn-primary:hover {
-        background-color: var(--accent-hover);
-        transform: scale(1.02);
-      }
-      .btn-primary:active {
-        transform: scale(0.98);
-      }
-      .btn-primary:disabled {
-        background-color: var(--text-secondary);
-        opacity: 0.5;
+      .btn:disabled {
+        color: var(--muted);
         cursor: not-allowed;
-        transform: none;
+        box-shadow: var(--sink);
       }
-      .status-message {
-        margin-top: 16px;
-        padding: 12px;
-        border-radius: var(--radius-md);
-        font-size: 14px;
+      .status {
+        margin: 0;
+        padding-top: 4px;
+        font-size: clamp(0.95rem, 3.5vw, 1.05rem);
+        font-weight: 500;
         text-align: center;
-        display: none;
-        animation: fadeIn 0.3s ease;
+        animation: appear 0.35s var(--ease);
       }
-      .status-success {
-        background-color: rgba(52, 199, 89, 0.1);
-        color: #34c759;
+      .status[data-tone="success"] {
+        color: var(--success);
       }
-      .status-error {
-        background-color: rgba(255, 59, 48, 0.1);
-        color: #ff3b30;
+      .status[data-tone="error"] {
+        color: var(--danger);
       }
-      @keyframes fadeIn {
+      @media (hover: hover) and (pointer: fine) {
+        .drop:hover {
+          box-shadow: var(--sink-deep);
+        }
+        .drop:hover .drop__icon {
+          transform: translateY(-2px);
+        }
+        .icon-btn:hover {
+          box-shadow: var(--raise-hover);
+        }
+        .btn:hover:not(:disabled) {
+          box-shadow: var(--raise-hover);
+        }
+      }
+      .drop:active {
+        box-shadow: var(--sink-deep);
+      }
+      .icon-btn:active {
+        box-shadow: var(--sink);
+      }
+      .btn:active:not(:disabled) {
+        box-shadow: var(--sink);
+      }
+      @media (min-width: 900px) {
+        .shell {
+          max-width: 660px;
+        }
+        .panel {
+          padding: 44px;
+          gap: 26px;
+        }
+        .drop {
+          padding: 62px 36px;
+        }
+        .hero h1 {
+          font-size: 2.3rem;
+        }
+        .hero p {
+          font-size: 1rem;
+        }
+        .drop__title {
+          font-size: 1.1rem;
+        }
+        .btn {
+          padding: 20px 26px;
+          font-size: 1.05rem;
+        }
+        .file__name {
+          font-size: 1rem;
+        }
+        .status {
+          font-size: 1.05rem;
+        }
+      }
+      @keyframes appear {
         from {
           opacity: 0;
-          transform: translateY(-10px);
+          transform: translateY(-6px);
         }
         to {
           opacity: 1;
-          transform: translateY(0);
+          transform: none;
         }
       }
-      @media (max-width: 480px) {
-        .container {
-          padding: 0 10px;
-        }
-        h1 {
-          font-size: 24px;
-        }
-        .card {
-          padding: 20px;
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header>
+    <main class="shell">
+      <header class="hero">
         <h1>BCC 转 SRT</h1>
-        <p class="subtitle">将 Bilibili 字幕文件转换为通用格式</p>
+        <p>将 Bilibili 字幕转为通用格式</p>
       </header>
-      <main class="card">
-        <div class="upload-area" id="dropZone">
-          <svg class="upload-icon" viewBox="0 0 24 24">
-            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
-          </svg>
-          <div class="upload-text">点击或拖拽上传 .bcc 文件</div>
-          <div class="upload-hint">自动识别编码并转换</div>
-          <input type="file" id="fileInput" accept=".bcc,.json" />
-        </div>
-        <div class="file-info" id="fileInfo">
-          <div class="file-details">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--text-secondary)">
-              <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+      <div class="panel">
+        <button class="drop" id="dropZone" type="button">
+          <span class="drop__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 15V3" />
+              <path d="m7 8 5-5 5 5" />
+              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
             </svg>
-            <div>
-              <div class="file-name" id="fileName">filename.bcc</div>
-              <div class="file-size" id="fileSize">0 KB</div>
-            </div>
-          </div>
-          <button class="btn-remove" id="removeFile" aria-label="Remove File">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </span>
+          <span class="drop__title">点击或拖拽上传字幕文件</span>
+        </button>
+        <input type="file" id="fileInput" accept=".bcc,.json" hidden />
+        <div class="file" id="fileInfo" hidden>
+          <span class="file__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+              <path d="M14 3v5h5" />
+            </svg>
+          </span>
+          <span class="file__meta">
+            <span class="file__name" id="fileName"></span>
+            <span class="file__size" id="fileSize"></span>
+          </span>
+          <button class="icon-btn" id="removeFile" type="button" aria-label="移除文件">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M6 6l12 12" />
+              <path d="M18 6 6 18" />
             </svg>
           </button>
         </div>
-        <div class="actions">
-          <button class="btn btn-primary" id="convertBtn" disabled>转换并下载</button>
-        </div>
-        <div id="statusMessage" class="status-message"></div>
-      </main>
-    </div>
+        <button class="btn" id="convertBtn" type="button" hidden>
+          <span id="convertLabel">转换并下载</span>
+        </button>
+        <p class="status" id="statusMessage" role="status" hidden></p>
+      </div>
+    </main>
     <script>
-      const Utils = {
-        formatTime(seconds) {
-          const date = new Date(seconds * 1000);
-          const hh = String(Math.floor(seconds / 3600)).padStart(2, "0");
-          const mm = String(date.getUTCMinutes()).padStart(2, "0");
-          const ss = String(date.getUTCSeconds()).padStart(2, "0");
-          const ms = String(date.getUTCMilliseconds()).padStart(3, "0");
-          return `${hh}:${mm}:${ss},${ms}`;
-        },
-        formatFileSize(bytes) {
-          if (bytes === 0) return "0 Bytes";
-          const k = 1024;
-          const sizes = ["Bytes", "KB", "MB", "GB"];
-          const i = Math.floor(Math.log(bytes) / Math.log(k));
-          return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-        },
+      const els = {
+        drop: document.getElementById("dropZone"),
+        input: document.getElementById("fileInput"),
+        file: document.getElementById("fileInfo"),
+        fileName: document.getElementById("fileName"),
+        fileSize: document.getElementById("fileSize"),
+        remove: document.getElementById("removeFile"),
+        convert: document.getElementById("convertBtn"),
+        convertLabel: document.getElementById("convertLabel"),
+        status: document.getElementById("statusMessage"),
       };
-      const Converter = {
-        parseBCC(jsonData) {
-          if (!jsonData || !jsonData.body || !Array.isArray(jsonData.body)) {
-            throw new Error("文件格式错误：未找到有效的字幕数据(body)");
+      let currentFile = null;
+      const pad = (value, size = 2) => String(value).padStart(size, "0");
+      function formatTime(seconds) {
+        const total = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const secs = Math.floor(total % 60);
+        const millis = Math.floor((total % 1) * 1000);
+        return `${pad(hours)}:${pad(minutes)}:${pad(secs)},${pad(millis, 3)}`;
+      }
+      function formatSize(bytes) {
+        if (!bytes) return "0 B";
+        const units = ["B", "KB", "MB", "GB"];
+        const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+        const value = bytes / 1024 ** index;
+        return `${index === 0 ? value : value.toFixed(1)} ${units[index]}`;
+      }
+      function buildSRT(data) {
+        if (!data || !Array.isArray(data.body)) {
+          throw new Error("未找到有效的字幕数据");
+        }
+        const blocks = [];
+        for (const cue of data.body) {
+          if (!cue || !Number.isFinite(cue.from) || !Number.isFinite(cue.to)) {
+            continue;
           }
-          let srtContent = "";
-          let validCount = 0;
-          jsonData.body.forEach((item, index) => {
-            if (!item.from || !item.to || !item.content) return;
-            validCount++;
-            const startTime = Utils.formatTime(item.from);
-            const endTime = Utils.formatTime(item.to);
-            srtContent += `${validCount}\n`;
-            srtContent += `${startTime} --> ${endTime}\n`;
-            srtContent += `${item.content.trim()}\n\n`;
-          });
-          if (validCount === 0) {
-            throw new Error("文件中没有有效的字幕条目");
-          }
-          return srtContent;
-        },
-        downloadSRT(content, originalFilename) {
-          const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          const baseName = originalFilename.replace(/\.[^/.]+$/, "");
-          link.href = url;
-          link.download = `${baseName}.srt`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        },
-      };
-      const App = {
-        elements: {
-          dropZone: document.getElementById("dropZone"),
-          fileInput: document.getElementById("fileInput"),
-          fileInfo: document.getElementById("fileInfo"),
-          fileName: document.getElementById("fileName"),
-          fileSize: document.getElementById("fileSize"),
-          removeFile: document.getElementById("removeFile"),
-          convertBtn: document.getElementById("convertBtn"),
-          statusMessage: document.getElementById("statusMessage"),
-        },
-        state: {
-          file: null,
-        },
-        init() {
-          this.setupEventListeners();
-        },
-        setupEventListeners() {
-          const { dropZone, fileInput, removeFile, convertBtn } = this.elements;
-          dropZone.addEventListener("click", () => fileInput.click());
-          dropZone.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            dropZone.classList.add("drag-over");
-          });
-          dropZone.addEventListener("dragleave", () => {
-            dropZone.classList.remove("drag-over");
-          });
-          dropZone.addEventListener("drop", (e) => {
-            e.preventDefault();
-            dropZone.classList.remove("drag-over");
-            if (e.dataTransfer.files.length) {
-              this.handleFile(e.dataTransfer.files[0]);
-            }
-          });
-          fileInput.addEventListener("change", (e) => {
-            if (e.target.files.length) {
-              this.handleFile(e.target.files[0]);
-            }
-          });
-          removeFile.addEventListener("click", (e) => {
-            e.stopPropagation();
-            this.resetFile();
-          });
-          convertBtn.addEventListener("click", () => {
-            this.processConversion();
-          });
-        },
-        handleFile(file) {
-          if (!file.name.endsWith(".bcc") && !file.name.endsWith(".json")) {
-            this.showStatus("请上传 .bcc 或 .json 格式的文件", "error");
-            return;
-          }
-          this.state.file = file;
-          this.elements.fileName.textContent = file.name;
-          this.elements.fileSize.textContent = Utils.formatFileSize(file.size);
-          this.elements.dropZone.style.display = "none";
-          this.elements.fileInfo.style.display = "flex";
-          this.elements.convertBtn.disabled = false;
-          this.hideStatus();
-        },
-        resetFile() {
-          this.state.file = null;
-          this.elements.fileInput.value = "";
-          this.elements.dropZone.style.display = "block";
-          this.elements.fileInfo.style.display = "none";
-          this.elements.convertBtn.disabled = true;
-          this.hideStatus();
-        },
-        async processConversion() {
-          if (!this.state.file) return;
-          try {
-            this.elements.convertBtn.disabled = true;
-            this.elements.convertBtn.textContent = "处理中...";
-            const text = await this.state.file.text();
-            const jsonData = JSON.parse(text);
-            const srtContent = Converter.parseBCC(jsonData);
-            Converter.downloadSRT(srtContent, this.state.file.name);
-            this.showStatus("转换成功！文件已开始下载", "success");
-          } catch (error) {
-            console.error(error);
-            this.showStatus(`转换失败: ${error.message}`, "error");
-          } finally {
-            this.elements.convertBtn.disabled = false;
-            this.elements.convertBtn.textContent = "转换并下载";
-          }
-        },
-        showStatus(message, type) {
-          const el = this.elements.statusMessage;
-          el.textContent = message;
-          el.className = `status-message status-${type}`;
-          el.style.display = "block";
-        },
-        hideStatus() {
-          this.elements.statusMessage.style.display = "none";
-        },
-      };
-      document.addEventListener("DOMContentLoaded", () => {
-        App.init();
-      });
+          const text = typeof cue.content === "string" ? cue.content.trim() : "";
+          if (!text) continue;
+          blocks.push(`${blocks.length + 1}\n${formatTime(cue.from)} --> ${formatTime(cue.to)}\n${text}`);
+        }
+        if (!blocks.length) {
+          throw new Error("文件中没有有效的字幕条目");
+        }
+        return `${blocks.join("\n\n")}\n`;
+      }
+      function download(content, filename) {
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      function setStatus(message, tone) {
+        els.status.textContent = message;
+        els.status.dataset.tone = tone;
+        els.status.hidden = false;
+      }
+      function clearStatus() {
+        els.status.hidden = true;
+        els.status.textContent = "";
+        delete els.status.dataset.tone;
+      }
+      function showFile(file) {
+        currentFile = file;
+        els.fileName.textContent = file.name;
+        els.fileSize.textContent = formatSize(file.size);
+        els.drop.hidden = true;
+        els.file.hidden = false;
+        els.convert.hidden = false;
+        els.convert.disabled = false;
+        clearStatus();
+      }
+      function resetFile() {
+        currentFile = null;
+        els.input.value = "";
+        els.drop.hidden = false;
+        els.file.hidden = true;
+        els.convert.hidden = true;
+        els.convert.disabled = true;
+        clearStatus();
+      }
+      function acceptFile(file) {
+        if (!file) return;
+        if (!/\.(bcc|json)$/i.test(file.name)) {
+          setStatus("请上传 .bcc 或 .json 格式的文件", "error");
+          return;
+        }
+        showFile(file);
+      }
+      async function convert() {
+        if (!currentFile) return;
+        els.convert.disabled = true;
+        els.convertLabel.textContent = "转换中…";
+        try {
+          const raw = await currentFile.text();
+          const data = JSON.parse(raw.replace(/^\uFEFF/, ""));
+          const srt = buildSRT(data);
+          const base = currentFile.name.replace(/\.[^.]+$/, "");
+          download(srt, `${base}.srt`);
+          setStatus("转换完成，请下载查看", "success");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "未知错误";
+          setStatus(`转换失败：${message}`, "error");
+        } finally {
+          els.convert.disabled = false;
+          els.convertLabel.textContent = "转换并下载";
+        }
+      }
+      function bindEvents() {
+        els.drop.addEventListener("click", () => els.input.click());
+        els.input.addEventListener("change", () => acceptFile(els.input.files[0]));
+        els.remove.addEventListener("click", resetFile);
+        els.convert.addEventListener("click", convert);
+        let dragDepth = 0;
+        els.drop.addEventListener("dragenter", (event) => {
+          event.preventDefault();
+          dragDepth += 1;
+          els.drop.classList.add("is-dragging");
+        });
+        els.drop.addEventListener("dragover", (event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "copy";
+        });
+        els.drop.addEventListener("dragleave", () => {
+          dragDepth = Math.max(0, dragDepth - 1);
+          if (dragDepth === 0) els.drop.classList.remove("is-dragging");
+        });
+        els.drop.addEventListener("drop", (event) => {
+          event.preventDefault();
+          dragDepth = 0;
+          els.drop.classList.remove("is-dragging");
+          acceptFile(event.dataTransfer.files[0]);
+        });
+        window.addEventListener("dragover", (event) => event.preventDefault());
+        window.addEventListener("drop", (event) => event.preventDefault());
+      }
+      bindEvents();
     </script>
   </body>
 </html>
