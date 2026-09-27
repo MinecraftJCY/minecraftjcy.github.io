@@ -71,6 +71,16 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
+        gap: clamp(24px, 5vw, 40px);
+      }
+      .title {
+        margin: 0;
+        font-size: clamp(24px, 6vw, 40px);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-align: center;
+        color: var(--text);
+        transition: color var(--t) ease;
       }
       .panel {
         display: flex;
@@ -84,20 +94,6 @@
         transition:
           box-shadow var(--t) ease,
           background-color var(--t) ease;
-      }
-      .title {
-        margin: 0 0 clamp(8px, 1vw, 12px);
-        font-size: clamp(22px, 5.6vw, 38px);
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        transition: color var(--t) ease;
-      }
-      .subtitle {
-        margin: 0 0 clamp(20px, 5vw, 32px);
-        font-size: clamp(14px, 1.2vw + 5px, 18px);
-        line-height: 1.5;
-        color: var(--text-soft);
-        transition: color var(--t) ease;
       }
       .input-group {
         display: flex;
@@ -278,9 +274,8 @@
   </head>
   <body>
     <main class="app">
+      <h1 class="title">素数与因数</h1>
       <section class="panel">
-        <h1 class="title">素数与因数</h1>
-        <p class="subtitle">输入一个自然数，判断其是否为素数并找出所有因数</p>
         <div class="input-group">
           <input type="text" class="input-field" id="numberInput" placeholder="请输入数字" inputmode="numeric" autocomplete="off" spellcheck="false" />
           <button class="btn" id="calcBtn" type="button">验证</button>
