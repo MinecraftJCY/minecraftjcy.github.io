@@ -7,33 +7,32 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <style>
       :root {
-        --bg: #f5f5f7;
-        --card: #ffffff;
-        --fill: rgba(120, 120, 128, 0.08);
-        --text: #1d1d1f;
-        --muted: #6e6e73;
-        --border: rgba(0, 0, 0, 0.06);
-        --accent: #0071e3;
-        --accent-soft: rgba(0, 113, 227, 0.18);
-        --seg-bg: rgba(120, 120, 128, 0.1);
-        --seg-thumb: #ffffff;
-        --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 18px 40px -16px rgba(0, 0, 0, 0.18);
-        --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+        color-scheme: light;
+        --bg: #e8ebf0;
+        --text: #363c48;
+        --muted: #7d8698;
+        --accent: #4a7df0;
+        --shadow-dark: #c3c9d5;
+        --shadow-light: #ffffff;
+        --scroll-thumb: #bcc2ce;
+        --raised-lg: 10px 10px 22px var(--shadow-dark), -10px -10px 22px var(--shadow-light);
+        --raised-sm: 4px 4px 9px var(--shadow-dark), -4px -4px 9px var(--shadow-light);
+        --sunken-lg: inset 7px 7px 14px var(--shadow-dark), inset -7px -7px 14px var(--shadow-light);
+        --sunken-sm: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+        --radius-xl: 34px;
+        --radius-lg: 24px;
+        --theme-transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #000000;
-          --card: #1c1c1e;
-          --fill: rgba(120, 120, 128, 0.18);
-          --text: #f5f5f7;
-          --muted: #98989d;
-          --border: rgba(255, 255, 255, 0.08);
-          --accent: #0a84ff;
-          --accent-soft: rgba(10, 132, 255, 0.3);
-          --seg-bg: rgba(120, 120, 128, 0.22);
-          --seg-thumb: #48484a;
-          --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.6), 0 18px 40px -16px rgba(0, 0, 0, 0.8);
-          --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.5);
+          color-scheme: dark;
+          --bg: #262a32;
+          --text: #dee2ea;
+          --muted: #8992a4;
+          --accent: #6d9bff;
+          --shadow-dark: #1a1d23;
+          --shadow-light: #31363f;
+          --scroll-thumb: #3e4450;
         }
       }
       *,
@@ -43,6 +42,7 @@
       }
       html {
         height: 100%;
+        -webkit-text-size-adjust: 100%;
       }
       body {
         min-height: 100%;
@@ -52,9 +52,7 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
-        transition:
-          background-color 0.35s ease,
-          color 0.35s ease;
+        transition: var(--theme-transition);
       }
       .app {
         min-height: 100vh;
@@ -62,122 +60,124 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: clamp(16px, 5vw, 48px);
-        padding-top: max(clamp(16px, 5vw, 48px), env(safe-area-inset-top));
-        padding-bottom: max(clamp(16px, 5vw, 48px), env(safe-area-inset-bottom));
+        padding: clamp(22px, 5.5vw, 60px);
+        padding-top: max(clamp(22px, 5.5vw, 60px), env(safe-area-inset-top));
+        padding-bottom: max(clamp(22px, 5.5vw, 60px), env(safe-area-inset-bottom));
       }
       .shell {
-        width: min(100%, 460px);
+        width: min(100%, 440px);
         display: grid;
-        gap: clamp(18px, 4vw, 26px);
+        gap: clamp(20px, 4.5vw, 30px);
       }
-      .hero {
-        text-align: center;
-      }
-      .hero h1 {
+      .title {
         margin: 0;
-        font-size: clamp(24px, 5.5vw, 28px);
+        text-align: center;
+        font-size: clamp(1.5rem, 5vw, 1.85rem);
         font-weight: 600;
-        letter-spacing: -0.02em;
-        line-height: 1.2;
+        letter-spacing: 0.01em;
+        color: var(--text);
+        transition: var(--theme-transition);
       }
-      .card {
+      .panel {
         display: grid;
-        gap: 18px;
-        padding: clamp(18px, 4.5vw, 24px);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        box-shadow: var(--shadow-card);
-        transition:
-          background-color 0.35s ease,
-          border-color 0.35s ease,
-          box-shadow 0.35s ease;
+        gap: clamp(18px, 4.2vw, 24px);
+        padding: clamp(22px, 5.5vw, 30px);
+        border-radius: var(--radius-xl);
+        background: var(--bg);
+        box-shadow: var(--raised-lg);
+        transition: var(--theme-transition);
       }
       .field {
-        padding: 14px 16px;
-        background: var(--fill);
-        border: 1.5px solid transparent;
-        border-radius: 16px;
-        transition:
-          border-color 0.25s ease,
-          box-shadow 0.25s ease,
-          background-color 0.35s ease;
-      }
-      .field:focus-within {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3.5px var(--accent-soft);
+        padding: 17px 19px;
+        border-radius: var(--radius-lg);
+        background: var(--bg);
+        box-shadow: var(--sunken-lg);
+        transition: var(--theme-transition);
       }
       .field textarea {
         display: block;
         width: 100%;
-        min-height: 84px;
+        min-height: 86px;
+        margin: 0;
         padding: 0;
         border: 0;
         outline: none;
         background: transparent;
         color: inherit;
-        font-family: inherit;
-        font-size: 16px;
-        line-height: 1.5;
-        letter-spacing: -0.01em;
+        font: inherit;
+        font-size: 1rem;
+        line-height: 1.55;
+        letter-spacing: 0.005em;
         resize: none;
+        scrollbar-width: thin;
+        scrollbar-color: var(--scroll-thumb) transparent;
       }
       .field textarea::placeholder {
         color: var(--muted);
-        opacity: 0.85;
+        opacity: 0.9;
+      }
+      .field textarea::-webkit-scrollbar {
+        width: 6px;
+      }
+      .field textarea::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb);
+        border-radius: 999px;
+      }
+      .field textarea::-webkit-scrollbar-thumb:hover {
+        background: var(--muted);
       }
       .controls {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 10px 12px;
+        gap: 12px 16px;
       }
-      .control-label {
-        font-size: 13px;
-        letter-spacing: -0.01em;
+      .label {
+        font-size: clamp(1rem, 3vw, 1.125rem);
+        letter-spacing: 0.02em;
         color: var(--muted);
+        transition: var(--theme-transition);
       }
       .segmented {
         position: relative;
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: 1fr;
-        width: 172px;
-        max-width: 100%;
-        padding: 2px;
-        border-radius: 11px;
-        background: var(--seg-bg);
+        width: min(176px, 100%);
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--bg);
+        box-shadow: var(--sunken-sm);
         -webkit-tap-highlight-color: transparent;
-        transition: background-color 0.35s ease;
+        transition: var(--theme-transition);
       }
       .thumb {
         position: absolute;
-        top: 2px;
-        left: 2px;
-        bottom: 2px;
-        width: calc((100% - 4px) / 4);
-        border-radius: 9px;
-        background: var(--seg-thumb);
-        box-shadow: var(--shadow-thumb);
+        top: 4px;
+        left: 4px;
+        bottom: 4px;
+        width: calc((100% - 8px) / 4);
+        border-radius: 999px;
+        background: var(--bg);
+        box-shadow: var(--raised-sm);
         pointer-events: none;
         transition:
-          transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-          background-color 0.35s ease;
+          transform 0.42s cubic-bezier(0.3, 1.45, 0.5, 1),
+          var(--theme-transition);
       }
       .segment {
         position: relative;
         z-index: 1;
-        padding: 7px 0;
+        padding: 9px 0;
         border: 0;
-        border-radius: 9px;
+        border-radius: 999px;
         background: transparent;
         color: var(--muted);
-        font-family: inherit;
-        font-size: 14px;
+        font: inherit;
+        font-size: 0.875rem;
         font-weight: 500;
-        letter-spacing: -0.01em;
+        letter-spacing: 0.02em;
         cursor: pointer;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
@@ -189,29 +189,31 @@
       }
       .segment:focus-visible {
         outline: 2px solid var(--accent);
-        outline-offset: 2px;
+        outline-offset: 3px;
       }
-      .qr-wrap {
+      .stage {
         position: relative;
         width: 100%;
         aspect-ratio: 1 / 1;
-        border-radius: 20px;
-        overflow: hidden;
+        border-radius: var(--radius-xl);
+        background: var(--bg);
+        box-shadow: var(--sunken-lg);
+        transition: var(--theme-transition);
       }
-      .qr {
-        width: 100%;
-        height: 100%;
+      .code {
+        position: absolute;
+        inset: clamp(14px, 4.5vw, 22px);
         opacity: 0;
-        transform: scale(0.94);
+        transform: scale(0.93);
         transition:
-          opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-          transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+          opacity 0.45s ease,
+          transform 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
       }
-      .qr-wrap.has-qr .qr {
+      .stage.is-ready .code {
         opacity: 1;
         transform: scale(1);
       }
-      .qr svg {
+      .code svg {
         display: block;
         width: 100%;
         height: 100%;
@@ -224,16 +226,18 @@
         display: grid;
         place-items: center;
         margin: 0;
-        padding: 0 28px;
+        padding: 0 clamp(26px, 9vw, 52px);
         text-align: center;
-        font-size: 14px;
-        line-height: 1.5;
-        letter-spacing: -0.01em;
+        font-size: clamp(1rem, 3vw, 1.125rem);
+        line-height: 1.6;
+        letter-spacing: 0.01em;
         color: var(--muted);
         pointer-events: none;
-        transition: opacity 0.3s ease;
+        transition:
+          opacity 0.35s ease,
+          var(--theme-transition);
       }
-      .qr-wrap.has-qr .hint {
+      .stage.is-ready .hint {
         opacity: 0;
       }
       @media (prefers-reduced-motion: reduce) {
@@ -249,16 +253,14 @@
   <body>
     <main class="app">
       <div class="shell">
-        <header class="hero">
-          <h1>二维码生成器</h1>
-        </header>
-        <section class="card">
+        <h1 class="title">二维码生成器</h1>
+        <section class="panel">
           <div class="field">
             <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="输入文本、链接或任意字符串…"></textarea>
           </div>
           <div class="controls">
-            <span class="control-label">纠错等级</span>
-            <div class="segmented" id="segmented" role="radiogroup" aria-label="纠错等级">
+            <span class="label">纠错等级</span>
+            <div class="segmented" id="levels" role="radiogroup" aria-label="纠错等级">
               <span class="thumb" id="thumb"></span>
               <button type="button" class="segment" role="radio" aria-checked="false" data-level="L">L</button>
               <button type="button" class="segment is-active" role="radio" aria-checked="true" data-level="M">M</button>
@@ -266,8 +268,8 @@
               <button type="button" class="segment" role="radio" aria-checked="false" data-level="H">H</button>
             </div>
           </div>
-          <div class="qr-wrap" id="qrWrap">
-            <div class="qr" id="qr"></div>
+          <div class="stage" id="stage">
+            <div class="code" id="code"></div>
             <p class="hint" id="hint">输入内容后显示二维码</p>
           </div>
         </section>
@@ -276,64 +278,65 @@
     <script>
       (function () {
         "use strict";
-        var HINT_EMPTY = "输入内容后显示二维码";
-        var HINT_ERROR = "内容过长，无法生成二维码";
         var LEVELS = ["L", "M", "Q", "H"];
         var DEBOUNCE = 200;
-        var els = {
-          input: document.getElementById("input"),
-          qrWrap: document.getElementById("qrWrap"),
-          qr: document.getElementById("qr"),
-          hint: document.getElementById("hint"),
-          segmented: document.getElementById("segmented"),
-          thumb: document.getElementById("thumb"),
-        };
+        var HINT_EMPTY = "输入内容后显示二维码";
+        var HINT_ERROR = "内容过长，无法生成二维码";
+        var dark = window.matchMedia("(prefers-color-scheme: dark)");
+        var input = document.getElementById("input");
+        var stage = document.getElementById("stage");
+        var code = document.getElementById("code");
+        var hint = document.getElementById("hint");
+        var levels = document.getElementById("levels");
+        var thumb = document.getElementById("thumb");
         var level = "M";
         var revision = 0;
         var timer = 0;
         function setHint(message) {
-          els.hint.textContent = message;
+          hint.textContent = message;
         }
-        function clearQR() {
+        function clearCode() {
           revision++;
-          els.qr.innerHTML = "";
-          els.qrWrap.classList.remove("has-qr");
+          code.innerHTML = "";
+          stage.classList.remove("is-ready");
+        }
+        function fail() {
+          clearCode();
+          setHint(HINT_ERROR);
         }
         function paint(text) {
           var rev = ++revision;
-          var handle = function (err, svg) {
-            if (rev !== revision) return;
-            if (err || !svg) {
-              clearQR();
-              setHint(HINT_ERROR);
-              return;
-            }
-            els.qr.innerHTML = svg;
-            els.qrWrap.classList.add("has-qr");
-          };
           try {
             QRCode.toString(
               text,
               {
                 type: "svg",
-                margin: 2,
-                color: { dark: "#0b0b0f", light: "#ffffff" },
+                margin: 0,
+                color: {
+                  dark: dark.matches ? "#dee2ea" : "#363c48",
+                  light: "#00000000",
+                },
                 errorCorrectionLevel: level,
               },
-              handle,
+              function (error, svg) {
+                if (rev !== revision) return;
+                if (error || !svg) {
+                  fail();
+                  return;
+                }
+                code.innerHTML = svg;
+                stage.classList.add("is-ready");
+              },
             );
-          } catch (err) {
-            if (rev === revision) {
-              clearQR();
-              setHint(HINT_ERROR);
-            }
+          } catch (error) {
+            if (rev === revision) fail();
           }
         }
         function render(immediate) {
           clearTimeout(timer);
-          var text = els.input.value;
+          var text = input.value;
           if (text.trim() === "") {
-            clearQR();
+            clearCode();
             setHint(HINT_EMPTY);
             return;
           }
@@ -345,25 +348,28 @@
             }, DEBOUNCE);
           }
         }
-        function setLevel(next) {
+        function selectLevel(next) {
           if (level === next) return;
           level = next;
-          els.thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
-          els.segmented.querySelectorAll(".segment").forEach(function (button) {
-            var active = button.dataset.level === level;
-            button.classList.toggle("is-active", active);
-            button.setAttribute("aria-checked", String(active));
+          thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
+          levels.querySelectorAll(".segment").forEach(function (segment) {
+            var active = segment.dataset.level === level;
+            segment.classList.toggle("is-active", active);
+            segment.setAttribute("aria-checked", String(active));
           });
-          if (els.input.value.trim() !== "") render(true);
+          if (input.value.trim() !== "") render(true);
         }
-        els.input.addEventListener("input", function () {
+        input.addEventListener("input", function () {
           render(false);
         });
-        els.segmented.addEventListener("click", function (event) {
-          var button = event.target.closest(".segment");
-          if (button) setLevel(button.dataset.level);
+        levels.addEventListener("click", function (event) {
+          var segment = event.target.closest(".segment");
+          if (segment) selectLevel(segment.dataset.level);
         });
-        els.thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
+        dark.addEventListener("change", function () {
+          if (input.value.trim() !== "") render(true);
+        });
+        thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
       })();
     </script>
   </body>
