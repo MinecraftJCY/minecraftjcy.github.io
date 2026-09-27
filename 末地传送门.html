@@ -5,367 +5,456 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>末地传送门定位器</title>
     <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
       :root {
-        --bg-color: #f5f5f7;
-        --card-bg: rgba(255, 255, 255, 0.8);
-        --text-primary: #1d1d1f;
-        --text-secondary: #86868b;
-        --accent-color: #007aff;
-        --border-color: rgba(0, 0, 0, 0.1);
-        --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-        --input-bg: rgba(0, 0, 0, 0.05);
-        --error-color: #ff3b30;
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        color-scheme: light dark;
+        --bg: #e8ecf3;
+        --text: #3c4456;
+        --text-soft: #9aa2b4;
+        --text-mute: #b6bdcb;
+        --error: #d9646b;
+        --success: #1e9e5a;
+        --shade: rgba(163, 177, 198, 0.62);
+        --light: rgba(255, 255, 255, 0.92);
+        --r-card: 2rem;
+        --r-control: 1.25rem;
+        --raise-lg: 10px 10px 20px var(--shade), -10px -10px 20px var(--light);
+        --raise: 6px 6px 12px var(--shade), -6px -6px 12px var(--light);
+        --press-lg: inset 8px 8px 16px var(--shade), inset -8px -8px 16px var(--light);
+        --press: inset 5px 5px 10px var(--shade), inset -5px -5px 10px var(--light);
+        --modal-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08);
+        --overlay-bg: rgba(0, 0, 0, 0.28);
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg-color: #000000;
-          --card-bg: rgba(28, 28, 30, 0.8);
-          --text-primary: #f5f5f7;
-          --text-secondary: #86868b;
-          --accent-color: #0a84ff;
-          --border-color: rgba(255, 255, 255, 0.15);
-          --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-          --input-bg: rgba(255, 255, 255, 0.1);
+          --bg: #2b2e35;
+          --text: #dfe3ec;
+          --text-soft: #838b9c;
+          --text-mute: #6d7585;
+          --error: #f28b8f;
+          --success: #4fd68a;
+          --shade: rgba(0, 0, 0, 0.55);
+          --light: rgba(255, 255, 255, 0.08);
+          --modal-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+          --overlay-bg: rgba(0, 0, 0, 0.6);
         }
       }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        -webkit-tap-highlight-color: transparent;
+      html {
+        -webkit-text-size-adjust: 100%;
       }
       body {
-        background-color: var(--bg-color);
-        color: var(--text-primary);
-        line-height: 1.5;
+        margin: 0;
         min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        padding: 1.75rem 1.25rem;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          background-color 0.35s ease,
+          color 0.35s ease;
+      }
+      .app {
+        margin: auto;
+        width: 100%;
+        max-width: 34rem;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        padding: 20px;
-        transition: background-color 0.3s ease;
+        gap: 1.5rem;
       }
-      .container {
-        width: 100%;
-        max-width: 800px;
-        margin-top: 40px;
-      }
-      header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 30px;
-        padding: 0 10px;
-      }
-      h1 {
-        font-size: 28px;
-        font-weight: 700;
-        letter-spacing: -0.5px;
+      .title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
         text-align: center;
       }
-      .card {
-        background: var(--card-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 24px;
-        margin-bottom: 20px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        transition: var(--transition);
-      }
-      .section-title {
-        font-size: 17px;
-        font-weight: 600;
-        margin-bottom: 12px;
-        color: var(--text-primary);
+      .panel {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        gap: 1.75rem;
+        padding: 1.5rem;
+        border-radius: var(--r-card);
+        background: var(--bg);
+        box-shadow: var(--raise-lg);
       }
-      .section-title + .section-title {
-        margin-top: 24px;
+      .group {
+        display: flex;
+        flex-direction: column;
       }
-      .section-title::before {
-        content: "";
-        display: block;
-        width: 4px;
-        height: 16px;
-        background-color: var(--accent-color);
-        border-radius: 2px;
-      }
-      .input-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 16px;
-      }
-      @media (max-width: 600px) {
-        .input-group {
-          grid-template-columns: 1fr;
-        }
-      }
-      .mc-input {
-        width: 100%;
-        padding: 14px 16px;
-        border-radius: 12px;
-        border: 1px solid transparent;
-        background-color: var(--input-bg);
-        color: var(--text-primary);
-        font-size: 16px;
-        outline: none;
-        transition: var(--transition);
-      }
-      .mc-input::placeholder {
-        color: var(--text-secondary);
-        opacity: 0.8;
-      }
-      .mc-input:focus {
-        background-color: var(--card-bg);
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
-      }
-      .btn-calculate {
-        width: 100%;
-        padding: 16px;
-        border-radius: 14px;
-        border: none;
-        background-color: var(--accent-color);
-        color: white;
-        font-size: 17px;
+      .group-title {
+        margin: 0 0 1rem;
+        font-size: 0.9375rem;
         font-weight: 600;
+        color: var(--text-soft);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.875rem;
+      }
+      .input,
+      .btn {
+        border: none;
+        border-radius: var(--r-control);
+        background: var(--bg);
+        color: var(--text);
+        font: inherit;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          box-shadow 0.2s ease,
+          color 0.2s ease;
+      }
+      .input {
+        width: 100%;
+        padding: 1rem 1.1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: text;
+        appearance: textfield;
+        -moz-appearance: textfield;
+        box-shadow: var(--press);
+      }
+      .input::-webkit-outer-spin-button,
+      .input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .input::placeholder {
+        color: var(--text-mute);
+        font-weight: 500;
+      }
+      .input:focus {
+        box-shadow: var(--press-lg);
+      }
+      .btn {
+        padding: 1.1rem 1.25rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
         cursor: pointer;
-        transition: var(--transition);
-        margin-top: 10px;
-        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        user-select: none;
+        box-shadow: var(--raise);
       }
-      .btn-calculate:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+      .btn:active {
+        box-shadow: var(--press);
       }
-      .btn-calculate:active {
-        transform: translateY(0);
+      .btn-lg {
+        padding: 1.25rem;
+        font-size: 1rem;
       }
-      .modal-overlay {
+      .btn.is-copied {
+        color: var(--success);
+      }
+      .overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 1.25rem;
+        background: var(--overlay-bg);
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.28s ease;
+        z-index: 100;
       }
-      .modal-overlay.active {
+      .overlay.active {
         opacity: 1;
         pointer-events: auto;
       }
-      .modal-content {
-        background: var(--card-bg);
-        border-radius: 20px;
-        padding: 28px 24px 24px;
-        width: min(90%, 360px);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        border: 1px solid var(--border-color);
-        transform: scale(0.9) translateY(20px);
+      .modal {
+        width: 100%;
+        max-width: 24rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 1.75rem;
+        border-radius: var(--r-card);
+        background: var(--bg);
+        box-shadow: var(--modal-shadow);
+        transform: translateY(1.25rem) scale(0.96);
         transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        text-align: center;
       }
-      .modal-overlay.active .modal-content {
-        transform: scale(1) translateY(0);
+      .overlay.active .modal {
+        transform: translateY(0) scale(1);
       }
       .modal-title {
-        font-size: 18px;
+        margin: 0;
+        font-size: 1rem;
         font-weight: 600;
-        margin-bottom: 20px;
-        color: var(--text-primary);
+        color: var(--text-soft);
+        text-align: center;
       }
-      .modal-coords {
-        font-size: 28px;
+      .modal-value {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 4.5rem;
+        padding: 1rem 0.75rem;
+        border-radius: var(--r-control);
+        background: var(--bg);
+        box-shadow: var(--press-lg);
+        font-size: 1.375rem;
         font-weight: 700;
-        color: var(--accent-color);
-        margin-bottom: 24px;
         font-variant-numeric: tabular-nums;
-        letter-spacing: -0.5px;
-        word-break: break-all;
+        letter-spacing: 0.02em;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .modal-actions {
-        display: flex;
-        gap: 12px;
-      }
-      .modal-btn {
-        flex: 1;
-        padding: 12px;
-        border-radius: 12px;
-        border: none;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-      }
-      .modal-btn.secondary {
-        background-color: var(--input-bg);
-        color: var(--text-primary);
-      }
-      .modal-btn.secondary:hover {
-        background-color: var(--border-color);
-      }
-      .modal-btn.primary {
-        background-color: var(--accent-color);
-        color: white;
-        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-      }
-      .modal-btn.primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
-      }
-      .modal-btn:active {
-        transform: scale(0.98);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.875rem;
       }
       .toast {
         position: fixed;
-        top: 30px;
+        top: 1.75rem;
         left: 50%;
-        transform: translateX(-50%) translateY(-20px);
-        background: var(--error-color);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-size: 15px;
-        font-weight: 500;
-        z-index: 2000;
+        transform: translateX(-50%) translateY(-0.75rem);
+        padding: 0.85rem 1.25rem;
+        border-radius: var(--r-control);
+        background: var(--bg);
+        color: var(--error);
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        box-shadow: var(--raise);
         opacity: 0;
         pointer-events: none;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s ease;
+        z-index: 200;
       }
       .toast.visible {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
       }
+      @media (min-width: 768px) {
+        body {
+          padding: 2.5rem 1.5rem;
+        }
+        .app {
+          max-width: 38rem;
+          gap: 1.75rem;
+        }
+        .title {
+          font-size: 1.75rem;
+        }
+        .panel {
+          padding: 2rem;
+          gap: 2rem;
+        }
+        .group-title {
+          font-size: 1rem;
+        }
+        .input {
+          font-size: 1.0625rem;
+        }
+        .modal {
+          max-width: 28rem;
+          padding: 2rem;
+        }
+        .modal-title {
+          font-size: 1.125rem;
+        }
+        .modal-value {
+          min-height: 5rem;
+          font-size: 1.5rem;
+          padding: 1rem;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>末地传送门定位器</h1>
-      </header>
-      <div class="card">
-        <div class="section-title">第一次投掷末影之眼的位置</div>
-        <div class="input-group">
-          <input type="number" id="p1x" placeholder="X 坐标" step="any" class="mc-input" />
-          <input type="number" id="p1z" placeholder="Z 坐标" step="any" class="mc-input" />
+    <form class="app" id="calcForm">
+      <h1 class="title">末地传送门定位器</h1>
+      <section class="panel">
+        <div class="group">
+          <h2 class="group-title">第一次投掷</h2>
+          <div class="grid">
+            <input class="input" id="p1x" type="number" step="any" inputmode="decimal" placeholder="投掷 X" autocomplete="off" />
+            <input class="input" id="p1z" type="number" step="any" inputmode="decimal" placeholder="投掷 Z" autocomplete="off" />
+            <input class="input" id="p1tx" type="number" step="any" inputmode="decimal" placeholder="飞向 X" autocomplete="off" />
+            <input class="input" id="p1tz" type="number" step="any" inputmode="decimal" placeholder="飞向 Z" autocomplete="off" />
+          </div>
         </div>
-        <div class="section-title">第一次末影之眼飞向的位置</div>
-        <div class="input-group">
-          <input type="number" id="p1tx" placeholder="X 坐标" step="any" class="mc-input" />
-          <input type="number" id="p1tz" placeholder="Z 坐标" step="any" class="mc-input" />
+        <div class="group">
+          <h2 class="group-title">第二次投掷</h2>
+          <div class="grid">
+            <input class="input" id="p2x" type="number" step="any" inputmode="decimal" placeholder="投掷 X" autocomplete="off" />
+            <input class="input" id="p2z" type="number" step="any" inputmode="decimal" placeholder="投掷 Z" autocomplete="off" />
+            <input class="input" id="p2tx" type="number" step="any" inputmode="decimal" placeholder="飞向 X" autocomplete="off" />
+            <input class="input" id="p2tz" type="number" step="any" inputmode="decimal" placeholder="飞向 Z" autocomplete="off" />
+          </div>
         </div>
-      </div>
-      <div class="card">
-        <div class="section-title">第二次投掷末影之眼的位置</div>
-        <div class="input-group">
-          <input type="number" id="p2x" placeholder="X 坐标" step="any" class="mc-input" />
-          <input type="number" id="p2z" placeholder="Z 坐标" step="any" class="mc-input" />
-        </div>
-        <div class="section-title">第二次末影之眼飞向的位置</div>
-        <div class="input-group">
-          <input type="number" id="p2tx" placeholder="X 坐标" step="any" class="mc-input" />
-          <input type="number" id="p2tz" placeholder="Z 坐标" step="any" class="mc-input" />
-        </div>
-      </div>
-      <button class="btn-calculate" id="calculateBtn">计算传送门位置</button>
-    </div>
-    <div class="modal-overlay" id="modalOverlay">
-      <div class="modal-content">
-        <div class="modal-title">末地传送门大概位置</div>
-        <div class="modal-coords" id="modalCoords">0, 0</div>
+      </section>
+      <button class="btn btn-lg" type="submit">计算传送门位置</button>
+    </form>
+    <div class="overlay" id="overlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h2 class="modal-title" id="modalTitle">末地传送门大概位置</h2>
+        <div class="modal-value" id="modalValue">0.00, 0.00</div>
         <div class="modal-actions">
-          <button class="modal-btn secondary" id="modalClose">关闭</button>
-          <button class="modal-btn primary" id="modalCopy">复制坐标</button>
+          <button class="btn" id="closeBtn" type="button">关闭</button>
+          <button class="btn" id="copyBtn" type="button">复制坐标</button>
         </div>
       </div>
     </div>
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script>
-      const calculateBtn = document.getElementById("calculateBtn");
-      const modalOverlay = document.getElementById("modalOverlay");
-      const modalCoords = document.getElementById("modalCoords");
-      const modalClose = document.getElementById("modalClose");
-      const modalCopy = document.getElementById("modalCopy");
-      const toast = document.getElementById("toast");
-      function showToast(message) {
-        toast.textContent = message;
-        toast.classList.add("visible");
-        setTimeout(() => {
-          toast.classList.remove("visible");
-        }, 2000);
-      }
-      function openModal(x, z) {
-        modalCoords.textContent = `${x.toFixed(2)}, ${z.toFixed(2)}`;
-        modalOverlay.classList.add("active");
-      }
-      function closeModal() {
-        modalOverlay.classList.remove("active");
-      }
-      calculateBtn.addEventListener("click", () => {
-        const p1x = parseFloat(document.getElementById("p1x").value);
-        const p1z = parseFloat(document.getElementById("p1z").value);
-        const p1tx = parseFloat(document.getElementById("p1tx").value);
-        const p1tz = parseFloat(document.getElementById("p1tz").value);
-        const p2x = parseFloat(document.getElementById("p2x").value);
-        const p2z = parseFloat(document.getElementById("p2z").value);
-        const p2tx = parseFloat(document.getElementById("p2tx").value);
-        const p2tz = parseFloat(document.getElementById("p2tz").value);
-        if ([p1x, p1z, p1tx, p1tz, p2x, p2z, p2tx, p2tz].some(isNaN)) {
-          showToast("请填写所有坐标字段");
-          return;
+      (() => {
+        "use strict";
+        const EPSILON = 1e-9;
+        const IDS = ["p1x", "p1z", "p1tx", "p1tz", "p2x", "p2z", "p2tx", "p2tz"];
+        const els = {
+          form: document.getElementById("calcForm"),
+          overlay: document.getElementById("overlay"),
+          value: document.getElementById("modalValue"),
+          close: document.getElementById("closeBtn"),
+          copy: document.getElementById("copyBtn"),
+          toast: document.getElementById("toast"),
+          inputs: Object.fromEntries(IDS.map((id) => [id, document.getElementById(id)])),
+        };
+        const state = {
+          point: null,
+          toastTimer: 0,
+          copyTimer: 0,
+        };
+        function readValues() {
+          const values = {};
+          for (const id of IDS) {
+            const raw = els.inputs[id].value.trim();
+            if (raw === "") return null;
+            const num = Number(raw);
+            if (!Number.isFinite(num)) return null;
+            values[id] = num;
+          }
+          return values;
         }
-        const dx1 = p1tx - p1x;
-        const dz1 = p1tz - p1z;
-        const A1 = -dz1;
-        const B1 = dx1;
-        const C1 = -(A1 * p1x + B1 * p1z);
-        const dx2 = p2tx - p2x;
-        const dz2 = p2tz - p2z;
-        const A2 = -dz2;
-        const B2 = dx2;
-        const C2 = -(A2 * p2x + B2 * p2z);
-        const D = A1 * B2 - A2 * B1;
-        if (Math.abs(D) < 1e-9) {
-          showToast("视线平行，请移动后重新投掷");
-          return;
+        function solve(v) {
+          const dx1 = v.p1tx - v.p1x;
+          const dz1 = v.p1tz - v.p1z;
+          const dx2 = v.p2tx - v.p2x;
+          const dz2 = v.p2tz - v.p2z;
+          const a1 = -dz1;
+          const b1 = dx1;
+          const a2 = -dz2;
+          const b2 = dx2;
+          const c1 = -(a1 * v.p1x + b1 * v.p1z);
+          const c2 = -(a2 * v.p2x + b2 * v.p2z);
+          const det = a1 * b2 - a2 * b1;
+          if (Math.abs(det) < EPSILON) return null;
+          return {
+            x: (b1 * c2 - b2 * c1) / det,
+            z: (a2 * c1 - a1 * c2) / det,
+          };
         }
-        const x = (B1 * C2 - B2 * C1) / D;
-        const z = (A2 * C1 - A1 * C2) / D;
-        openModal(x, z);
-      });
-      modalClose.addEventListener("click", closeModal);
-      modalOverlay.addEventListener("click", (e) => {
-        if (e.target === modalOverlay) {
-          closeModal();
+        const format = (n) => n.toFixed(2);
+        function showToast(message) {
+          clearTimeout(state.toastTimer);
+          els.toast.textContent = message;
+          els.toast.classList.add("visible");
+          state.toastTimer = setTimeout(() => {
+            els.toast.classList.remove("visible");
+          }, 2000);
         }
-      });
-      modalCopy.addEventListener("click", () => {
-        const text = modalCoords.textContent;
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            modalCopy.textContent = "已复制";
-            setTimeout(() => {
-              modalCopy.textContent = "复制坐标";
-              closeModal();
-            }, 800);
-          })
-          .catch(() => {
+        function openModal(text) {
+          els.value.textContent = text;
+          els.overlay.classList.add("active");
+          els.overlay.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+        }
+        function closeModal() {
+          els.overlay.classList.remove("active");
+          els.overlay.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          clearTimeout(state.copyTimer);
+          els.copy.textContent = "复制坐标";
+          els.copy.classList.remove("is-copied");
+        }
+        async function writeClipboard(text) {
+          if (navigator.clipboard && window.isSecureContext) {
+            try {
+              await navigator.clipboard.writeText(text);
+              return true;
+            } catch {}
+          }
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0";
+          document.body.appendChild(helper);
+          helper.select();
+          let ok = false;
+          try {
+            ok = document.execCommand("copy");
+          } catch {}
+          helper.remove();
+          return ok;
+        }
+        els.form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const values = readValues();
+          if (!values) {
+            showToast("请填写所有坐标字段");
+            return;
+          }
+          const point = solve(values);
+          if (!point) {
+            showToast("视线平行，请移动后重新投掷");
+            return;
+          }
+          state.point = point;
+          openModal(`${format(point.x)}, ${format(point.z)}`);
+        });
+        els.close.addEventListener("click", closeModal);
+        els.overlay.addEventListener("click", (event) => {
+          if (event.target === els.overlay) closeModal();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && els.overlay.classList.contains("active")) {
+            closeModal();
+          }
+        });
+        els.copy.addEventListener("click", async () => {
+          if (!state.point) return;
+          const { x, z } = state.point;
+          const ok = await writeClipboard(`${format(x)}, ${format(z)}`);
+          if (!ok) {
             showToast("复制失败，请手动复制");
-          });
-      });
+            return;
+          }
+          clearTimeout(state.copyTimer);
+          els.copy.textContent = "已复制";
+          els.copy.classList.add("is-copied");
+          state.copyTimer = setTimeout(() => {
+            els.copy.textContent = "复制坐标";
+            els.copy.classList.remove("is-copied");
+            closeModal();
+          }, 800);
+        });
+      })();
     </script>
   </body>
 </html>
