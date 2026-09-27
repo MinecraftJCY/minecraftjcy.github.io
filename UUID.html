@@ -54,8 +54,8 @@
         min-height: 100vh;
         min-height: 100dvh;
         display: flex;
-        padding: clamp(20px, 5vw, 48px) clamp(16px, 5vw, 40px);
-        padding-bottom: calc(clamp(20px, 5vw, 48px) + env(safe-area-inset-bottom));
+        padding: clamp(20px, 5vw, 56px) clamp(16px, 5vw, 48px);
+        padding-bottom: calc(clamp(20px, 5vw, 56px) + env(safe-area-inset-bottom));
         background-color: var(--bg);
         color: var(--text);
         overflow-x: hidden;
@@ -68,7 +68,7 @@
       }
       .app {
         width: 100%;
-        max-width: 560px;
+        max-width: 680px;
         margin: auto;
         animation: soft-in 0.65s var(--ease) both;
       }
@@ -81,8 +81,8 @@
         }
       }
       .title {
-        margin: 0 0 clamp(22px, 5vw, 30px);
-        font-size: clamp(20px, 5.2vw, 25px);
+        margin: 0 0 clamp(22px, 5vw, 38px);
+        font-size: clamp(20px, 5.2vw, 38px);
         font-weight: 600;
         letter-spacing: 0.02em;
         text-align: center;
@@ -90,7 +90,7 @@
         transition: color var(--t-theme) var(--ease-theme);
       }
       .panel {
-        padding: clamp(22px, 6vw, 34px);
+        padding: clamp(22px, 6vw, 46px);
         border-radius: var(--radius-lg);
         background-color: var(--bg);
         box-shadow: var(--out-lg);
@@ -101,9 +101,9 @@
       .display {
         display: flex;
         align-items: center;
-        gap: 14px;
-        min-height: 64px;
-        padding: 14px 16px;
+        gap: clamp(10px, 1.6vw, 20px);
+        min-height: clamp(60px, 8vw, 84px);
+        padding: clamp(12px, 1.6vw, 22px) clamp(14px, 1.8vw, 24px);
         border-radius: var(--radius-md);
         background-color: var(--bg);
         box-shadow: var(--in-sm);
@@ -114,7 +114,7 @@
       .display__text {
         flex: 1;
         min-width: 0;
-        font-size: 14px;
+        font-size: clamp(13px, 1.5vw + 5px, 20px);
         line-height: 1.5;
         letter-spacing: 0.02em;
         font-variant-numeric: tabular-nums;
@@ -130,13 +130,13 @@
       }
       .display__copy {
         flex-shrink: 0;
-        padding: 10px 15px;
+        padding: clamp(9px, 1.2vw, 15px) clamp(13px, 1.6vw, 22px);
         border: 0;
         border-radius: var(--radius-xs);
         background-color: var(--bg);
         color: var(--text-soft);
         font-family: inherit;
-        font-size: 12.5px;
+        font-size: clamp(12.5px, 1.2vw + 5px, 18px);
         font-weight: 600;
         letter-spacing: 0.03em;
         white-space: nowrap;
@@ -171,9 +171,9 @@
           background-color var(--t-theme) var(--ease-theme);
       }
       .btn--primary {
-        margin-top: 24px;
-        padding: 18px;
-        font-size: 16px;
+        margin-top: clamp(24px, 2.6vw, 32px);
+        padding: clamp(18px, 2vw, 24px);
+        font-size: clamp(16px, 1.5vw + 7px, 23px);
         background-color: var(--bg);
         color: var(--accent);
         box-shadow: var(--out-md);
@@ -200,17 +200,6 @@
       @media (max-width: 480px) {
         .panel {
           border-radius: 24px;
-        }
-        .display {
-          gap: 10px;
-          min-height: 60px;
-          padding: 12px 14px;
-        }
-        .display__text {
-          font-size: 13px;
-        }
-        .display__copy {
-          padding: 9px 13px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
