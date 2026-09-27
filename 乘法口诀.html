@@ -11,28 +11,26 @@
         box-sizing: border-box;
       }
       :root {
-        color-scheme: light;
-        --bg: #f2f2f7;
-        --card: #ffffff;
-        --card-hover: #ffffff;
-        --text: #1c1c1e;
-        --accent: #007aff;
-        --border: rgba(60, 60, 67, 0.08);
-        --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.05);
-        --card-shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.06), 0 10px 22px rgba(0, 0, 0, 0.09);
+        color-scheme: light dark;
+        --bg: #e8ecf3;
+        --text: #3c4456;
+        --text-soft: #7d8698;
+        --shade: rgba(163, 177, 198, 0.62);
+        --light: rgba(255, 255, 255, 0.92);
+        --raise: 3px 3px 6px var(--shade), -3px -3px 6px var(--light);
+        --raise-hover: 5px 5px 10px var(--shade), -5px -5px 10px var(--light);
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          color-scheme: dark;
-          --bg: #0b0b0d;
-          --card: #1c1c1e;
-          --card-hover: #242426;
-          --text: #f2f2f7;
-          --accent: #0a84ff;
-          --border: rgba(255, 255, 255, 0.07);
-          --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-          --card-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.45);
+          --bg: #2b2e35;
+          --text: #dfe3ec;
+          --text-soft: #939cb0;
+          --shade: rgba(0, 0, 0, 0.55);
+          --light: rgba(255, 255, 255, 0.08);
         }
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
       }
       body {
         margin: 0;
@@ -40,89 +38,76 @@
         min-height: 100dvh;
         background: var(--bg);
         color: var(--text);
+        font-family: system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
         transition:
-          background-color 0.3s ease,
-          color 0.3s ease;
+          background-color 0.35s ease,
+          color 0.35s ease;
       }
       .app {
         width: 100%;
-        max-width: 1040px;
+        max-width: 1280px;
         margin: 0 auto;
-        padding: clamp(16px, 3vw, 40px) clamp(10px, 3vw, 32px) clamp(24px, 4vw, 56px);
+        padding: clamp(24px, 3.5vw, 56px) clamp(14px, 3vw, 48px) clamp(32px, 4vw, 72px);
       }
-      .topbar {
-        margin-bottom: clamp(16px, 2.5vw, 28px);
-      }
-      .topbar h1 {
-        margin: 0;
-        font-size: clamp(20px, 2.4vw, 28px);
+      .title {
+        margin: 0 0 clamp(24px, 2.5vw, 40px);
+        font-size: clamp(22px, 2.2vw, 32px);
         font-weight: 700;
         letter-spacing: -0.02em;
+        text-align: center;
       }
       .board {
         display: grid;
         grid-template-columns: repeat(9, minmax(0, 1fr));
-        gap: clamp(4px, 0.9vw, 10px);
-        animation: board-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-      }
-      @keyframes board-in {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
+        gap: clamp(8px, 1.4vw, 18px);
       }
       .cell {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.2em;
-        padding: clamp(8px, 1.2vw, 15px) clamp(2px, 0.7vw, 8px);
-        border: 1px solid var(--border);
-        border-radius: clamp(8px, 1vw, 13px);
-        background: var(--card);
-        box-shadow: var(--card-shadow);
-        font-size: clamp(10px, 0.5vw + 8px, 15px);
+        gap: 0.15em;
+        padding: clamp(9px, 1.2vw, 18px) clamp(3px, 0.6vw, 8px);
+        border-radius: clamp(9px, 1.1vw, 16px);
+        background: var(--bg);
+        box-shadow: var(--raise);
+        font-size: clamp(10px, 1.3vw + 5px, 18px);
+        font-weight: 700;
         font-variant-numeric: tabular-nums;
-        letter-spacing: -0.01em;
         line-height: 1.15;
         white-space: nowrap;
         user-select: none;
-        -webkit-tap-highlight-color: transparent;
         transition:
-          transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
           box-shadow 0.22s ease,
-          background-color 0.3s ease,
-          border-color 0.3s ease;
+          transform 0.22s ease;
       }
+      .expr,
       .op {
-        opacity: 0.45;
+        color: var(--text-soft);
       }
       .product {
-        font-weight: 600;
-        color: var(--accent);
+        color: var(--text);
       }
       @media (hover: hover) and (pointer: fine) {
         .cell:hover {
-          z-index: 2;
-          transform: translateY(-2px);
-          background: var(--card-hover);
-          box-shadow: var(--card-shadow-hover);
+          transform: translateY(-1px);
+          box-shadow: var(--raise-hover);
         }
       }
       .cell:active {
-        transform: scale(0.96);
-        transition-duration: 0.12s;
+        transform: scale(0.97);
       }
-      @media (max-width: 560px) {
+      @media (max-width: 680px) {
+        :root {
+          --raise: 2px 2px 4px var(--shade), -2px -2px 4px var(--light);
+        }
         .cell {
           flex-direction: column;
           gap: 0;
-          padding: clamp(7px, 2vw, 12px) 1px;
+          padding: clamp(8px, 2.2vw, 14px) 1px;
           border-radius: 9px;
-          font-size: clamp(10px, 2.8vw, 14px);
+          font-size: clamp(9px, 2.2vw + 2px, 17px);
         }
         .op {
           display: none;
@@ -132,34 +117,32 @@
         }
         .product {
           font-size: 1.15em;
-          line-height: 1.25;
+          line-height: 1.2;
         }
       }
       @media (prefers-reduced-motion: reduce) {
         *,
         *::before,
         *::after {
-          animation-duration: 0.001ms !important;
-          transition-duration: 0.001ms !important;
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="app">
-      <header class="topbar">
-        <h1>乘法口诀表</h1>
-      </header>
-      <main class="board" id="board"></main>
-    </div>
+    <main class="app">
+      <h1 class="title">乘法口诀表</h1>
+      <div class="board" id="board"></div>
+    </main>
     <script>
-      (function () {
+      (() => {
         "use strict";
         const board = document.getElementById("board");
         const cells = [];
         for (let row = 1; row <= 9; row += 1) {
           for (let col = 1; col <= row; col += 1) {
-            cells.push('<div class="cell" style="grid-area:' + row + "/" + col + '"><span class="expr">' + col + "×" + row + '</span><span class="op">=</span><span class="product">' + col * row + "</span></div>");
+            cells.push(`<div class="cell" style="grid-area:${row}/${col}">` + `<span class="expr">${col}×${row}</span>` + `<span class="op">=</span>` + `<span class="product">${col * row}</span>` + `</div>`);
           }
         }
         board.innerHTML = cells.join("");
