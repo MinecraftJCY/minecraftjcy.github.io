@@ -122,15 +122,23 @@
         text-decoration: none;
         transition: background-color 0.16s ease;
         -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
-      .item:hover,
-      .item:focus-visible {
+      .item:active {
         background-color: var(--hover);
-        outline: none;
       }
-      .item:focus-visible {
-        outline: 1.5px solid var(--key);
-        outline-offset: 1px;
+      @media (hover: hover) {
+        .item:hover,
+        .item:focus-visible {
+          background-color: var(--hover);
+          outline: none;
+        }
+        .item:focus-visible {
+          outline: 1.5px solid var(--key);
+          outline-offset: 1px;
+        }
       }
       .punct {
         color: var(--punct);
