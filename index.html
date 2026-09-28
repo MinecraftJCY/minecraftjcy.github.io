@@ -3,528 +3,255 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GitHub主页</title>
+    <title>主页</title>
     <style>
       :root {
-        --bg-gradient: linear-gradient(155deg, #fdf6f0 0%, #f8f1e8 35%, #f5eff8 70%, #fdf6f0 100%);
-        --bg-fallback: #fdf6f0;
-        --text: #3d3a45;
-        --text-muted: rgba(60, 55, 65, 0.7);
-        --glow-1: rgba(180, 160, 140, 0.1);
-        --glow-2: rgba(170, 155, 180, 0.08);
-        --nav-bg: rgba(255, 255, 255, 0.68);
-        --nav-border: rgba(0, 0, 0, 0.08);
-        --nav-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        --tab-active-bg: #ffffff;
-        --tab-active-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-        --card-bg: rgba(255, 255, 255, 0.72);
-        --card-bg-hover: rgba(255, 255, 255, 0.9);
-        --card-border: rgba(0, 0, 0, 0.08);
-        --card-border-hover: rgba(0, 0, 0, 0.18);
-        --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-        --card-shadow-hover: 0 14px 36px rgba(0, 0, 0, 0.12);
-        --card-icon-shadow: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.12));
-        --footer-border: rgba(0, 0, 0, 0.07);
-        --footer-text: rgba(60, 55, 65, 0.5);
-        --ease-bounce: cubic-bezier(0.34, 1.25, 0.64, 1);
-        --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
-        --theme-duration: 0.45s;
+        color-scheme: light dark;
+        --page: #e7e2d8;
+        --sheen: rgba(255, 255, 255, 0.55);
+        --paper: #fbf9f4;
+        --ink: #33302a;
+        --punct: #a9a091;
+        --key: #1c5b8c;
+        --str: #a13a2b;
+        --rule: rgba(74, 62, 44, 0.16);
+        --hover: rgba(28, 91, 140, 0.065);
+        --grain: rgba(58, 48, 33, 0.9);
+        --sheet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 2px rgba(48, 38, 22, 0.05), 0 14px 30px -20px rgba(48, 38, 22, 0.4), 0 50px 90px -60px rgba(48, 38, 22, 0.55);
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg-gradient: linear-gradient(135deg, #1a1d2e 0%, #252040 40%, #1e1b2e 100%);
-          --bg-fallback: #1a1d2e;
-          --text: #e8e6f0;
-          --text-muted: rgba(220, 218, 230, 0.8);
-          --glow-1: rgba(255, 255, 255, 0.05);
-          --glow-2: rgba(255, 255, 255, 0.04);
-          --nav-bg: rgba(30, 28, 48, 0.55);
-          --nav-border: rgba(255, 255, 255, 0.12);
-          --nav-shadow: 0 10px 34px rgba(0, 0, 0, 0.38);
-          --tab-active-bg: rgba(255, 255, 255, 0.16);
-          --tab-active-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
-          --card-bg: rgba(255, 255, 255, 0.06);
-          --card-bg-hover: rgba(255, 255, 255, 0.12);
-          --card-border: rgba(255, 255, 255, 0.1);
-          --card-border-hover: rgba(255, 255, 255, 0.3);
-          --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-          --card-shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.4);
-          --card-icon-shadow: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
-          --footer-border: rgba(255, 255, 255, 0.08);
-          --footer-text: rgba(220, 218, 230, 0.55);
+          --page: #0d0c0b;
+          --sheen: rgba(255, 255, 255, 0.03);
+          --paper: #1a1917;
+          --ink: #d8d3c9;
+          --punct: #6c665c;
+          --key: #7cbaea;
+          --str: #e2947d;
+          --rule: rgba(255, 255, 255, 0.1);
+          --hover: rgba(124, 186, 234, 0.08);
+          --grain: rgba(255, 250, 240, 0.85);
+          --sheet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 30px -20px rgba(0, 0, 0, 0.85), 0 50px 90px -60px rgba(0, 0, 0, 1);
         }
       }
       *,
       *::before,
       *::after {
         box-sizing: border-box;
-        margin: 0;
-        padding: 0;
       }
       body {
+        margin: 0;
         min-height: 100vh;
-        padding: 2.5rem 1.25rem 2rem;
-        color: var(--text);
-        background-color: var(--bg-fallback);
-        background-image: var(--bg-gradient);
-        background-attachment: fixed;
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        transition:
-          background-color var(--theme-duration) ease,
-          color var(--theme-duration) ease;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        z-index: 0;
-        pointer-events: none;
-        will-change: transform;
-        background: radial-gradient(circle at 18% 45%, var(--glow-1) 0%, transparent 48%), radial-gradient(circle at 78% 75%, var(--glow-2) 0%, transparent 48%), radial-gradient(circle at 50% 20%, var(--glow-1) 0%, transparent 40%);
-        animation: glow-drift 32s ease-in-out infinite;
-      }
-      @keyframes glow-drift {
-        0%,
-        100% {
-          transform: translate(0, 0);
-        }
-        33% {
-          transform: translate(-40px, -25px);
-        }
-        66% {
-          transform: translate(20px, 30px);
-        }
-      }
-      .container {
-        position: relative;
-        z-index: 1;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      .nav-bar {
-        position: sticky;
-        top: 1rem;
-        z-index: 100;
-        width: fit-content;
-        margin: 0 auto 3.5rem;
-        padding: 0.3rem 0.4rem;
-        border: 1px solid var(--nav-border);
-        border-radius: 999px;
-        background: var(--nav-bg);
-        box-shadow: var(--nav-shadow);
-        backdrop-filter: blur(18px) saturate(150%);
-        -webkit-backdrop-filter: blur(18px) saturate(150%);
-        animation: fade-slide-down 0.6s ease-out;
-        transition:
-          background var(--theme-duration) ease,
-          border-color var(--theme-duration) ease,
-          box-shadow var(--theme-duration) ease;
-      }
-      @keyframes fade-slide-down {
-        from {
-          opacity: 0;
-          transform: translateY(-24px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .tabs {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 0.15rem;
-      }
-      .tab-indicator {
-        position: absolute;
-        top: 3px;
-        bottom: 3px;
-        left: 0;
-        width: 0;
-        border-radius: 999px;
-        background: var(--tab-active-bg);
-        box-shadow: var(--tab-active-shadow);
-        pointer-events: none;
-        will-change: transform, width;
-        transition:
-          transform 0.42s var(--ease-bounce),
-          width 0.42s var(--ease-bounce),
-          background var(--theme-duration) ease;
-      }
-      .tab-btn {
-        position: relative;
-        z-index: 1;
-        padding: 0.55rem 1.4rem;
-        border: 0;
-        border-radius: 999px;
-        background: transparent;
-        font-size: 0.95rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        color: var(--text-muted);
-        white-space: nowrap;
-        cursor: pointer;
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-        transition: color 0.3s ease;
-      }
-      .tab-btn:hover,
-      .tab-btn.is-active {
-        color: var(--text);
-      }
-      .tab-btn:focus-visible {
-        outline: 2px solid var(--card-border-hover);
-        outline-offset: 3px;
-      }
-      .projects-grid {
+        min-height: 100svh;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.75rem;
+        place-items: center;
+        padding: clamp(18px, 4vw, 64px) clamp(14px, 3vw, 40px);
+        background-color: var(--page);
+        background-image: radial-gradient(120% 90% at 50% 0%, var(--sheen), transparent 62%);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
-      .project-card {
+      .sheet {
         position: relative;
-        display: flex;
-        flex-direction: column;
+        isolation: isolate;
+        width: min(920px, 100%);
+        padding: clamp(26px, 4.5vw, 60px) clamp(22px, 5.5vw, 76px) clamp(22px, 3.5vw, 44px);
+        background-color: var(--paper);
+        border-radius: 2px;
+        box-shadow: var(--sheet-shadow);
         overflow: hidden;
-        padding: 1.75rem 1.5rem;
-        border: 1px solid var(--card-border);
-        border-radius: 18px;
-        background: var(--card-bg);
-        color: var(--text);
-        text-decoration: none;
-        box-shadow: var(--card-shadow);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        -webkit-tap-highlight-color: transparent;
-        animation: fade-slide-up 0.55s ease-out backwards;
-        transition:
-          background 0.35s ease,
-          border-color 0.35s ease,
-          box-shadow 0.35s ease,
-          transform 0.3s var(--ease-soft);
+        animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
       }
-      .project-card::after {
+      .sheet::before {
         content: "";
         position: absolute;
         inset: 0;
-        border-radius: inherit;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 55%);
-        opacity: 0;
+        z-index: -1;
         pointer-events: none;
-        transition: opacity 0.35s ease;
+        opacity: 0.05;
+        background-image: radial-gradient(var(--grain) 0.5px, transparent 0.6px), radial-gradient(var(--grain) 0.5px, transparent 0.6px);
+        background-size:
+          3px 3px,
+          7px 7px;
+        background-position:
+          0 0,
+          2px 3px;
       }
-      .project-card:hover::after {
-        opacity: 1;
-      }
-      .project-card.is-hidden {
-        display: none;
-      }
-      @keyframes fade-slide-up {
-        from {
-          opacity: 0;
-          transform: translateY(28px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @media (hover: hover) {
-        .project-card:hover {
-          background: var(--card-bg-hover);
-          border-color: var(--card-border-hover);
-          box-shadow: var(--card-shadow-hover);
-          transform: translateY(-8px);
-        }
-        .project-card:hover .card-icon {
-          transform: scale(1.12) rotate(4deg);
-        }
-      }
-      @media (hover: none) {
-        .project-card:active {
-          background: var(--card-bg-hover);
-          border-color: var(--card-border-hover);
-          box-shadow: var(--card-shadow-hover);
-          transform: scale(0.975);
-          transition:
-            transform 0.12s ease,
-            background 0.2s ease,
-            border-color 0.2s ease;
-        }
-      }
-      .card-header {
+      .masthead,
+      .colophon {
         display: flex;
-        align-items: center;
-        gap: 0.7rem;
-        margin-bottom: 0.6rem;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 14px;
+        font-size: clamp(11px, 0.55vw + 9px, 14px);
+        color: var(--punct);
       }
-      .card-icon {
-        flex-shrink: 0;
+      .masthead {
+        padding-bottom: 14px;
+        margin-bottom: clamp(20px, 3vw, 36px);
+        border-bottom: 1px solid var(--rule);
+        letter-spacing: 0.2em;
+      }
+      .masthead__name {
+        color: var(--ink);
+        letter-spacing: 0.1em;
+      }
+      .colophon {
+        margin-top: clamp(20px, 3vw, 36px);
+        padding-top: 14px;
+        border-top: 1px solid var(--rule);
+        letter-spacing: 0.16em;
+      }
+      .code {
+        font-size: clamp(14.5px, 1.45vw + 9.5px, 22px);
+        line-height: 1.9;
+        overflow-wrap: break-word;
+      }
+      .body {
+        padding-left: 1.7em;
+      }
+      .item {
         display: block;
-        font-size: 2.3rem;
-        line-height: 1;
-        filter: var(--card-icon-shadow);
-        transition: transform 0.3s var(--ease-soft);
+        margin-left: -0.75em;
+        padding-left: 0.75em;
+        margin-right: -0.5em;
+        padding-right: 0.5em;
+        border-radius: 3px;
+        color: inherit;
+        text-decoration: none;
+        transition: background-color 0.16s ease;
+        -webkit-tap-highlight-color: transparent;
       }
-      .card-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        line-height: 1.25;
-        letter-spacing: -0.01em;
+      .item:hover,
+      .item:focus-visible {
+        background-color: var(--hover);
+        outline: none;
       }
-      .card-description {
-        margin-top: 0.15rem;
-        font-size: 0.92rem;
-        line-height: 1.55;
-        color: var(--text-muted);
+      .item:focus-visible {
+        outline: 1.5px solid var(--key);
+        outline-offset: 1px;
       }
-      footer {
-        margin-top: 4rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--footer-border);
-        text-align: center;
-        font-size: 0.88rem;
-        letter-spacing: 0.3px;
-        color: var(--footer-text);
-        animation: fade-in 0.8s ease-out backwards;
+      .punct {
+        color: var(--punct);
       }
-      @keyframes fade-in {
+      .key {
+        color: var(--key);
+      }
+      .str {
+        color: var(--str);
+      }
+      @media (min-width: 768px) {
+        .sheet {
+          width: min(1000px, 100%);
+          padding: 66px 92px 50px;
+        }
+        .sheet::before {
+          background-image: radial-gradient(var(--grain) 0.6px, transparent 0.7px), radial-gradient(var(--grain) 0.6px, transparent 0.7px);
+          background-size:
+            5px 5px,
+            11px 11px;
+          background-position:
+            0 0,
+            3px 4px;
+        }
+        .code {
+          line-height: 2;
+        }
+      }
+      @keyframes rise {
         from {
           opacity: 0;
+          transform: translateY(12px);
         }
         to {
           opacity: 1;
-        }
-      }
-      @media (max-width: 1024px) {
-        .projects-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1.5rem;
-        }
-        .project-card {
-          padding: 1.5rem 1.35rem;
-        }
-      }
-      @media (max-width: 768px) {
-        body {
-          padding: 2rem 0.9rem 1.5rem;
-        }
-        .nav-bar {
-          top: 0.75rem;
-          margin-bottom: 2.5rem;
-        }
-        .projects-grid {
-          grid-template-columns: 1fr;
-          gap: 1.25rem;
-        }
-        .project-card {
-          padding: 1.35rem 1.2rem;
-          border-radius: 16px;
-        }
-        .card-icon {
-          font-size: 2rem;
-        }
-        .card-title {
-          font-size: 1.25rem;
-        }
-        .card-description {
-          font-size: 0.88rem;
-        }
-        footer {
-          margin-top: 2.5rem;
-          padding-top: 1.5rem;
-        }
-      }
-      @media (max-width: 420px) {
-        .tab-btn {
-          padding: 0.5rem 1.05rem;
-          font-size: 0.9rem;
-        }
-      }
-      @media (min-width: 1400px) {
-        .projects-grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: 2rem;
-        }
-        .project-card {
-          padding: 2rem 1.75rem;
+          transform: none;
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
+        .sheet {
+          animation: none;
         }
-        body::before {
-          animation: none !important;
+        .item {
+          transition: none;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <nav class="nav-bar" aria-label="分类导航">
-        <div class="tabs" role="tablist">
-          <span class="tab-indicator" aria-hidden="true"></span>
-        </div>
-      </nav>
-      <main class="projects-grid"></main>
-      <footer>
-        <p>Generated by AI</p>
+    <main class="sheet">
+      <header class="masthead">
+        <span class="masthead__name">index.json</span>
+        <span>utf-8</span>
+      </header>
+      <section class="code" id="code"></section>
+      <footer class="colophon">
+        <span id="count"></span>
+        <span>end of file</span>
       </footer>
-    </div>
+    </main>
     <script>
-      (() => {
-        "use strict";
-        const PROJECTS = [
-          { href: "俄罗斯方块.html", icon: "🧱", title: "俄罗斯方块", description: "调整下落方块，消除整行得分", category: "fun" },
-          { href: "贪吃蛇.html", icon: "🐍", title: "贪吃蛇", description: "控制蛇吃食物，不断变长", category: "fun" },
-          { href: "数字华容道.html", icon: "🔢", title: "数字华容道", description: "移动方块，按顺序排列数字", category: "fun" },
-          { href: "2048.html", icon: "➕", title: "2048", description: "合并数字，抵达 2048", category: "fun" },
-          { href: "五子棋.html", icon: "⚫", title: "五子棋", description: "双人对战，看谁先连成五子", category: "fun" },
-          { href: "汉诺塔.html", icon: "🗼", title: "汉诺塔", description: "挑战用最少的步数移动整座塔", category: "fun" },
-          { href: "打砖块.html", icon: "🏓", title: "打砖块", description: "反弹小球，击碎砖块", category: "fun" },
-          { href: "数独.html", icon: "🧩", title: "数独", description: "逻辑推理，用数字填满九宫格", category: "fun" },
-          { href: "彩票.html", icon: "🎰", title: "幸运彩票", description: "模拟彩票抽奖，试试你的运气", category: "fun" },
-          { href: "扫地机器人.html", icon: "⚙️", title: "扫地机器人", description: "化身扫地机器人，感受消灭垃圾的快乐", category: "fun" },
-          { href: "消消乐.html", icon: "✨", title: "消消乐", description: "让三个同色方块相邻成线，消除它们", category: "fun" },
-          { href: "大球吃小球.html", icon: "🔮", title: "大球吃小球", description: "吃掉比你小的球，躲避比你大的球", category: "fun" },
-          { href: "星际大战.html", icon: "🚀", title: "星际大战", description: "驾驶太空战机，消灭敌人，拯救宇宙", category: "fun" },
-          { href: "爱心.html", icon: "💖", title: "动态爱心", description: "浪漫的爱心动画效果，温馨唯美", category: "fun" },
-          { href: "Base64.html", icon: "🧬", title: "Base64 编解码", description: "将数据编码成 Base64，亦可解码还原", category: "tools" },
-          { href: "二维码.html", icon: "🔳", title: "二维码生成器", description: "将任意字符串转换为二维码", category: "tools" },
-          { href: "UUID.html", icon: "🆔", title: "UUID 生成器", description: "安全生成随机的 UUID，支持批量生成", category: "tools" },
-          { href: "随机字符.html", icon: "🔐", title: "随机字符生成器", description: "安全生成完全随机的字符序列", category: "tools" },
-          { href: "字符统计.html", icon: "🔤", title: "字符统计", description: "实时分析文本，精准分类计数", category: "tools" },
-          { href: "BCC转SRT.html", icon: "🎬", title: "BCC 转 SRT", description: "将 Bilibili 字幕文件转换为通用格式", category: "tools" },
-          { href: "素数.html", icon: "🧮", title: "素数与因数", description: "判断一个自然数是否为素数", category: "tools" },
-          { href: "相对论.html", icon: "🌌", title: "相对论效应", description: "当速度接近光速，会发生什么呢", category: "tools" },
-          { href: "末地传送门.html", icon: "🧭", title: "末地传送门定位器", description: "投掷末影之眼，自动计算末地传送门位置", category: "tools" },
-          { href: "乘法口诀.html", icon: "✖️", title: "乘法口诀表", description: "快速掌握 10 以内的乘法", category: "tools" },
-        ];
-        const CATEGORIES = [
-          { id: "fun", label: "娱乐" },
-          { id: "tools", label: "工具" },
-        ];
-        const DEFAULT_CATEGORY = CATEGORIES[0].id;
-        const CARD_STAGGER = 0.05;
-        const CARD_DURATION = 0.55;
-        const FOOTER_BUFFER = 0.2;
-        const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const dom = {
-          tabs: document.querySelector(".tabs"),
-          indicator: document.querySelector(".tab-indicator"),
-          grid: document.querySelector(".projects-grid"),
-          footer: document.querySelector("footer"),
-        };
-        const createElement = (tag, { className, text, ...attributes } = {}, ...children) => {
-          const node = document.createElement(tag);
-          if (className) node.className = className;
-          if (text != null) node.textContent = text;
-          for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
-          node.append(...children);
-          return node;
-        };
-        const tabsController = (() => {
-          let buttons = [];
-          let cards = [];
-          let cardsByCategory = new Map();
-          let activeCategory = null;
-          const activeButton = () => buttons.find((button) => button.classList.contains("is-active"));
-          const moveIndicator = (button, instant) => {
-            if (!button) return;
-            if (instant) dom.indicator.style.transition = "none";
-            dom.indicator.style.width = `${Math.max(0, button.offsetWidth - 6)}px`;
-            dom.indicator.style.transform = `translateX(${button.offsetLeft + 3}px)`;
-            if (instant) {
-              requestAnimationFrame(() =>
-                requestAnimationFrame(() => {
-                  dom.indicator.style.transition = "";
-                }),
-              );
-            }
-          };
-          const activate = (category, { instant = false } = {}) => {
-            activeCategory = category;
-            buttons.forEach((button) => {
-              const active = button.dataset.category === category;
-              button.classList.toggle("is-active", active);
-              button.setAttribute("aria-selected", String(active));
-            });
-            cards.forEach((card) => {
-              card.classList.toggle("is-hidden", card.dataset.category !== category);
-            });
-            const visible = cardsByCategory.get(category) ?? [];
-            visible.forEach((card, index) => {
-              card.style.animationDelay = REDUCED_MOTION ? "0s" : `${index * CARD_STAGGER}s`;
-            });
-            moveIndicator(
-              buttons.find((button) => button.dataset.category === category),
-              instant,
-            );
-          };
-          const syncFooterDelay = () => {
-            const visible = (cardsByCategory.get(activeCategory) ?? []).length;
-            const delay = visible > 0 ? (visible - 1) * CARD_STAGGER + CARD_DURATION + FOOTER_BUFFER : 0.5;
-            dom.footer.style.animationDelay = REDUCED_MOTION ? "0s" : `${delay}s`;
-          };
-          const buildTabs = () =>
-            CATEGORIES.map(({ id, label }) =>
-              createElement("button", {
-                className: "tab-btn",
-                type: "button",
-                role: "tab",
-                "aria-selected": "false",
-                "data-category": id,
-                text: label,
-              }),
-            );
-          const buildCards = () => {
-            const fragment = document.createDocumentFragment();
-            PROJECTS.forEach(({ href, icon, title, description, category }) => {
-              fragment.append(createElement("a", { className: "project-card is-hidden", href, "data-category": category }, createElement("div", { className: "card-header" }, createElement("span", { className: "card-icon", text: icon }), createElement("h2", { className: "card-title", text: title })), createElement("p", { className: "card-description", text: description })));
-            });
-            dom.grid.append(fragment);
-          };
-          const bindTabs = () => {
-            buttons.forEach((button) => {
-              button.addEventListener("click", () => {
-                const category = button.dataset.category;
-                if (category === activeCategory) return;
-                activate(category);
-              });
-            });
-          };
-          const bindViewport = () => {
-            window.addEventListener("resize", () => moveIndicator(activeButton()));
-            if (document.fonts?.ready) {
-              document.fonts.ready.then(() => moveIndicator(activeButton()));
-            }
-          };
-          const init = () => {
-            buttons = buildTabs();
-            dom.tabs.append(...buttons);
-            buildCards();
-            cards = [...dom.grid.querySelectorAll(".project-card")];
-            cardsByCategory = new Map(CATEGORIES.map(({ id }) => [id, cards.filter((card) => card.dataset.category === id)]));
-            bindTabs();
-            activate(DEFAULT_CATEGORY, { instant: true });
-            syncFooterDelay();
-            bindViewport();
-          };
-          return { init };
-        })();
-        tabsController.init();
-      })();
+      const DATA = [
+        {
+          key: "娱乐",
+          items: [
+            { key: "tetris", value: "俄罗斯方块", href: "俄罗斯方块.html" },
+            { key: "snake", value: "贪吃蛇", href: "贪吃蛇.html" },
+            { key: "klotski", value: "数字华容道", href: "数字华容道.html" },
+            { key: "game2048", value: "2048", href: "2048.html" },
+            { key: "gomoku", value: "五子棋", href: "五子棋.html" },
+            { key: "hanoi", value: "汉诺塔", href: "汉诺塔.html" },
+            { key: "breakout", value: "打砖块", href: "打砖块.html" },
+            { key: "sudoku", value: "数独", href: "数独.html" },
+            { key: "lottery", value: "幸运彩票", href: "彩票.html" },
+            { key: "vacuum", value: "扫地机器人", href: "扫地机器人.html" },
+            { key: "match3", value: "消消乐", href: "消消乐.html" },
+            { key: "agar", value: "大球吃小球", href: "大球吃小球.html" },
+            { key: "starWars", value: "星际大战", href: "星际大战.html" },
+          ],
+        },
+        {
+          key: "工具",
+          items: [
+            { key: "base64", value: "Base64 编解码", href: "Base64.html" },
+            { key: "qrcode", value: "二维码生成器", href: "二维码.html" },
+            { key: "uuid", value: "UUID 生成器", href: "UUID.html" },
+            { key: "randomString", value: "随机字符生成器", href: "随机字符.html" },
+            { key: "charStats", value: "字符统计", href: "字符统计.html" },
+            { key: "bccToSrt", value: "BCC 转 SRT", href: "BCC转SRT.html" },
+            { key: "primes", value: "素数与因数", href: "素数.html" },
+            { key: "relativity", value: "相对论效应", href: "相对论.html" },
+            { key: "endPortal", value: "末地传送门定位器", href: "末地传送门.html" },
+          ],
+        },
+        {
+          key: "展示",
+          items: [
+            { key: "heart", value: "动态爱心", href: "爱心.html" },
+            { key: "timesTable", value: "乘法口诀表", href: "乘法口诀.html" },
+          ],
+        },
+      ];
+      const el = (tag, props = {}, ...children) => {
+        const node = document.createElement(tag);
+        if (props.class) node.className = props.class;
+        if (props.text != null) node.textContent = props.text;
+        if (props.href) node.href = props.href;
+        node.append(...children);
+        return node;
+      };
+      const span = (cls, text) => el("span", { class: cls, text });
+      const div = (...children) => el("div", {}, ...children);
+      const block = (...children) => el("div", { class: "body" }, ...children);
+      const punct = (text) => span("punct", text);
+      const key = (text) => span("key", text);
+      const value = (text) => span("str", text);
+      const entry = (item, isLast) => el("a", { class: "item", href: item.href }, punct('"'), key(item.key), punct('": '), value(`"${item.value}"`), punct(isLast ? "" : ","));
+      const section = (s, isLast) => div(div(punct('"'), key(s.key), punct('": {')), block(...s.items.map((item, i) => entry(item, i === s.items.length - 1))), div(punct(isLast ? "}" : "},")));
+      const tree = (data) => div(div(punct("{")), block(...data.map((s, i) => section(s, i === data.length - 1))), div(punct("}")));
+      document.getElementById("code").append(tree(DATA));
+      document.getElementById("count").textContent = `${DATA.length} sections · ${DATA.reduce((n, s) => n + s.items.length, 0)} entries`;
     </script>
   </body>
 </html>
