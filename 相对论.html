@@ -13,28 +13,25 @@
       }
       :root {
         color-scheme: light;
-        --bg: #e0e5ec;
-        --shadow-dark: #a3b1c6;
-        --shadow-light: #ffffff;
-        --text: #3f4a5a;
-        --text-soft: #7b8598;
-        --danger: #c05a5a;
-        --raise-lg: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
-        --raise-md: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
-        --raise-sm: 4px 4px 9px var(--shadow-dark), -4px -4px 9px var(--shadow-light);
-        --sink-sm: inset 4px 4px 9px var(--shadow-dark), inset -4px -4px 9px var(--shadow-light);
-        --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
-        --gap: clamp(16px, 2vw, 22px);
+        --bg: #f4f3f0;
+        --ink: #141416;
+        --muted: #83838b;
+        --line: #e3e1dc;
+        --accent: #2b47d6;
+        --danger: #c0392b;
+        --focus: rgba(43, 71, 214, 0.22);
+        --ease: cubic-bezier(0.32, 0.72, 0, 1);
       }
       @media (prefers-color-scheme: dark) {
         :root {
           color-scheme: dark;
-          --bg: #2c3038;
-          --shadow-dark: #20232a;
-          --shadow-light: #383e48;
-          --text: #c9cfdb;
-          --text-soft: #868e9e;
-          --danger: #d98a8a;
+          --bg: #0c0c0e;
+          --ink: #f0efec;
+          --muted: #84848d;
+          --line: #242429;
+          --accent: #8ea2ff;
+          --danger: #ff8f82;
+          --focus: rgba(142, 162, 255, 0.28);
         }
       }
       html {
@@ -44,235 +41,231 @@
         margin: 0;
         min-height: 100vh;
         min-height: 100dvh;
-        padding: clamp(14px, 2vw, 22px) clamp(16px, 5vw, 40px);
-        padding-bottom: calc(clamp(14px, 2vw, 22px) + env(safe-area-inset-bottom));
+        padding: clamp(32px, 6vw, 72px) clamp(20px, 5vw, 40px) calc(clamp(32px, 6vw, 72px) + env(safe-area-inset-bottom));
+        display: grid;
+        justify-items: center;
+        align-content: start;
         background: var(--bg);
-        color: var(--text);
+        color: var(--ink);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         transition:
-          background-color 0.45s ease,
-          color 0.45s ease;
+          background-color 0.4s ease,
+          color 0.4s ease;
       }
       .app {
-        margin: 0 auto;
         width: 100%;
-        max-width: 1080px;
+        max-width: 880px;
         display: flex;
         flex-direction: column;
-        gap: var(--gap);
+        gap: clamp(40px, 7vw, 72px);
       }
-      .title {
+      .masthead h1 {
         margin: 0;
-        text-align: center;
-        font-size: clamp(22px, 4vw, 32px);
+        font-size: clamp(22px, 3.2vw, 30px);
         font-weight: 600;
-        letter-spacing: 0.02em;
-        transition: color 0.45s ease;
+        letter-spacing: 0.03em;
+        transition: color 0.4s ease;
       }
-      .panel {
-        padding: clamp(20px, 3vw, 28px);
-        border-radius: 26px;
-        background: var(--bg);
-        box-shadow: var(--raise-lg);
-        transition:
-          box-shadow 0.28s ease,
-          background-color 0.45s ease;
+      .masthead p {
+        margin: 12px 0 0;
+        font-size: 0.82rem;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        transition: color 0.4s ease;
       }
-      .label,
-      .ratio,
-      .card-head {
+      .control {
         display: flex;
-        flex-wrap: nowrap;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .label > *,
-      .ratio > *,
-      .card-head > * {
-        white-space: nowrap;
-      }
-      .label,
-      .ratio-label {
-        font-size: 0.88rem;
-        font-weight: 500;
-        color: var(--text-soft);
-        letter-spacing: 0.04em;
-      }
-      .label {
-        margin-bottom: 10px;
-      }
-      .label .range {
-        font-size: 0.76rem;
-        opacity: 0.75;
-      }
-      .velocity-row {
-        display: flex;
-        align-items: baseline;
-        gap: 12px;
-        padding: 10px 20px;
-        border-radius: 18px;
-        background: var(--bg);
-        box-shadow: var(--sink-sm);
-        transition:
-          box-shadow 0.28s ease,
-          background-color 0.45s ease;
-      }
-      .velocity-row input {
-        flex: 1;
-        min-width: 0;
-        border: 0;
-        outline: none;
-        background: transparent;
-        color: var(--text);
-        font-size: clamp(20px, 3vw, 28px);
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        font-variant-numeric: tabular-nums;
-        padding: 4px 0;
-      }
-      .velocity-row .unit {
-        flex: none;
-        font-size: 0.88rem;
-        font-weight: 500;
-        color: var(--text-soft);
-        letter-spacing: 0.04em;
+        flex-direction: column;
       }
       .slider {
         -webkit-appearance: none;
         appearance: none;
         display: block;
         width: 100%;
-        height: 28px;
-        margin: 14px 0 0;
+        height: 26px;
+        margin: 0;
+        padding: 0;
         background: transparent;
         cursor: pointer;
       }
       .slider::-webkit-slider-runnable-track {
-        height: 10px;
-        border-radius: 999px;
-        background: var(--bg);
-        box-shadow: var(--sink-sm);
+        height: 2px;
+        border-radius: 2px;
+        background: var(--line);
+        transition: background-color 0.4s ease;
       }
       .slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 22px;
-        height: 22px;
-        margin-top: -6px;
-        border: none;
+        width: 18px;
+        height: 18px;
+        margin-top: -8px;
+        border: 0;
         border-radius: 50%;
-        background: var(--bg);
-        box-shadow: var(--raise-sm);
-        transition: transform 0.18s var(--ease);
-      }
-      .slider:active::-webkit-slider-thumb {
-        transform: scale(1.08);
+        background: var(--ink);
+        transition:
+          transform 0.25s var(--ease),
+          background-color 0.4s ease;
       }
       .slider::-moz-range-track {
-        height: 10px;
-        border-radius: 999px;
-        background: var(--bg);
-        box-shadow: var(--sink-sm);
+        height: 2px;
+        border-radius: 2px;
+        background: var(--line);
+        transition: background-color 0.4s ease;
       }
       .slider::-moz-range-thumb {
-        width: 22px;
-        height: 22px;
-        border: none;
+        width: 18px;
+        height: 18px;
+        border: 0;
         border-radius: 50%;
-        background: var(--bg);
-        box-shadow: var(--raise-sm);
+        background: var(--ink);
+        transition:
+          transform 0.25s var(--ease),
+          background-color 0.4s ease;
       }
-      .hint {
-        display: none;
-        margin: 12px 0 0;
-        font-size: 0.8rem;
-        line-height: 1.5;
-        color: var(--danger);
+      .slider:hover::-webkit-slider-thumb,
+      .slider:hover::-moz-range-thumb {
+        transform: scale(1.1);
       }
-      .hint.error {
-        display: block;
+      .slider:active::-webkit-slider-thumb,
+      .slider:active::-moz-range-thumb {
+        transform: scale(1.18);
       }
-      .ratio {
-        margin-top: 16px;
+      .slider:focus-visible {
+        outline: none;
       }
-      .ratio-value {
-        font-size: clamp(15px, 1.2vw + 11px, 19px);
-        font-weight: 600;
+      .slider:focus-visible::-webkit-slider-thumb {
+        box-shadow: 0 0 0 6px var(--focus);
+      }
+      .slider:focus-visible::-moz-range-thumb {
+        box-shadow: 0 0 0 6px var(--focus);
+      }
+      .fields {
+        display: flex;
+        flex-direction: column;
+      }
+      .field {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: baseline;
+        gap: 16px;
+        padding: clamp(14px, 2.2vw, 18px) 0;
+        border-bottom: 1px solid var(--line);
+        cursor: text;
+        transition: border-color 0.4s ease;
+      }
+      .field-name {
+        font-size: 0.78rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        white-space: nowrap;
+        transition: color 0.25s ease;
+      }
+      .field-input {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        font-size: clamp(19px, 4.2vw, 26px);
+        font-weight: 500;
         letter-spacing: -0.01em;
         font-variant-numeric: tabular-nums;
+        text-align: right;
+        caret-color: var(--accent);
+        transition: color 0.25s ease;
       }
-      .chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 14px;
-      }
-      .chips button {
-        font: inherit;
-        font-size: 0.8rem;
-        font-weight: 500;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 12px;
-        background: var(--bg);
-        color: var(--text-soft);
-        letter-spacing: 0.02em;
-        cursor: pointer;
-        box-shadow: var(--raise-sm);
-        transition:
-          box-shadow 0.22s ease,
-          color 0.22s ease,
-          background-color 0.45s ease;
-      }
-      .chips button:active {
-        box-shadow: var(--sink-sm);
-        color: var(--text);
-      }
-      .results {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap);
-      }
-      .card {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: clamp(18px, 2.4vw, 24px);
-        border-radius: 22px;
-        background: var(--bg);
-        box-shadow: var(--raise-md);
-        transition:
-          box-shadow 0.28s ease,
-          background-color 0.45s ease;
-      }
-      .card-label {
-        font-size: 0.88rem;
-        font-weight: 600;
-        color: var(--text);
+      .field-unit {
+        font-size: 0.78rem;
         letter-spacing: 0.04em;
-      }
-      .card-formula {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--text-soft);
-        letter-spacing: 0.02em;
-      }
-      .card-value {
-        font-size: clamp(20px, 2vw + 10px, 26px);
-        font-weight: 600;
-        letter-spacing: -0.02em;
+        color: var(--muted);
+        white-space: nowrap;
         font-variant-numeric: tabular-nums;
-        line-height: 1.2;
+        transition: color 0.4s ease;
+      }
+      .field.invalid .field-name,
+      .field.invalid .field-input {
+        color: var(--danger);
+      }
+      .hint {
+        margin: 0;
+        max-height: 0;
+        overflow: hidden;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        color: var(--danger);
+        opacity: 0;
+        transition:
+          max-height 0.22s ease,
+          margin 0.22s ease,
+          opacity 0.22s ease;
+      }
+      .hint.show {
+        max-height: 5em;
+        margin-top: 12px;
+        opacity: 1;
+      }
+      .readouts {
+        display: flex;
+        flex-direction: column;
+      }
+      .readout {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(16px, 2.4vw, 22px);
+        padding: clamp(20px, 3vw, 30px) 0;
+        border-bottom: 1px solid var(--line);
+        transition: border-color 0.4s ease;
+      }
+      .readout-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 16px;
         white-space: nowrap;
       }
-      .card-note {
+      .readout-name {
         margin: 0;
-        font-size: 0.8rem;
-        line-height: 1.55;
-        color: var(--text-soft);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        color: var(--ink);
+        transition: color 0.4s ease;
+      }
+      .readout-formula {
+        font-size: 0.75rem;
+        letter-spacing: 0.02em;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        transition: color 0.4s ease;
+      }
+      .readout-value {
+        margin: 0;
+        font-size: clamp(30px, 4.6vw, 42px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        font-variant-numeric: tabular-nums;
         overflow-wrap: anywhere;
+        transition: color 0.4s ease;
+      }
+      .readout-notes {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        white-space: nowrap;
+      }
+      .readout-note {
+        font-size: 0.75rem;
+        letter-spacing: 0.02em;
+        color: var(--muted);
+        line-height: 1.5;
+        transition: color 0.4s ease;
       }
       @media (prefers-reduced-motion: reduce) {
         *,
@@ -286,49 +279,47 @@
   </head>
   <body>
     <main class="app">
-      <h1 class="title">相对论效应</h1>
-      <section class="panel">
-        <div class="label">
-          <span>物体速度 v</span>
-          <span class="range">0 ≤ v &lt; c</span>
+      <header class="masthead">
+        <h1>相对论效应</h1>
+        <p>狭义相对论中的时间膨胀与长度收缩</p>
+      </header>
+      <section class="control">
+        <input id="speedSlider" class="slider" type="range" min="0" max="1000" step="0.1" value="0" aria-label="速度调节" />
+        <div class="fields">
+          <label class="field">
+            <span class="field-name">速度 v</span>
+            <input id="velocityInput" class="field-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="物体速度，单位米每秒" />
+            <span class="field-unit">m/s</span>
+          </label>
+          <label class="field">
+            <span class="field-name">速度比 β</span>
+            <input id="betaInput" class="field-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="速度比，v 与 c 的比值" />
+            <span class="field-unit">v / c</span>
+          </label>
         </div>
-        <div class="velocity-row">
-          <input id="velocityInput" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="速度，单位米每秒" />
-          <span class="unit">m/s</span>
-        </div>
-        <input id="speedSlider" class="slider" type="range" min="0" max="1000" step="0.1" value="0" aria-label="速度调节滑块" />
         <p class="hint" id="hint" role="alert"></p>
-        <div class="ratio">
-          <span class="ratio-label">速度比 β = v / c</span>
-          <span class="ratio-value" id="betaValue">—</span>
-        </div>
-        <div class="chips" id="chips">
-          <button type="button" data-beta="0.1">0.1c</button>
-          <button type="button" data-beta="0.5">0.5c</button>
-          <button type="button" data-beta="0.9">0.9c</button>
-          <button type="button" data-beta="0.99">0.99c</button>
-          <button type="button" data-beta="0.999">0.999c</button>
-          <button type="button" data-beta="0.9999">0.9999c</button>
-          <button type="button" data-beta="0.99999">0.99999c</button>
-          <button type="button" data-beta="0.999999">0.999999c</button>
-        </div>
       </section>
-      <section class="results">
-        <article class="card">
-          <div class="card-head">
-            <span class="card-label">洛伦兹因子 γ</span>
-            <span class="card-formula">γ = 1 / √(1 − β²)</span>
+      <section class="readouts">
+        <article class="readout">
+          <div class="readout-head">
+            <h2 class="readout-name">洛伦兹因子 γ</h2>
+            <span class="readout-formula">γ = 1 / √(1 − β²)</span>
           </div>
-          <div class="card-value" id="gammaValue">—</div>
-          <p class="card-note">时间膨胀 Δt = γ·Δτ 与质量增加 m = γ·m₀ 的共同倍数</p>
+          <p class="readout-value" id="gammaValue">—</p>
+          <div class="readout-notes">
+            <span class="readout-note">时间膨胀 Δt = γ·Δτ</span>
+            <span class="readout-note">质量增加 m = γ·m₀</span>
+          </div>
         </article>
-        <article class="card">
-          <div class="card-head">
-            <span class="card-label">洛伦兹因子倒数 1/γ</span>
-            <span class="card-formula">1/γ = √(1 − β²)</span>
+        <article class="readout">
+          <div class="readout-head">
+            <h2 class="readout-name">洛伦兹因子倒数 1/γ</h2>
+            <span class="readout-formula">1/γ = √(1 − β²)</span>
           </div>
-          <div class="card-value" id="invGammaValue">—</div>
-          <p class="card-note">长度收缩 L = L₀ / γ 的比例</p>
+          <p class="readout-value" id="invGammaValue">—</p>
+          <div class="readout-notes">
+            <span class="readout-note">长度收缩 L = L₀ / γ</span>
+          </div>
         </article>
       </section>
     </main>
@@ -338,84 +329,120 @@
         const LIGHT_SPEED = 299792458;
         const SLIDER_MAX = 1000;
         const MIN_GAP = 1e-7;
-        const INITIAL_VELOCITY = 149896229;
         const GAP_RATIO = MIN_GAP / LIGHT_SPEED;
         const LOG_GAP_RATIO = Math.log(GAP_RATIO);
-        const $ = (id) => document.getElementById(id);
-        const velocityInput = $("velocityInput");
-        const slider = $("speedSlider");
-        const hint = $("hint");
-        const chips = $("chips");
-        const outputs = {
-          beta: $("betaValue"),
-          gamma: $("gammaValue"),
-          invGamma: $("invGammaValue"),
-        };
-        const sliderToGap = (value) => {
-          const t = value / SLIDER_MAX;
-          if (t <= 0) return LIGHT_SPEED;
-          if (t >= 1) return MIN_GAP;
-          return LIGHT_SPEED * Math.pow(GAP_RATIO, t);
-        };
-        const gapToSlider = (gap) => {
-          if (gap >= LIGHT_SPEED) return 0;
-          if (gap <= MIN_GAP) return SLIDER_MAX;
-          return (Math.log(gap / LIGHT_SPEED) / LOG_GAP_RATIO) * SLIDER_MAX;
-        };
-        const setHint = (message) => {
-          hint.textContent = message || "";
-          hint.classList.toggle("error", Boolean(message));
-        };
-        const render = (gap) => {
+        const INITIAL_BETA = 0.5;
+        const byId = (id) => document.getElementById(id);
+        const slider = byId("speedSlider");
+        const velocityInput = byId("velocityInput");
+        const betaInput = byId("betaInput");
+        const hint = byId("hint");
+        const gammaOutput = byId("gammaValue");
+        const invGammaOutput = byId("invGammaValue");
+        const velocityField = velocityInput.closest(".field");
+        const betaField = betaInput.closest(".field");
+        let gap = LIGHT_SPEED * (1 - INITIAL_BETA);
+        let errorField = null;
+        function gapToSlider(value) {
+          if (value >= LIGHT_SPEED) return 0;
+          if (value <= MIN_GAP) return SLIDER_MAX;
+          return (Math.log(value / LIGHT_SPEED) / LOG_GAP_RATIO) * SLIDER_MAX;
+        }
+        function sliderToGap(value) {
+          const position = value / SLIDER_MAX;
+          if (position <= 0) return LIGHT_SPEED;
+          if (position >= 1) return MIN_GAP;
+          return LIGHT_SPEED * Math.pow(GAP_RATIO, position);
+        }
+        function render() {
           const ratio = gap / LIGHT_SPEED;
-          const beta = 1 - ratio;
           const gamma = 1 / Math.sqrt(ratio * (2 - ratio));
-          outputs.beta.textContent = beta;
-          outputs.gamma.textContent = gamma;
-          outputs.invGamma.textContent = 1 / gamma;
-        };
-        const applyVelocity = (velocity) => {
-          const gap = Math.max(LIGHT_SPEED - velocity, MIN_GAP);
+          gammaOutput.textContent = gamma;
+          invGammaOutput.textContent = 1 / gamma;
+        }
+        function apply(nextGap, source) {
+          gap = Math.min(Math.max(nextGap, MIN_GAP), LIGHT_SPEED);
           slider.value = String(gapToSlider(gap));
-          setHint("");
-          render(gap);
-        };
-        const parseVelocity = (raw) => {
-          const cleaned = raw.trim().replace(/[,\s]/g, "");
-          if (!cleaned) return { error: "请输入一个速度值" };
+          if (source !== "velocity") velocityInput.value = LIGHT_SPEED - gap;
+          if (source !== "beta") betaInput.value = 1 - gap / LIGHT_SPEED;
+          render();
+        }
+        function fail(field, message) {
+          if (errorField && errorField !== field) {
+            errorField.classList.remove("invalid");
+          }
+          errorField = field;
+          field.classList.add("invalid");
+          hint.textContent = message;
+          hint.classList.add("show");
+        }
+        function clearError() {
+          if (errorField) {
+            errorField.classList.remove("invalid");
+            errorField = null;
+          }
+          hint.textContent = "";
+          hint.classList.remove("show");
+        }
+        function toNumber(text) {
+          const cleaned = text.trim().replace(/[,\s]/g, "");
+          if (!cleaned) return null;
           const value = Number(cleaned);
-          if (!Number.isFinite(value)) return { error: "请输入有效的数字" };
-          if (value < 0) return { error: "速度不能为负数" };
-          if (value >= LIGHT_SPEED) return { error: "速度不能达到或超过光速" };
-          return { value };
-        };
+          return Number.isFinite(value) ? value : null;
+        }
         velocityInput.addEventListener("input", () => {
-          const { value, error } = parseVelocity(velocityInput.value);
-          if (error) {
-            setHint(error);
+          if (!velocityInput.value.trim()) {
+            clearError();
             return;
           }
-          applyVelocity(value);
+          const value = toNumber(velocityInput.value);
+          if (value === null) {
+            fail(velocityField, "请输入有效的数字");
+            return;
+          }
+          if (value < 0) {
+            fail(velocityField, "速度不能为负数");
+            return;
+          }
+          if (value >= LIGHT_SPEED) {
+            fail(velocityField, "速度必须小于光速 c");
+            return;
+          }
+          clearError();
+          apply(LIGHT_SPEED - value, "velocity");
+        });
+        betaInput.addEventListener("input", () => {
+          if (!betaInput.value.trim()) {
+            clearError();
+            return;
+          }
+          const value = toNumber(betaInput.value);
+          if (value === null) {
+            fail(betaField, "请输入有效的数字");
+            return;
+          }
+          if (value < 0) {
+            fail(betaField, "速度比不能为负数");
+            return;
+          }
+          if (value >= 1) {
+            fail(betaField, "速度比必须小于 1");
+            return;
+          }
+          clearError();
+          apply(LIGHT_SPEED * (1 - value), "beta");
         });
         velocityInput.addEventListener("blur", () => {
-          const { value } = parseVelocity(velocityInput.value);
-          if (value !== undefined) velocityInput.value = value;
+          velocityInput.value = LIGHT_SPEED - gap;
+        });
+        betaInput.addEventListener("blur", () => {
+          betaInput.value = 1 - gap / LIGHT_SPEED;
         });
         slider.addEventListener("input", () => {
-          const gap = sliderToGap(Number(slider.value));
-          velocityInput.value = LIGHT_SPEED - gap;
-          setHint("");
-          render(gap);
+          clearError();
+          apply(sliderToGap(Number(slider.value)), "slider");
         });
-        chips.addEventListener("click", (event) => {
-          const button = event.target.closest("button[data-beta]");
-          if (!button) return;
-          const velocity = Number(button.dataset.beta) * LIGHT_SPEED;
-          velocityInput.value = velocity;
-          applyVelocity(velocity);
-        });
-        velocityInput.value = INITIAL_VELOCITY;
-        applyVelocity(INITIAL_VELOCITY);
+        apply(gap, "init");
       })();
     </script>
   </body>
