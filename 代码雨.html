@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matrix Code Rain</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+      }
+      #rain {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="rain"></canvas>
+    <script>
+      (() => {
+        const GLYPHS = ["!", '"', "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_", "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~"].join("");
+        const HEAD_COLOR = "#00ff41";
+        const FADE_PER_SECOND = 0.06;
+        const SPEED_MIN = 9;
+        const SPEED_MAX = 26;
+        const MAX_DELTA = 0.05;
+        const RESIZE_DELAY = 120;
+        const canvas = document.getElementById("rain");
+        const ctx = canvas.getContext("2d", { alpha: false });
+        let width = 0;
+        let height = 0;
+        let fontSize = 16;
+        let cellWidth = 10;
+        let cellHeight = 16;
+        let columns = [];
+        let lastTime = 0;
+        let resizeTimer = 0;
+        const randomGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        const resetColumn = (column, spread) => {
+          column.y = spread ? -Math.random() * (height / cellHeight) : -1 - Math.random() * 14;
+          column.speed = SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN);
+          column.row = Number.NEGATIVE_INFINITY;
+          column.glyph = randomGlyph();
+        };
+        const setup = () => {
+          const rect = canvas.getBoundingClientRect();
+          width = Math.max(1, Math.round(rect.width));
+          height = Math.max(1, Math.round(rect.height));
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.round(width * dpr);
+          canvas.height = Math.round(height * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          const shortEdge = Math.min(width, height);
+          fontSize = Math.round(Math.max(12, Math.min(20, shortEdge / 45)));
+          ctx.font = `${fontSize}px monospace`;
+          ctx.textBaseline = "top";
+          cellHeight = fontSize;
+          cellWidth = ctx.measureText("MMMMMMMMMM").width / 10;
+          if (!Number.isFinite(cellWidth) || cellWidth <= 0) {
+            cellWidth = fontSize * 0.6;
+          }
+          const count = Math.max(1, Math.ceil(width / cellWidth));
+          columns = [];
+          for (let i = 0; i < count; i += 1) {
+            const column = {
+              x: i * cellWidth,
+              y: 0,
+              speed: 0,
+              row: Number.NEGATIVE_INFINITY,
+              glyph: randomGlyph(),
+            };
+            resetColumn(column, true);
+            columns.push(column);
+          }
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(0, 0, width, height);
+        };
+        const render = (delta) => {
+          ctx.fillStyle = `rgba(0, 0, 0, ${1 - Math.pow(FADE_PER_SECOND, delta)})`;
+          ctx.fillRect(0, 0, width, height);
+          ctx.font = `${fontSize}px monospace`;
+          ctx.textBaseline = "top";
+          ctx.fillStyle = HEAD_COLOR;
+          for (let i = 0; i < columns.length; i += 1) {
+            const column = columns[i];
+            column.y += column.speed * delta;
+            if (column.y * cellHeight > height) {
+              resetColumn(column, false);
+              continue;
+            }
+            const row = Math.floor(column.y);
+            if (row !== column.row) {
+              column.row = row;
+              column.glyph = randomGlyph();
+            }
+            if (row >= 0) {
+              ctx.fillText(column.glyph, column.x, row * cellHeight);
+            }
+          }
+        };
+        const frame = (now) => {
+          if (!lastTime) lastTime = now;
+          let delta = (now - lastTime) / 1000;
+          lastTime = now;
+          if (delta > MAX_DELTA) delta = MAX_DELTA;
+          if (delta < 0) delta = 0;
+          render(delta);
+          window.requestAnimationFrame(frame);
+        };
+        const handleResize = () => {
+          window.clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(() => {
+            lastTime = 0;
+            setup();
+          }, RESIZE_DELAY);
+        };
+        window.addEventListener("resize", handleResize);
+        window.addEventListener("orientationchange", handleResize);
+        setup();
+        window.requestAnimationFrame(frame);
+      })();
+    </script>
+  </body>
+</html>
