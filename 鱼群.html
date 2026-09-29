@@ -1,0 +1,624 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boids</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg-inner: #ffffff;
+        --bg-outer: #e8ecf0;
+        --fg: #0e1318;
+        --muted: rgba(14, 19, 24, 0.42);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-inner: #0e1419;
+          --bg-outer: #04060a;
+          --fg: #e8eef4;
+          --muted: rgba(232, 238, 244, 0.42);
+        }
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        background: radial-gradient(125% 95% at 50% 32%, var(--bg-inner) 0%, var(--bg-outer) 100%);
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior: none;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #scene {
+        position: fixed;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+      .hud {
+        --pad: clamp(22px, 3.6vw, 54px);
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding-top: calc(var(--pad) + env(safe-area-inset-top, 0px));
+        padding-right: calc(var(--pad) + env(safe-area-inset-right, 0px));
+        padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px));
+        padding-left: calc(var(--pad) + env(safe-area-inset-left, 0px));
+        pointer-events: none;
+      }
+      .controls {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        width: 100%;
+        margin: -12px -16px 0;
+      }
+      .ctl {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: none;
+        color: var(--muted);
+        cursor: pointer;
+        pointer-events: auto;
+        transition:
+          color 0.35s ease,
+          opacity 0.45s ease;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .ctl:hover,
+      .ctl:active {
+        color: var(--fg);
+      }
+      .ctl:focus-visible {
+        outline: 1px solid var(--fg);
+        outline-offset: 4px;
+      }
+      .ctl.is-limited {
+        opacity: 0.22;
+        pointer-events: none;
+      }
+      .glyph {
+        position: relative;
+        display: block;
+        width: 18px;
+        height: 18px;
+      }
+      .glyph::before,
+      .glyph::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 1px;
+        background: currentColor;
+        transform: translate(-50%, -50%);
+      }
+      .ctl--less .glyph::before {
+        width: 18px;
+        height: 1.5px;
+      }
+      .ctl--more .glyph::before {
+        width: 18px;
+        height: 1.5px;
+      }
+      .ctl--more .glyph::after {
+        width: 1.5px;
+        height: 18px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ctl {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+    <div class="hud">
+      <div class="controls">
+        <button class="ctl ctl--less" id="less" type="button" aria-label="减少鱼群数量">
+          <span class="glyph"></span>
+        </button>
+        <button class="ctl ctl--more" id="more" type="button" aria-label="增加鱼群数量">
+          <span class="glyph"></span>
+        </button>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const canvas = document.getElementById("scene");
+        const ctx = canvas.getContext("2d");
+        const START_FISH = 150;
+        const MIN_FISH = 5;
+        const PERCEPTION = 80;
+        const PERCEPTION_SQ = PERCEPTION * PERCEPTION;
+        const SEPARATION = 26;
+        const FADE_IN = 0.7;
+        const FADE_OUT = 0.5;
+        const lessBtn = document.getElementById("less");
+        const moreBtn = document.getElementById("more");
+        const scheme = window.matchMedia("(prefers-color-scheme: dark)");
+        let dark = scheme.matches;
+        let W = 1;
+        let H = 1;
+        let DPR = 1;
+        let margin = 100;
+        let time = 0;
+        let lastTime = 0;
+        const pointer = { x: 0, y: 0, strength: 0, radius: 180 };
+        const keys = { left: false, right: false, up: false, down: false };
+        let pressed = false;
+        let keyPressed = false;
+        const fish = [];
+        const rand = (min, max) => min + Math.random() * (max - min);
+        class Fish {
+          constructor() {
+            this.depth = Math.random();
+            this.size = 5 + this.depth * 7;
+            this.maxSpeed = 50 + this.depth * 50;
+            this.hue = 198 + rand(-13, 13);
+            this.alpha = 0.28 + this.depth * 0.6;
+            this.phase = Math.random() * Math.PI * 2;
+            this.wagSpeed = rand(9, 14);
+            this.life = 1;
+            this.delay = 0;
+            this.dying = false;
+            this.x = Math.random() * W;
+            this.y = Math.random() * H;
+            const a = Math.random() * Math.PI * 2;
+            const sp = this.maxSpeed * rand(0.6, 0.95);
+            this.vx = Math.cos(a) * sp;
+            this.vy = Math.sin(a) * sp;
+            this.angle = a;
+            this.ax = 0;
+            this.ay = 0;
+            this.sx = 0;
+            this.sy = 0;
+            this.avx = 0;
+            this.avy = 0;
+            this.cx = 0;
+            this.cy = 0;
+            this.cnt = 0;
+            this.color = "";
+          }
+        }
+        function applyColor(f) {
+          if (dark) {
+            f.color = "hsl(" + f.hue.toFixed(1) + ",30%," + (68 + f.depth * 16).toFixed(1) + "%)";
+          } else {
+            f.color = "hsl(" + f.hue.toFixed(1) + ",24%," + (26 - f.depth * 11).toFixed(1) + "%)";
+          }
+        }
+        function resize() {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          DPR = Math.min(window.devicePixelRatio || 1, 2);
+          W = w;
+          H = h;
+          canvas.width = Math.round(w * DPR);
+          canvas.height = Math.round(h * DPR);
+          ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+          const base = Math.min(w, h);
+          margin = Math.max(60, Math.min(160, base * 0.22));
+          pointer.radius = Math.max(110, Math.min(260, base * 0.3));
+          for (let i = 0; i < fish.length; i++) {
+            const f = fish[i];
+            if (f.x > -40 && f.x < w + 40) f.x = Math.min(Math.max(f.x, 8), w - 8);
+            if (f.y > -40 && f.y < h + 40) f.y = Math.min(Math.max(f.y, 8), h - 8);
+          }
+        }
+        function initFish() {
+          for (let i = 0; i < START_FISH; i++) {
+            const f = new Fish();
+            f.life = 0;
+            f.delay = Math.random() * 1.6;
+            applyColor(f);
+            fish.push(f);
+          }
+          fish.sort((a, b) => a.depth - b.depth);
+        }
+        function spawnFish() {
+          const f = new Fish();
+          const inset = 48;
+          const side = (Math.random() * 4) | 0;
+          if (side === 0) {
+            f.x = Math.random() * W;
+            f.y = -inset;
+          } else if (side === 1) {
+            f.x = W + inset;
+            f.y = Math.random() * H;
+          } else if (side === 2) {
+            f.x = Math.random() * W;
+            f.y = H + inset;
+          } else {
+            f.x = -inset;
+            f.y = Math.random() * H;
+          }
+          const ang = Math.atan2(H * 0.5 - f.y, W * 0.5 - f.x) + rand(-0.5, 0.5);
+          const sp = f.maxSpeed * rand(0.7, 0.95);
+          f.vx = Math.cos(ang) * sp;
+          f.vy = Math.sin(ang) * sp;
+          f.angle = ang;
+          f.life = 0;
+          f.delay = 0;
+          applyColor(f);
+          let idx = fish.length;
+          while (idx > 0 && fish[idx - 1].depth > f.depth) idx--;
+          fish.splice(idx, 0, f);
+        }
+        function removeFish() {
+          let target = null;
+          for (let i = 0; i < fish.length; i++) {
+            const f = fish[i];
+            if (f.dying) continue;
+            if (!target || f.depth < target.depth) target = f;
+          }
+          if (target) target.dying = true;
+        }
+        function aliveCount() {
+          let c = 0;
+          for (let i = 0; i < fish.length; i++) {
+            if (!fish[i].dying) c++;
+          }
+          return c;
+        }
+        function updateButtons() {
+          lessBtn.classList.toggle("is-limited", aliveCount() <= MIN_FISH);
+        }
+        function change(delta) {
+          if (delta > 0) {
+            spawnFish();
+          } else {
+            if (aliveCount() <= MIN_FISH) return;
+            removeFish();
+          }
+          updateButtons();
+        }
+        function updatePointer(dt) {
+          const speed = 520;
+          if (keys.left) pointer.x -= speed * dt;
+          if (keys.right) pointer.x += speed * dt;
+          if (keys.up) pointer.y -= speed * dt;
+          if (keys.down) pointer.y += speed * dt;
+          if (pointer.x < 0) pointer.x = 0;
+          else if (pointer.x > W) pointer.x = W;
+          if (pointer.y < 0) pointer.y = 0;
+          else if (pointer.y > H) pointer.y = H;
+          if (pressed || keyPressed) {
+            pointer.strength = 1;
+          } else if (pointer.strength > 0) {
+            pointer.strength -= dt * 2.6;
+            if (pointer.strength < 0) pointer.strength = 0;
+          }
+        }
+        function updateLifespan(dt) {
+          for (let i = fish.length - 1; i >= 0; i--) {
+            const f = fish[i];
+            if (f.dying) {
+              f.life -= dt / FADE_OUT;
+              if (f.life <= 0) fish.splice(i, 1);
+            } else if (f.delay > 0) {
+              f.delay -= dt;
+            } else if (f.life < 1) {
+              f.life += dt / FADE_IN;
+              if (f.life > 1) f.life = 1;
+            }
+          }
+        }
+        function update(dt) {
+          const n = fish.length;
+          for (let i = 0; i < n; i++) {
+            const f = fish[i];
+            f.ax = 0;
+            f.ay = 0;
+            f.sx = 0;
+            f.sy = 0;
+            f.avx = 0;
+            f.avy = 0;
+            f.cx = 0;
+            f.cy = 0;
+            f.cnt = 0;
+          }
+          for (let i = 0; i < n; i++) {
+            const a = fish[i];
+            for (let j = i + 1; j < n; j++) {
+              const b = fish[j];
+              const dx = b.x - a.x;
+              const dy = b.y - a.y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 > PERCEPTION_SQ || d2 < 1e-6) continue;
+              const d = Math.sqrt(d2);
+              if (d < SEPARATION) {
+                const w = (1 - d / SEPARATION) / d;
+                a.sx -= dx * w;
+                a.sy -= dy * w;
+                b.sx += dx * w;
+                b.sy += dy * w;
+              }
+              a.avx += b.vx;
+              a.avy += b.vy;
+              a.cx += b.x;
+              a.cy += b.y;
+              a.cnt++;
+              b.avx += a.vx;
+              b.avy += a.vy;
+              b.cx += a.x;
+              b.cy += a.y;
+              b.cnt++;
+            }
+          }
+          const px = pointer.x;
+          const py = pointer.y;
+          const pr = pointer.radius;
+          const prSq = pr * pr;
+          const active = pointer.strength;
+          for (let i = 0; i < n; i++) {
+            const f = fish[i];
+            let ax = 0;
+            let ay = 0;
+            const sx = f.sx;
+            const sy = f.sy;
+            const sm = Math.sqrt(sx * sx + sy * sy);
+            if (sm > 1) {
+              ax += (sx / sm) * 320;
+              ay += (sy / sm) * 320;
+            } else {
+              ax += sx * 320;
+              ay += sy * 320;
+            }
+            if (f.cnt > 0) {
+              const inv = 1 / f.cnt;
+              ax += (f.avx * inv - f.vx) * 4;
+              ay += (f.avy * inv - f.vy) * 4;
+              ax += (f.cx * inv - f.x) * 2.4;
+              ay += (f.cy * inv - f.y) * 2.4;
+            }
+            if (f.x < margin) ax += (margin - f.x) * 3;
+            else if (f.x > W - margin) ax -= (f.x - (W - margin)) * 3;
+            if (f.y < margin) ay += (margin - f.y) * 3;
+            else if (f.y > H - margin) ay -= (f.y - (H - margin)) * 3;
+            if (active > 0.01) {
+              const dx = f.x - px;
+              const dy = f.y - py;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < prSq) {
+                const d = Math.sqrt(d2) || 0.001;
+                const t = 1 - d / pr;
+                const force = t * t * 1100 * active;
+                const nx = dx / d;
+                const ny = dy / d;
+                ax += nx * force - ny * force * 0.5;
+                ay += ny * force + nx * force * 0.5;
+              }
+            }
+            f.ax = ax;
+            f.ay = ay;
+          }
+          for (let i = 0; i < n; i++) {
+            const f = fish[i];
+            f.vx += f.ax * dt;
+            f.vy += f.ay * dt;
+            const sp = Math.sqrt(f.vx * f.vx + f.vy * f.vy);
+            const max = f.maxSpeed;
+            const min = max * 0.55;
+            if (sp > max || sp < min) {
+              const k = (sp > max ? max : min) / (sp || 1);
+              f.vx *= k;
+              f.vy *= k;
+            }
+            f.x += f.vx * dt;
+            f.y += f.vy * dt;
+            if (f.x < -60) f.x = -60;
+            else if (f.x > W + 60) f.x = W + 60;
+            if (f.y < -60) f.y = -60;
+            else if (f.y > H + 60) f.y = H + 60;
+            const target = Math.atan2(f.vy, f.vx);
+            let diff = target - f.angle;
+            diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+            f.angle += diff * Math.min(1, dt * 12);
+          }
+        }
+        function drawPointer() {
+          const s = pointer.strength;
+          if (s < 0.01) return;
+          const r = pointer.radius * (0.72 + 0.28 * s);
+          const c = dark ? "120, 190, 255" : "40, 80, 130";
+          const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, r);
+          g.addColorStop(0, "rgba(" + c + "," + (0.13 * s).toFixed(3) + ")");
+          g.addColorStop(0.55, "rgba(" + c + "," + (0.05 * s).toFixed(3) + ")");
+          g.addColorStop(1, "rgba(" + c + ",0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(pointer.x, pointer.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        function drawFish(f) {
+          if (f.life <= 0) return;
+          const s = f.size;
+          const tw = Math.sin(time * f.wagSpeed + f.phase) * 0.18 * s;
+          ctx.save();
+          ctx.translate(f.x, f.y);
+          ctx.rotate(f.angle);
+          ctx.globalAlpha = f.alpha * f.life;
+          ctx.fillStyle = f.color;
+          ctx.beginPath();
+          ctx.moveTo(-0.38 * s, 0);
+          ctx.quadraticCurveTo(-0.68 * s, tw * 0.6 - 0.1 * s, -1.0 * s, tw * 1.2 - 0.3 * s);
+          ctx.quadraticCurveTo(-0.7 * s, tw * 0.6, -0.38 * s, 0);
+          ctx.quadraticCurveTo(-0.7 * s, tw * 0.6, -1.0 * s, tw * 1.2 + 0.3 * s);
+          ctx.quadraticCurveTo(-0.68 * s, tw * 0.6 + 0.1 * s, -0.38 * s, 0);
+          ctx.closePath();
+          ctx.moveTo(0.58 * s, 0);
+          ctx.bezierCurveTo(0.38 * s, 0.3 * s, -0.05 * s, 0.32 * s, -0.4 * s, 0.05 * s);
+          ctx.quadraticCurveTo(-0.46 * s, 0, -0.4 * s, -0.05 * s);
+          ctx.bezierCurveTo(-0.05 * s, -0.32 * s, 0.38 * s, -0.3 * s, 0.58 * s, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+        function render() {
+          ctx.clearRect(0, 0, W, H);
+          drawPointer();
+          for (let i = 0; i < fish.length; i++) drawFish(fish[i]);
+        }
+        function frame(now) {
+          if (!lastTime) lastTime = now;
+          let dt = (now - lastTime) / 1000;
+          lastTime = now;
+          if (dt > 0.05) dt = 0.05;
+          else if (dt < 0) dt = 0;
+          time += dt;
+          updatePointer(dt);
+          updateLifespan(dt);
+          update(dt);
+          render();
+          requestAnimationFrame(frame);
+        }
+        function onSchemeChange(e) {
+          dark = e.matches;
+          for (let i = 0; i < fish.length; i++) applyColor(fish[i]);
+        }
+        let holdTimer = 0;
+        let holdInterval = 0;
+        function stopHold() {
+          if (holdTimer) {
+            clearTimeout(holdTimer);
+            holdTimer = 0;
+          }
+          if (holdInterval) {
+            clearInterval(holdInterval);
+            holdInterval = 0;
+          }
+        }
+        function startHold(delta) {
+          stopHold();
+          change(delta);
+          holdTimer = window.setTimeout(() => {
+            holdInterval = window.setInterval(() => change(delta), 55);
+          }, 280);
+        }
+        function bindControl(btn, delta) {
+          btn.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (btn.setPointerCapture) {
+              try {
+                btn.setPointerCapture(e.pointerId);
+              } catch (err) {}
+            }
+            startHold(delta);
+          });
+          btn.addEventListener("pointerup", stopHold);
+          btn.addEventListener("pointercancel", stopHold);
+          btn.addEventListener("click", (e) => {
+            if (e.detail !== 0) return;
+            change(delta);
+          });
+          btn.addEventListener("contextmenu", (e) => e.preventDefault());
+        }
+        window.addEventListener("pointerdown", (e) => {
+          if (e.target && e.target.closest && e.target.closest(".ctl")) return;
+          pressed = true;
+          pointer.x = e.clientX;
+          pointer.y = e.clientY;
+        });
+        window.addEventListener("pointermove", (e) => {
+          pointer.x = e.clientX;
+          pointer.y = e.clientY;
+        });
+        window.addEventListener("pointerup", () => {
+          pressed = false;
+        });
+        window.addEventListener("pointercancel", () => {
+          pressed = false;
+        });
+        window.addEventListener("keydown", (e) => {
+          switch (e.key) {
+            case "ArrowLeft":
+              keys.left = true;
+              break;
+            case "ArrowRight":
+              keys.right = true;
+              break;
+            case "ArrowUp":
+              keys.up = true;
+              break;
+            case "ArrowDown":
+              keys.down = true;
+              break;
+            case " ":
+            case "Spacebar":
+              keyPressed = true;
+              break;
+            default:
+              return;
+          }
+          e.preventDefault();
+        });
+        window.addEventListener("keyup", (e) => {
+          switch (e.key) {
+            case "ArrowLeft":
+              keys.left = false;
+              break;
+            case "ArrowRight":
+              keys.right = false;
+              break;
+            case "ArrowUp":
+              keys.up = false;
+              break;
+            case "ArrowDown":
+              keys.down = false;
+              break;
+            case " ":
+            case "Spacebar":
+              keyPressed = false;
+              break;
+          }
+        });
+        window.addEventListener("blur", () => {
+          pressed = false;
+          keyPressed = false;
+          keys.left = keys.right = keys.up = keys.down = false;
+          stopHold();
+        });
+        window.addEventListener("resize", resize);
+        if (scheme.addEventListener) scheme.addEventListener("change", onSchemeChange);
+        else if (scheme.addListener) scheme.addListener(onSchemeChange);
+        resize();
+        pointer.x = W * 0.5;
+        pointer.y = H * 0.5;
+        initFish();
+        bindControl(lessBtn, -1);
+        bindControl(moreBtn, 1);
+        updateButtons();
+        requestAnimationFrame(frame);
+      })();
+    </script>
+  </body>
+</html>
