@@ -125,19 +125,24 @@
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         user-select: none;
+        scroll-margin-block: 14px;
       }
       .item:active {
         background-color: var(--hover);
       }
       @media (hover: hover) {
-        .item:hover,
-        .item:focus-visible {
+        .item:hover {
           background-color: var(--hover);
-          outline: none;
         }
+      }
+      .item:focus-visible {
+        background-color: var(--hover);
+        outline: 2px solid var(--key);
+        outline-offset: 2px;
+      }
+      @media (forced-colors: active) {
         .item:focus-visible {
-          outline: 1.5px solid var(--key);
-          outline-offset: 1px;
+          outline: 2px solid Highlight;
         }
       }
       .punct {
