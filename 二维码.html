@@ -4,35 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>二维码生成器</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <style>
       :root {
         color-scheme: light;
-        --bg: #e8ebf0;
-        --text: #363c48;
-        --muted: #7d8698;
-        --accent: #4a7df0;
-        --shadow-dark: #c3c9d5;
-        --shadow-light: #ffffff;
-        --scroll-thumb: #bcc2ce;
-        --raised-lg: 10px 10px 22px var(--shadow-dark), -10px -10px 22px var(--shadow-light);
-        --raised-sm: 4px 4px 9px var(--shadow-dark), -4px -4px 9px var(--shadow-light);
-        --sunken-lg: inset 7px 7px 14px var(--shadow-dark), inset -7px -7px 14px var(--shadow-light);
-        --sunken-sm: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-        --radius-xl: 34px;
-        --radius-lg: 24px;
-        --theme-transition: background-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+        --bg: #f2f1ee;
+        --ink: #15171b;
+        --dim: #75787f;
+        --dot: rgba(21, 23, 27, 0.13);
+        --surface: #e9e7e3;
+        --ease: cubic-bezier(0.2, 0.8, 0.3, 1);
       }
       @media (prefers-color-scheme: dark) {
         :root {
           color-scheme: dark;
-          --bg: #262a32;
-          --text: #dee2ea;
-          --muted: #8992a4;
-          --accent: #6d9bff;
-          --shadow-dark: #1a1d23;
-          --shadow-light: #31363f;
-          --scroll-thumb: #3e4450;
+          --bg: #0b0c0e;
+          --ink: #eceef1;
+          --dim: #787d86;
+          --dot: rgba(236, 238, 241, 0.1);
+          --surface: #16181c;
         }
       }
       *,
@@ -41,204 +30,213 @@
         box-sizing: border-box;
       }
       html {
-        height: 100%;
         -webkit-text-size-adjust: 100%;
       }
       body {
-        min-height: 100%;
         margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeLegibility;
-        transition: var(--theme-transition);
-      }
-      .app {
         min-height: 100vh;
         min-height: 100dvh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: clamp(22px, 5.5vw, 60px);
-        padding-top: max(clamp(22px, 5.5vw, 60px), env(safe-area-inset-top));
-        padding-bottom: max(clamp(22px, 5.5vw, 60px), env(safe-area-inset-bottom));
-      }
-      .shell {
-        width: min(100%, 440px);
         display: grid;
-        gap: clamp(20px, 4.5vw, 30px);
-      }
-      .title {
-        margin: 0;
-        text-align: center;
-        font-size: clamp(1.5rem, 5vw, 1.85rem);
-        font-weight: 600;
-        letter-spacing: 0.01em;
-        color: var(--text);
-        transition: var(--theme-transition);
-      }
-      .panel {
-        display: grid;
-        gap: clamp(18px, 4.2vw, 24px);
-        padding: clamp(22px, 5.5vw, 30px);
-        border-radius: var(--radius-xl);
+        place-items: center;
+        padding: clamp(1.5rem, 3vw, 3rem);
+        padding-top: max(clamp(1.5rem, 3vw, 3rem), env(safe-area-inset-top));
+        padding-right: max(clamp(1.5rem, 3vw, 3rem), env(safe-area-inset-right));
+        padding-bottom: max(clamp(1.5rem, 3vw, 3rem), env(safe-area-inset-bottom));
+        padding-left: max(clamp(1.5rem, 3vw, 3rem), env(safe-area-inset-left));
         background: var(--bg);
-        box-shadow: var(--raised-lg);
-        transition: var(--theme-transition);
-      }
-      .field {
-        padding: 17px 19px;
-        border-radius: var(--radius-lg);
-        background: var(--bg);
-        box-shadow: var(--sunken-lg);
-        transition: var(--theme-transition);
-      }
-      .field textarea {
-        display: block;
-        width: 100%;
-        min-height: 86px;
-        margin: 0;
-        padding: 0;
-        border: 0;
-        outline: none;
-        background: transparent;
-        color: inherit;
-        font: inherit;
-        font-size: 1rem;
-        line-height: 1.55;
-        letter-spacing: 0.005em;
-        resize: none;
-        scrollbar-width: thin;
-        scrollbar-color: var(--scroll-thumb) transparent;
-      }
-      .field textarea::placeholder {
-        color: var(--muted);
-        opacity: 0.9;
-      }
-      .field textarea::-webkit-scrollbar {
-        width: 6px;
-      }
-      .field textarea::-webkit-scrollbar-thumb {
-        background: var(--scroll-thumb);
-        border-radius: 999px;
-      }
-      .field textarea::-webkit-scrollbar-thumb:hover {
-        background: var(--muted);
-      }
-      .controls {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px 16px;
-      }
-      .label {
-        font-size: clamp(1rem, 3vw, 1.125rem);
-        letter-spacing: 0.02em;
-        color: var(--muted);
-        transition: var(--theme-transition);
-      }
-      .segmented {
-        position: relative;
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: 1fr;
-        width: min(176px, 100%);
-        padding: 4px;
-        border-radius: 999px;
-        background: var(--bg);
-        box-shadow: var(--sunken-sm);
-        -webkit-tap-highlight-color: transparent;
-        transition: var(--theme-transition);
-      }
-      .thumb {
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        bottom: 4px;
-        width: calc((100% - 8px) / 4);
-        border-radius: 999px;
-        background: var(--bg);
-        box-shadow: var(--raised-sm);
-        pointer-events: none;
+        color: var(--ink);
         transition:
-          transform 0.42s cubic-bezier(0.3, 1.45, 0.5, 1),
-          var(--theme-transition);
+          background-color 0.45s ease,
+          color 0.45s ease;
+        -webkit-font-smoothing: antialiased;
       }
-      .segment {
-        position: relative;
-        z-index: 1;
-        padding: 9px 0;
-        border: 0;
-        border-radius: 999px;
-        background: transparent;
-        color: var(--muted);
-        font: inherit;
-        font-size: 0.875rem;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        cursor: pointer;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-        transition: color 0.25s ease;
+      main {
+        width: 100%;
+        max-width: 1440px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: clamp(1.75rem, 4vw, 3.5rem);
       }
-      .segment.is-active {
-        color: var(--text);
-        font-weight: 600;
-      }
-      .segment:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 3px;
+      @media (min-width: 900px) {
+        main {
+          grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+          align-items: center;
+        }
       }
       .stage {
         position: relative;
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        border-radius: var(--radius-xl);
-        background: var(--bg);
-        box-shadow: var(--sunken-lg);
-        transition: var(--theme-transition);
+        width: min(100%, 70dvh);
+        margin-inline: auto;
+        aspect-ratio: 1;
       }
-      .code {
+      .stage::before {
+        content: "";
         position: absolute;
-        inset: clamp(14px, 4.5vw, 22px);
+        inset: 0;
+        background-image: radial-gradient(circle, var(--dot) 1.1px, transparent 1.1px);
+        background-size: 1.125rem 1.125rem;
+        background-position: center;
+        -webkit-mask-image: radial-gradient(circle at center, #000 22%, transparent 70%);
+        mask-image: radial-gradient(circle at center, #000 22%, transparent 70%);
+        transition: opacity 0.5s ease;
+      }
+      .stage.has::before {
         opacity: 0;
-        transform: scale(0.93);
-        transition:
-          opacity 0.45s ease,
-          transform 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
       }
-      .stage.is-ready .code {
-        opacity: 1;
-        transform: scale(1);
-      }
-      .code svg {
-        display: block;
-        width: 100%;
-        height: 100%;
-        user-select: none;
-        -webkit-user-select: none;
-      }
-      .hint {
+      .stage-title {
         position: absolute;
         inset: 0;
         display: grid;
         place-items: center;
         margin: 0;
-        padding: 0 clamp(26px, 9vw, 52px);
+        padding: 0 2rem;
         text-align: center;
-        font-size: clamp(1rem, 3vw, 1.125rem);
-        line-height: 1.6;
-        letter-spacing: 0.01em;
-        color: var(--muted);
+        font-size: clamp(1.5rem, 3vw, 2.5rem);
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        color: var(--dim);
         pointer-events: none;
         transition:
-          opacity 0.35s ease,
-          var(--theme-transition);
+          opacity 0.4s ease,
+          color 0.45s ease;
       }
-      .stage.is-ready .hint {
+      .stage.has .stage-title {
         opacity: 0;
+      }
+      .stage.error .stage-title {
+        color: var(--ink);
+      }
+      .qr {
+        position: absolute;
+        inset: 6%;
+        opacity: 0;
+        transform: scale(0.96);
+        transition:
+          opacity 0.5s ease,
+          transform 0.7s var(--ease);
+      }
+      .stage.has .qr {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .qr svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        color: var(--ink);
+        transition: color 0.45s ease;
+      }
+      .panel {
+        display: grid;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 34rem;
+        margin-inline: auto;
+      }
+      @media (min-width: 900px) {
+        .panel {
+          max-width: none;
+          margin: 0;
+          gap: 2rem;
+        }
+      }
+      .field {
+        padding: clamp(1rem, 2vw, 1.5rem) clamp(1.25rem, 2.5vw, 1.75rem);
+        border-radius: 1rem;
+        background: var(--surface);
+        transition:
+          background-color 0.45s ease,
+          box-shadow 0.3s ease;
+      }
+      .field:focus-within {
+        box-shadow: 0 0 0 1.5px var(--ink);
+      }
+      .field textarea {
+        display: block;
+        width: 100%;
+        min-height: 3.1em;
+        max-height: 12em;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: none;
+        background: none;
+        color: inherit;
+        font: inherit;
+        font-size: 1rem;
+        line-height: 1.55;
+        letter-spacing: 0.01em;
+        resize: none;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--dim) transparent;
+      }
+      @media (min-width: 900px) {
+        .field textarea {
+          min-height: 5em;
+        }
+      }
+      .field textarea::placeholder {
+        color: var(--dim);
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .label {
+        font-size: 0.75rem;
+        letter-spacing: 0.14em;
+        color: var(--dim);
+        transition: color 0.45s ease;
+      }
+      .levels {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 2.5rem;
+      }
+      .levels button {
+        position: relative;
+        height: 2.5rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0.5rem;
+        background: none;
+        color: var(--dim);
+        font: inherit;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.25s ease;
+      }
+      .levels button::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 0.4rem;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.3);
+        transition:
+          opacity 0.3s ease,
+          transform 0.4s var(--ease);
+      }
+      .levels button[aria-checked="true"] {
+        color: var(--ink);
+      }
+      .levels button[aria-checked="true"]::after {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+      .levels button:focus-visible {
+        outline: 1.5px solid var(--ink);
+        outline-offset: -2px;
       }
       @media (prefers-reduced-motion: reduce) {
         *,
@@ -251,125 +249,144 @@
     </style>
   </head>
   <body>
-    <main class="app">
-      <div class="shell">
-        <h1 class="title">二维码生成器</h1>
-        <section class="panel">
-          <div class="field">
-            <textarea id="input" rows="3" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="输入文本、链接或任意字符串…"></textarea>
+    <main>
+      <div class="stage" id="stage">
+        <h1 class="stage-title" id="stageTitle">二维码生成器</h1>
+        <div class="qr" id="qr" aria-hidden="true"></div>
+      </div>
+      <div class="panel">
+        <div class="field">
+          <textarea id="input" rows="2" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="请输入文本" aria-label="二维码内容"></textarea>
+        </div>
+        <div class="controls">
+          <span class="label" id="levelLabel">纠错等级</span>
+          <div class="levels" id="levels" role="radiogroup" aria-labelledby="levelLabel">
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-level="L">L</button>
+            <button type="button" role="radio" aria-checked="true" tabindex="0" data-level="M">M</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-level="Q">Q</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-level="H">H</button>
           </div>
-          <div class="controls">
-            <span class="label">纠错等级</span>
-            <div class="segmented" id="levels" role="radiogroup" aria-label="纠错等级">
-              <span class="thumb" id="thumb"></span>
-              <button type="button" class="segment" role="radio" aria-checked="false" data-level="L">L</button>
-              <button type="button" class="segment is-active" role="radio" aria-checked="true" data-level="M">M</button>
-              <button type="button" class="segment" role="radio" aria-checked="false" data-level="Q">Q</button>
-              <button type="button" class="segment" role="radio" aria-checked="false" data-level="H">H</button>
-            </div>
-          </div>
-          <div class="stage" id="stage">
-            <div class="code" id="code"></div>
-            <p class="hint" id="hint">输入内容后显示二维码</p>
-          </div>
-        </section>
+        </div>
       </div>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <script>
       (function () {
         "use strict";
         var LEVELS = ["L", "M", "Q", "H"];
-        var DEBOUNCE = 200;
-        var HINT_EMPTY = "输入内容后显示二维码";
-        var HINT_ERROR = "内容过长，无法生成二维码";
-        var dark = window.matchMedia("(prefers-color-scheme: dark)");
+        var DEBOUNCE = 160;
+        var HINT_OVERFLOW = "内容过长，无法生成";
+        var TITLE = "二维码生成器";
         var input = document.getElementById("input");
         var stage = document.getElementById("stage");
-        var code = document.getElementById("code");
-        var hint = document.getElementById("hint");
-        var levels = document.getElementById("levels");
-        var thumb = document.getElementById("thumb");
+        var stageTitle = document.getElementById("stageTitle");
+        var qrEl = document.getElementById("qr");
+        var levelsEl = document.getElementById("levels");
+        var buttons = Array.prototype.slice.call(levelsEl.querySelectorAll("button"));
         var level = "M";
-        var revision = 0;
         var timer = 0;
-        function setHint(message) {
-          hint.textContent = message;
+        var token = 0;
+        function toSvg(qr) {
+          var size = qr.modules.size;
+          var data = qr.modules.data;
+          var d = "";
+          for (var y = 0; y < size; y++) {
+            var x = 0;
+            var row = y * size;
+            while (x < size) {
+              if (!data[row + x]) {
+                x++;
+                continue;
+              }
+              var start = x;
+              while (x < size && data[row + x]) x++;
+              var run = x - start;
+              d += "M" + start + " " + y + "h" + run + "v1h-" + run + "z";
+            }
+          }
+          return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + " " + size + '" shape-rendering="crispEdges"><path fill="currentColor" d="' + d + '"/></svg>';
         }
-        function clearCode() {
-          revision++;
-          code.innerHTML = "";
-          stage.classList.remove("is-ready");
-        }
-        function fail() {
-          clearCode();
-          setHint(HINT_ERROR);
-        }
-        function paint(text) {
-          var rev = ++revision;
-          try {
-            QRCode.toString(
-              text,
-              {
-                type: "svg",
-                margin: 0,
-                color: {
-                  dark: dark.matches ? "#dee2ea" : "#363c48",
-                  light: "#00000000",
-                },
-                errorCorrectionLevel: level,
-              },
-              function (error, svg) {
-                if (rev !== revision) return;
-                if (error || !svg) {
-                  fail();
-                  return;
-                }
-                code.innerHTML = svg;
-                stage.classList.add("is-ready");
-              },
-            );
-          } catch (error) {
-            if (rev === revision) fail();
+        function setStage(mode, message) {
+          if (mode === "has") {
+            stage.classList.add("has");
+            stage.classList.remove("error");
+            stageTitle.textContent = "";
+          } else if (mode === "error") {
+            stage.classList.remove("has");
+            stage.classList.add("error");
+            stageTitle.textContent = message || HINT_OVERFLOW;
+          } else {
+            stage.classList.remove("has", "error");
+            stageTitle.textContent = TITLE;
           }
         }
-        function render(immediate) {
+        function blank() {
+          token++;
+          qrEl.innerHTML = "";
+          setStage("empty");
+        }
+        function draw(text) {
+          var id = ++token;
+          var svg;
+          try {
+            svg = toSvg(QRCode.create(text, { errorCorrectionLevel: level }));
+          } catch (error) {
+            setStage("error", HINT_OVERFLOW);
+            qrEl.innerHTML = "";
+            return;
+          }
+          if (id !== token) return;
+          var fresh = !stage.classList.contains("has");
+          qrEl.innerHTML = svg;
+          setStage("has");
+          if (fresh) void qrEl.offsetWidth;
+        }
+        function render(text) {
+          if (text.trim() === "") {
+            blank();
+          } else {
+            draw(text);
+          }
+        }
+        function grow() {
+          input.style.height = "auto";
+          input.style.height = input.scrollHeight + "px";
+        }
+        function setLevel(next) {
+          if (next === level) return;
+          level = next;
+          buttons.forEach(function (button) {
+            var on = button.dataset.level === level;
+            button.setAttribute("aria-checked", String(on));
+            button.tabIndex = on ? 0 : -1;
+          });
+          if (input.value.trim() !== "") draw(input.value);
+        }
+        input.addEventListener("input", function () {
+          grow();
           clearTimeout(timer);
           var text = input.value;
           if (text.trim() === "") {
-            clearCode();
-            setHint(HINT_EMPTY);
+            render(text);
             return;
           }
-          if (immediate) {
-            paint(text);
-          } else {
-            timer = setTimeout(function () {
-              paint(text);
-            }, DEBOUNCE);
-          }
-        }
-        function selectLevel(next) {
-          if (level === next) return;
-          level = next;
-          thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
-          levels.querySelectorAll(".segment").forEach(function (segment) {
-            var active = segment.dataset.level === level;
-            segment.classList.toggle("is-active", active);
-            segment.setAttribute("aria-checked", String(active));
-          });
-          if (input.value.trim() !== "") render(true);
-        }
-        input.addEventListener("input", function () {
-          render(false);
+          timer = setTimeout(function () {
+            render(text);
+          }, DEBOUNCE);
         });
-        levels.addEventListener("click", function (event) {
-          var segment = event.target.closest(".segment");
-          if (segment) selectLevel(segment.dataset.level);
+        levelsEl.addEventListener("click", function (event) {
+          var button = event.target.closest("button");
+          if (button) setLevel(button.dataset.level);
         });
-        dark.addEventListener("change", function () {
-          if (input.value.trim() !== "") render(true);
+        levelsEl.addEventListener("keydown", function (event) {
+          var step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+          if (!step) return;
+          event.preventDefault();
+          var next = LEVELS[(LEVELS.indexOf(level) + step + LEVELS.length) % LEVELS.length];
+          setLevel(next);
+          var target = levelsEl.querySelector('[data-level="' + next + '"]');
+          if (target) target.focus();
         });
-        thumb.style.transform = "translateX(" + LEVELS.indexOf(level) * 100 + "%)";
       })();
     </script>
   </body>
