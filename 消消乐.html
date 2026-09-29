@@ -95,7 +95,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         width: 100%;
         height: 100%;
         max-width: 100%;
@@ -225,7 +225,7 @@
         overflow: hidden;
         transition:
           box-shadow 0.25s,
-          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+          transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1),
           filter 0.2s ease;
       }
       .gem::after {
@@ -278,12 +278,13 @@
         z-index: 4;
       }
       .cell.drag-source .gem {
-        transform: translate(var(--drag-x, 0px), var(--drag-y, 0px)) scale(1.16);
+        transform: translate(var(--drag-x, 0px), var(--drag-y, 0px)) scale(1.12);
         box-shadow:
-          0 0 20px rgba(255, 215, 0, 0.85),
-          0 0 36px rgba(255, 215, 0, 0.35),
+          0 0 0 2px var(--accent-ring),
+          0 10px 22px rgba(0, 0, 0, 0.22),
           var(--gem-shadow);
-        transition: box-shadow 0.2s ease;
+        filter: brightness(1.1);
+        transition: box-shadow 0.18s ease;
       }
       .cell.drag-target {
         z-index: 2;
@@ -291,10 +292,10 @@
       .cell.drag-target .gem {
         transform: scale(1.08);
         box-shadow:
-          0 0 16px rgba(255, 255, 255, 0.75),
-          0 0 24px rgba(255, 255, 255, 0.3),
+          0 0 0 2px rgba(255, 255, 255, 0.85),
+          0 0 18px rgba(255, 255, 255, 0.45),
           var(--gem-shadow);
-        filter: brightness(1.2);
+        filter: brightness(1.18);
       }
       .cell.invalid .gem {
         animation: gem-shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97);
@@ -404,15 +405,6 @@
           transform: translateY(-55px) scale(0.8);
         }
       }
-      .game-footer {
-        text-align: center;
-        font-size: calc(var(--font-scale) * 0.7);
-        color: var(--text-secondary);
-        letter-spacing: 0.03em;
-        flex-shrink: 0;
-        padding: 2px 0;
-        transition: color var(--transition-speed);
-      }
       @media (max-width: 360px) {
         :root {
           --cell-size: 38px;
@@ -436,7 +428,7 @@
           padding: 5px 10px;
         }
         .game-container {
-          gap: 5px;
+          gap: 6px;
           padding: 2px 3px;
         }
       }
@@ -463,7 +455,7 @@
           padding: 3px 7px;
         }
         .game-container {
-          gap: 4px;
+          gap: 5px;
           padding: 1px 2px;
         }
       }
@@ -513,7 +505,7 @@
         }
         .game-container {
           max-width: 750px;
-          gap: 12px;
+          gap: 14px;
         }
         .game-header {
           padding: 12px 20px;
@@ -570,9 +562,6 @@
         }
         .board-outer {
           flex-shrink: 0;
-        }
-        .game-footer {
-          display: none;
         }
         .btn {
           padding: 5px 8px;
@@ -635,7 +624,6 @@
         <div class="board-outer" id="boardOuter">
           <div class="board" id="board"></div>
         </div>
-        <div class="game-footer">拖动相邻宝石交换 · 或点选两个相邻宝石</div>
       </div>
     </div>
     <script>
@@ -647,12 +635,17 @@
         const POINTS_PER_GEM = 10;
         const PARTICLE_COUNT = 6;
         const MAX_CHAIN_ITERATIONS = 50;
+        const MAX_BOARD_RETRY = 300;
         const DRAG_THRESHOLD = 6;
-        const SWIPE_RATIO = 0.4;
+        const TARGET_RATIO = 0.32;
+        const EDGE_RATIO = 0.16;
         const ANIM_MATCH = 280;
         const ANIM_APPEAR = 350;
         const ANIM_SWAP = 190;
         const ANIM_INVALID = 340;
+        const DROP_STAGGER = 12;
+        const DROP_SETTLE = ANIM_APPEAR + 140;
+        const SCORE_POP_MS = 220;
         const GEM_COLORS = ["#f78b8b", "#f7b87a", "#f7da5c", "#7ecb8a", "#7ab8e8", "#b89ae0"];
         const boardEl = document.getElementById("board");
         const boardOuter = document.getElementById("boardOuter");
@@ -665,6 +658,8 @@
         let selectedCell = null;
         let dragSource = null;
         let dragTarget = null;
+        let scorePopTimer = null;
+        let cellStepCache = 0;
         const pointer = {
           active: false,
           id: null,
@@ -673,24 +668,35 @@
           startRow: -1,
           startCol: -1,
           dragging: false,
+          axis: null,
         };
-        const wait = (ms) =>
-          new Promise((resolve) => {
-            setTimeout(resolve, ms);
-          });
-        const getCellEl = (row, col) => boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const clamp = (v, min, max) => (v < min ? min : v > max ? max : v);
         const inBounds = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
+        const getCellEl = (row, col) => boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         const isAdjacent = (a, b) => {
           if (!a || !b) return false;
           const dr = Math.abs(a.row - b.row);
           const dc = Math.abs(a.col - b.col);
           return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
         };
-        const getCellStep = () => {
+        function getCellStep() {
+          if (cellStepCache > 0) return cellStepCache;
           const a = getCellEl(0, 0);
           const b = getCellEl(0, 1);
-          return a && b ? b.getBoundingClientRect().left - a.getBoundingClientRect().left : 0;
-        };
+          if (!a || !b) return 0;
+          const step = b.getBoundingClientRect().left - a.getBoundingClientRect().left;
+          if (step > 0) cellStepCache = step;
+          return step;
+        }
+        window.addEventListener("resize", () => {
+          cellStepCache = 0;
+        });
+        function wouldMatch(data, r, c, type) {
+          if (c >= 2 && data[r][c - 1] === type && data[r][c - 2] === type) return true;
+          if (r >= 2 && data[r - 1][c] === type && data[r - 2][c] === type) return true;
+          return false;
+        }
         function createBoardData() {
           const data = [];
           for (let r = 0; r < ROWS; r++) {
@@ -704,11 +710,6 @@
             }
           }
           return data;
-        }
-        function wouldMatch(data, r, c, type) {
-          if (c >= 2 && data[r][c - 1] === type && data[r][c - 2] === type) return true;
-          if (r >= 2 && data[r - 1][c] === type && data[r - 2][c] === type) return true;
-          return false;
         }
         function findAllMatches(data) {
           const matched = new Set();
@@ -779,6 +780,28 @@
           }
           return false;
         }
+        function createPlayableBoard() {
+          let data = createBoardData();
+          let guard = 0;
+          while (!hasPossibleMoves(data) && guard++ < MAX_BOARD_RETRY) {
+            data = createBoardData();
+          }
+          return data;
+        }
+        function collectAllIndices() {
+          const set = new Set();
+          for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+              if (boardData[r][c] >= 0) set.add(r * COLS + c);
+            }
+          }
+          return set;
+        }
+        function releaseFilledAnimation(cell, gem) {
+          cell.classList.remove("new-gem");
+          gem.style.animation = "";
+          gem.style.animationDelay = "";
+        }
         function renderBoard(data, matchedSet, newGemSet) {
           const frag = document.createDocumentFragment();
           for (let r = 0; r < ROWS; r++) {
@@ -798,9 +821,8 @@
               }
               if (newGemSet && newGemSet.has(idx) && type >= 0) {
                 cell.classList.add("new-gem");
-                const delay = (ROWS - 1 - r) * 30 + "ms";
-                cell.style.animationDelay = delay;
-                gem.style.animationDelay = delay;
+                gem.style.animationDelay = (ROWS - 1 - r) * DROP_STAGGER + "ms";
+                gem.addEventListener("animationend", () => releaseFilledAnimation(cell, gem), { once: true });
               }
               frag.appendChild(cell);
             }
@@ -877,6 +899,18 @@
             setTimeout(() => el.classList.remove("invalid"), ANIM_INVALID);
           }
         }
+        function stripBlockingAnimations(cell) {
+          if (!cell) return;
+          if (!cell.classList.contains("new-gem") && !cell.classList.contains("matched")) return;
+          cell.classList.remove("new-gem");
+          cell.classList.remove("matched");
+          const gem = cell.querySelector(".gem");
+          if (gem) {
+            gem.style.animation = "none";
+            gem.style.animationDelay = "";
+            void gem.offsetWidth;
+          }
+        }
         function animateSwap(r1, c1, r2, c2) {
           return new Promise((resolve) => {
             const cellA = getCellEl(r1, c1);
@@ -885,6 +919,8 @@
             const gemA = cellA.querySelector(".gem");
             const gemB = cellB.querySelector(".gem");
             if (!gemA || !gemB) return resolve();
+            stripBlockingAnimations(cellA);
+            stripBlockingAnimations(cellB);
             const ra = cellA.getBoundingClientRect();
             const rb = cellB.getBoundingClientRect();
             const dx = rb.left - ra.left;
@@ -909,25 +945,33 @@
           scoreValueEl.classList.remove("pop");
           void scoreValueEl.offsetWidth;
           scoreValueEl.classList.add("pop");
+          if (scorePopTimer !== null) clearTimeout(scorePopTimer);
+          scorePopTimer = setTimeout(() => {
+            scorePopTimer = null;
+            scoreValueEl.classList.remove("pop");
+          }, SCORE_POP_MS);
           if (matchedCells && matchedCells.size > 0) {
             const first = matchedCells.values().next().value;
             spawnFloatText(Math.floor(first / COLS), first % COLS, "+" + points);
           }
         }
-        function updateDragOffset(dx, dy) {
+        function updateDragOffset(ox, oy) {
           if (!dragSource) return;
           const el = getCellEl(dragSource.row, dragSource.col);
           const gem = el && el.querySelector(".gem");
           if (!gem) return;
-          gem.style.setProperty("--drag-x", dx + "px");
-          gem.style.setProperty("--drag-y", dy + "px");
+          gem.style.setProperty("--drag-x", ox + "px");
+          gem.style.setProperty("--drag-y", oy + "px");
         }
-        function updateDragTarget(x, y) {
+        function updateDragTarget(offset) {
           if (!dragSource) return;
-          const hover = getCellFromPoint(x, y);
+          const step = getCellStep();
           let next = null;
-          if (hover && isAdjacent(dragSource, hover) && boardData[hover.row][hover.col] >= 0) {
-            next = { row: hover.row, col: hover.col };
+          if (step > 0 && Math.abs(offset) >= step * TARGET_RATIO) {
+            const dir = offset > 0 ? 1 : -1;
+            const r = dragSource.row + (pointer.axis === "y" ? dir : 0);
+            const c = dragSource.col + (pointer.axis === "x" ? dir : 0);
+            if (inBounds(r, c) && boardData[r][c] >= 0) next = { row: r, col: c };
           }
           if (dragTarget && next && dragTarget.row === next.row && dragTarget.col === next.col) return;
           if (dragTarget) {
@@ -940,16 +984,21 @@
             if (el) el.classList.add("drag-target");
           }
         }
-        function clearDragEffects() {
+        function clearDragEffects(instant) {
           if (dragSource) {
             const el = getCellEl(dragSource.row, dragSource.col);
             if (el) {
-              el.classList.remove("drag-source");
               const gem = el.querySelector(".gem");
               if (gem) {
+                if (instant) {
+                  gem.style.transition = "none";
+                  gem.style.transform = "none";
+                  void gem.offsetWidth;
+                }
                 gem.style.removeProperty("--drag-x");
                 gem.style.removeProperty("--drag-y");
               }
+              el.classList.remove("drag-source");
             }
           }
           if (dragTarget) {
@@ -959,12 +1008,124 @@
           dragSource = null;
           dragTarget = null;
         }
+        function getCellFromPoint(x, y) {
+          const el = document.elementFromPoint(x, y);
+          if (!el) return null;
+          const cell = el.closest(".cell");
+          if (!cell || !boardEl.contains(cell)) return null;
+          const row = Number(cell.dataset.row);
+          const col = Number(cell.dataset.col);
+          if (Number.isNaN(row) || Number.isNaN(col)) return null;
+          return { row, col };
+        }
+        function handleTap(cell) {
+          if (isProcessing) return;
+          if (!cell || !inBounds(cell.row, cell.col) || boardData[cell.row][cell.col] < 0) return;
+          if (!selectedCell) {
+            setSelection(cell);
+            return;
+          }
+          if (selectedCell.row === cell.row && selectedCell.col === cell.col) {
+            setSelection(null);
+            return;
+          }
+          if (isAdjacent(selectedCell, cell)) {
+            const from = selectedCell;
+            setSelection(null);
+            performSwap(from.row, from.col, cell.row, cell.col);
+            return;
+          }
+          setSelection(cell);
+        }
+        function releasePointer() {
+          if (pointer.id !== null) {
+            try {
+              boardEl.releasePointerCapture(pointer.id);
+            } catch (err) {}
+            pointer.id = null;
+          }
+          pointer.active = false;
+          pointer.dragging = false;
+          pointer.axis = null;
+          pointer.startRow = -1;
+          pointer.startCol = -1;
+        }
+        function onPointerDown(e) {
+          if (isProcessing) return;
+          const cell = getCellFromPoint(e.clientX, e.clientY);
+          if (!cell || boardData[cell.row][cell.col] < 0) return;
+          e.preventDefault();
+          pointer.active = true;
+          pointer.id = e.pointerId;
+          pointer.startX = e.clientX;
+          pointer.startY = e.clientY;
+          pointer.startRow = cell.row;
+          pointer.startCol = cell.col;
+          pointer.dragging = false;
+          pointer.axis = null;
+          try {
+            boardEl.setPointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+        function onPointerMove(e) {
+          if (!pointer.active || isProcessing) return;
+          const dx = e.clientX - pointer.startX;
+          const dy = e.clientY - pointer.startY;
+          if (!pointer.dragging) {
+            if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
+            pointer.dragging = true;
+            pointer.axis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+            setSelection(null);
+            dragSource = { row: pointer.startRow, col: pointer.startCol };
+            const srcEl = getCellEl(dragSource.row, dragSource.col);
+            if (srcEl) srcEl.classList.add("drag-source");
+          }
+          e.preventDefault();
+          const step = getCellStep() || 48;
+          const raw = pointer.axis === "x" ? dx : dy;
+          const dir = raw >= 0 ? 1 : -1;
+          const nr = dragSource.row + (pointer.axis === "y" ? dir : 0);
+          const nc = dragSource.col + (pointer.axis === "x" ? dir : 0);
+          const canMove = inBounds(nr, nc) && boardData[nr][nc] >= 0;
+          const limit = canMove ? step : step * EDGE_RATIO;
+          const offset = clamp(raw, -limit, limit);
+          updateDragOffset(pointer.axis === "x" ? offset : 0, pointer.axis === "y" ? offset : 0);
+          updateDragTarget(offset);
+        }
+        function onPointerUp(e) {
+          if (!pointer.active) return;
+          e.preventDefault();
+          const start = { row: pointer.startRow, col: pointer.startCol };
+          const wasDragging = pointer.dragging;
+          const target = wasDragging ? dragTarget : null;
+          releasePointer();
+          if (isProcessing) {
+            clearDragEffects();
+            return;
+          }
+          if (wasDragging) {
+            if (target) {
+              clearDragEffects(true);
+              performSwap(start.row, start.col, target.row, target.col);
+            } else {
+              clearDragEffects();
+            }
+          } else {
+            clearDragEffects();
+            handleTap(start);
+          }
+        }
+        function onPointerCancel() {
+          releasePointer();
+          clearDragEffects();
+        }
         async function performSwap(r1, c1, r2, c2) {
           if (isProcessing) return;
+          if (!inBounds(r1, c1) || !inBounds(r2, c2)) return;
           if (boardData[r1][c1] < 0 || boardData[r2][c2] < 0) return;
           isProcessing = true;
           setSelection(null);
-          clearDragEffects();
+          clearDragEffects(true);
           await animateSwap(r1, c1, r2, c2);
           swapData(boardData, r1, c1, r2, c2);
           const matches = findAllMatches(boardData);
@@ -1006,9 +1167,9 @@
             const newGems = applyGravity(boardData);
             renderBoard(boardData, null, newGems);
             updateScore(points, matchedCopy);
-            await wait(ANIM_APPEAR + 80);
+            await wait(DROP_SETTLE);
           }
-          if (findAllMatches(boardData).size === 0 && !hasPossibleMoves(boardData)) {
+          if (!hasPossibleMoves(boardData)) {
             await wait(400);
             resetGame();
             return;
@@ -1017,157 +1178,32 @@
           renderBoard(boardData, null, null);
         }
         function resetGame() {
+          if (scorePopTimer !== null) {
+            clearTimeout(scorePopTimer);
+            scorePopTimer = null;
+          }
           isProcessing = false;
           score = 0;
           comboCount = 0;
           scoreValueEl.textContent = "0";
+          scoreValueEl.classList.remove("pop");
           clearFloatingElements();
           setSelection(null);
-          clearDragEffects();
-          resetPointer();
-          boardData = createBoardData();
-          while (findAllMatches(boardData).size > 0) {
-            boardData = createBoardData();
-          }
-          const newGems = new Set();
-          for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-              if (boardData[r][c] >= 0) newGems.add(r * COLS + c);
-            }
-          }
-          renderBoard(boardData, null, newGems);
-        }
-        function getCellFromPoint(x, y) {
-          const cells = boardEl.children;
-          for (let i = 0; i < cells.length; i++) {
-            const rect = cells[i].getBoundingClientRect();
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-              const row = Number(cells[i].dataset.row);
-              const col = Number(cells[i].dataset.col);
-              if (!Number.isNaN(row) && !Number.isNaN(col)) return { row, col };
-            }
-          }
-          return null;
-        }
-        function getSwipeTarget(start, dx, dy) {
-          if (!start) return null;
-          const step = getCellStep();
-          if (step <= 0) return null;
-          const ax = Math.abs(dx);
-          const ay = Math.abs(dy);
-          if (Math.max(ax, ay) < step * SWIPE_RATIO) return null;
-          const dr = ax >= ay ? 0 : dy > 0 ? 1 : -1;
-          const dc = ax >= ay ? (dx > 0 ? 1 : -1) : 0;
-          const r = start.row + dr;
-          const c = start.col + dc;
-          if (!inBounds(r, c) || boardData[r][c] < 0) return null;
-          return { row: r, col: c };
-        }
-        function handleTap(cell) {
-          if (isProcessing) return;
-          if (!cell || boardData[cell.row][cell.col] < 0) return;
-          if (!selectedCell) {
-            setSelection(cell);
-            return;
-          }
-          if (selectedCell.row === cell.row && selectedCell.col === cell.col) {
-            setSelection(null);
-            return;
-          }
-          if (isAdjacent(selectedCell, cell)) {
-            const from = selectedCell;
-            setSelection(null);
-            performSwap(from.row, from.col, cell.row, cell.col);
-            return;
-          }
-          setSelection(cell);
-        }
-        function resetPointer() {
-          pointer.active = false;
-          pointer.dragging = false;
-          pointer.startRow = -1;
-          pointer.startCol = -1;
-          if (pointer.id !== null) {
-            try {
-              boardEl.releasePointerCapture(pointer.id);
-            } catch (err) {}
-            pointer.id = null;
-          }
-          clearDragEffects();
-        }
-        function onPointerDown(e) {
-          if (isProcessing) return;
-          const cell = getCellFromPoint(e.clientX, e.clientY);
-          if (!cell || boardData[cell.row][cell.col] < 0) return;
-          e.preventDefault();
-          pointer.active = true;
-          pointer.id = e.pointerId;
-          pointer.startX = e.clientX;
-          pointer.startY = e.clientY;
-          pointer.startRow = cell.row;
-          pointer.startCol = cell.col;
-          pointer.dragging = false;
-          try {
-            boardEl.setPointerCapture(e.pointerId);
-          } catch (err) {}
-        }
-        function onPointerMove(e) {
-          if (!pointer.active || isProcessing) return;
-          const dx = e.clientX - pointer.startX;
-          const dy = e.clientY - pointer.startY;
-          if (!pointer.dragging) {
-            if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
-            pointer.dragging = true;
-            setSelection(null);
-            dragSource = { row: pointer.startRow, col: pointer.startCol };
-            const srcEl = getCellEl(dragSource.row, dragSource.col);
-            if (srcEl) srcEl.classList.add("drag-source");
-          }
-          e.preventDefault();
-          updateDragOffset(dx, dy);
-          updateDragTarget(e.clientX, e.clientY);
-        }
-        function onPointerUp(e) {
-          if (!pointer.active || isProcessing) {
-            resetPointer();
-            return;
-          }
-          e.preventDefault();
-          const start = { row: pointer.startRow, col: pointer.startCol };
-          const wasDragging = pointer.dragging;
-          const dx = e.clientX - pointer.startX;
-          const dy = e.clientY - pointer.startY;
-          const target = wasDragging ? dragTarget || getSwipeTarget(start, dx, dy) : null;
-          resetPointer();
-          if (wasDragging) {
-            if (target) performSwap(start.row, start.col, target.row, target.col);
-          } else {
-            handleTap(start);
-          }
+          clearDragEffects(true);
+          releasePointer();
+          boardData = createPlayableBoard();
+          renderBoard(boardData, null, collectAllIndices());
         }
         boardEl.addEventListener("pointerdown", onPointerDown);
         boardEl.addEventListener("pointermove", onPointerMove);
         boardEl.addEventListener("pointerup", onPointerUp);
-        boardEl.addEventListener("pointercancel", () => resetPointer());
+        boardEl.addEventListener("pointercancel", onPointerCancel);
         boardEl.addEventListener("contextmenu", (e) => e.preventDefault());
         boardEl.addEventListener("dragstart", (e) => e.preventDefault());
         btnRestart.addEventListener("click", () => {
           if (!isProcessing) resetGame();
         });
-        function init() {
-          boardData = createBoardData();
-          while (findAllMatches(boardData).size > 0) {
-            boardData = createBoardData();
-          }
-          const newGems = new Set();
-          for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-              if (boardData[r][c] >= 0) newGems.add(r * COLS + c);
-            }
-          }
-          renderBoard(boardData, null, newGems);
-        }
-        init();
+        resetGame();
       })();
     </script>
   </body>
