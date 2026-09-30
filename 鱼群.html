@@ -6,7 +6,6 @@
     <title>Boids</title>
     <style>
       :root {
-        color-scheme: light dark;
         --bg-inner: #ffffff;
         --bg-outer: #e8ecf0;
         --fg: #0e1318;
@@ -53,26 +52,18 @@
         cursor: crosshair;
       }
       .hud {
-        --pad: clamp(22px, 3.6vw, 54px);
+        --pad: clamp(34px, 4.5vw, 64px);
         position: fixed;
         inset: 0;
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
-        padding-top: calc(var(--pad) + env(safe-area-inset-top, 0px));
-        padding-right: calc(var(--pad) + env(safe-area-inset-right, 0px));
-        padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px));
-        padding-left: calc(var(--pad) + env(safe-area-inset-left, 0px));
+        padding: calc(var(--pad) - 19px);
         pointer-events: none;
       }
-      .controls {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        width: 100%;
-        margin: -12px -16px 0;
-      }
       .ctl {
+        -webkit-appearance: none;
+        appearance: none;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -141,14 +132,12 @@
   <body>
     <canvas id="scene"></canvas>
     <div class="hud">
-      <div class="controls">
-        <button class="ctl ctl--less" id="less" type="button" aria-label="减少鱼群数量">
-          <span class="glyph"></span>
-        </button>
-        <button class="ctl ctl--more" id="more" type="button" aria-label="增加鱼群数量">
-          <span class="glyph"></span>
-        </button>
-      </div>
+      <button class="ctl ctl--less" id="less" type="button" aria-label="减少鱼群数量">
+        <span class="glyph"></span>
+      </button>
+      <button class="ctl ctl--more" id="more" type="button" aria-label="增加鱼群数量">
+        <span class="glyph"></span>
+      </button>
     </div>
     <script>
       (() => {
@@ -215,9 +204,18 @@
             f.color = "hsl(" + f.hue.toFixed(1) + ",24%," + (26 - f.depth * 11).toFixed(1) + "%)";
           }
         }
+        function viewportSize() {
+          const de = document.documentElement;
+          let w = de ? de.clientWidth : 0;
+          let h = de ? de.clientHeight : 0;
+          if (!w) w = window.innerWidth || 1;
+          if (!h) h = window.innerHeight || 1;
+          return { w, h };
+        }
         function resize() {
-          const w = window.innerWidth;
-          const h = window.innerHeight;
+          const size = viewportSize();
+          const w = size.w;
+          const h = size.h;
           DPR = Math.min(window.devicePixelRatio || 1, 2);
           W = w;
           H = h;
@@ -227,10 +225,13 @@
           const base = Math.min(w, h);
           margin = Math.max(60, Math.min(160, base * 0.22));
           pointer.radius = Math.max(110, Math.min(260, base * 0.3));
+          const pad = 8;
           for (let i = 0; i < fish.length; i++) {
             const f = fish[i];
-            if (f.x > -40 && f.x < w + 40) f.x = Math.min(Math.max(f.x, 8), w - 8);
-            if (f.y > -40 && f.y < h + 40) f.y = Math.min(Math.max(f.y, 8), h - 8);
+            if (f.x < pad) f.x = pad;
+            else if (f.x > w - pad) f.x = w - pad;
+            if (f.y < pad) f.y = pad;
+            else if (f.y > h - pad) f.y = h - pad;
           }
         }
         function initFish() {
@@ -434,10 +435,11 @@
             }
             f.x += f.vx * dt;
             f.y += f.vy * dt;
-            if (f.x < -60) f.x = -60;
-            else if (f.x > W + 60) f.x = W + 60;
-            if (f.y < -60) f.y = -60;
-            else if (f.y > H + 60) f.y = H + 60;
+            const pad = 4;
+            if (f.x < pad) f.x = pad;
+            else if (f.x > W - pad) f.x = W - pad;
+            if (f.y < pad) f.y = pad;
+            else if (f.y > H - pad) f.y = H - pad;
             const target = Math.atan2(f.vy, f.vx);
             let diff = target - f.angle;
             diff = Math.atan2(Math.sin(diff), Math.cos(diff));
@@ -608,6 +610,11 @@
           stopHold();
         });
         window.addEventListener("resize", resize);
+        window.addEventListener("orientationchange", resize);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", resize);
+          window.visualViewport.addEventListener("scroll", resize);
+        }
         if (scheme.addEventListener) scheme.addEventListener("change", onSchemeChange);
         else if (scheme.addListener) scheme.addListener(onSchemeChange);
         resize();
