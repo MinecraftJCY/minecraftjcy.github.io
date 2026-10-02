@@ -1,0 +1,1150 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图像编辑器</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg-default: #ffffff;
+        --bg-muted: #f6f8fa;
+        --bg-inset: #f6f8fa;
+        --border-default: #d1d9e0;
+        --border-muted: #d8dee4;
+        --fg-default: #1f2328;
+        --fg-muted: #59636e;
+        --fg-subtle: #818b98;
+        --accent: #0969da;
+        --accent-muted: rgba(9, 105, 218, 0.1);
+        --focus-ring: rgba(9, 105, 218, 0.3);
+        --success-fg: #1a7f37;
+        --danger-fg: #d1242f;
+        --btn-bg: #f6f8fa;
+        --btn-bg-hover: #eef1f4;
+        --btn-border: rgba(31, 35, 40, 0.15);
+        --btn-primary-bg: #1f883d;
+        --btn-primary-bg-hover: #1a7f37;
+        --btn-primary-fg: #ffffff;
+        --shadow-sm: 0 1px 0 rgba(31, 35, 40, 0.04);
+        --shadow-float: 0 8px 24px rgba(140, 149, 159, 0.2);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-default: #0d1117;
+          --bg-muted: #151b23;
+          --bg-inset: #010409;
+          --border-default: #3d444d;
+          --border-muted: #2a313c;
+          --fg-default: #f0f6fc;
+          --fg-muted: #9198a1;
+          --fg-subtle: #6e7681;
+          --accent: #4493f8;
+          --accent-muted: rgba(68, 147, 248, 0.15);
+          --focus-ring: rgba(68, 147, 248, 0.3);
+          --success-fg: #3fb950;
+          --danger-fg: #f85149;
+          --btn-bg: #21262d;
+          --btn-bg-hover: #30363d;
+          --btn-border: #3d444d;
+          --btn-primary-bg: #238636;
+          --btn-primary-bg-hover: #29903b;
+          --btn-primary-fg: #ffffff;
+          --shadow-sm: 0 1px 0 rgba(1, 4, 9, 0.2);
+          --shadow-float: 0 8px 24px rgba(1, 4, 9, 0.5);
+        }
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-default);
+        color: var(--fg-default);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .layout {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .stage {
+        position: relative;
+        order: -1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        min-height: 240px;
+        background: var(--bg-inset);
+        overflow: hidden;
+      }
+      .stage::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border: 2px dashed var(--accent);
+        border-radius: 12px;
+        background: var(--accent-muted);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s ease;
+      }
+      .stage.is-dragover::after {
+        opacity: 1;
+      }
+      .preview {
+        display: block;
+        max-width: 100%;
+        max-height: 46vh;
+        object-fit: contain;
+        border-radius: 6px;
+        box-shadow:
+          0 0 0 1px var(--border-muted),
+          var(--shadow-float);
+      }
+      .dropzone {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: min(440px, 100%);
+        padding: 44px 24px;
+        text-align: center;
+        background: var(--bg-default);
+        border: 1px dashed var(--border-default);
+        border-radius: 12px;
+        cursor: pointer;
+        transition:
+          border-color 0.15s ease,
+          background-color 0.15s ease;
+      }
+      .dropzone:hover {
+        border-color: var(--accent);
+      }
+      .dropzone__title {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .dropzone__hint {
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      .panel {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-default);
+        border-top: 1px solid var(--border-default);
+      }
+      .panel__body {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 20px 16px;
+      }
+      .panel__footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        background: var(--bg-default);
+        border-top: 1px solid var(--border-default);
+      }
+      .section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .section__title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--fg-muted);
+      }
+      .source {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .source__text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .source__name {
+        font-size: 13px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .source__meta {
+        font-size: 12px;
+        color: var(--fg-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .dims {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: end;
+        gap: 8px;
+      }
+      .dim {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .dim__label {
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      .dims__sep {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        color: var(--fg-subtle);
+      }
+      .input {
+        width: 100%;
+        height: 32px;
+        padding: 0 12px;
+        font-size: 14px;
+        color: var(--fg-default);
+        background: var(--bg-default);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        outline: none;
+        transition:
+          border-color 0.12s ease,
+          box-shadow 0.12s ease;
+        font-variant-numeric: tabular-nums;
+      }
+      .input::placeholder {
+        color: var(--fg-subtle);
+      }
+      .input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+      .input-group {
+        display: flex;
+        align-items: stretch;
+        border-radius: 6px;
+        transition: box-shadow 0.12s ease;
+      }
+      .input-group:has(.input:focus) {
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+      .input-group .input {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-right: 0;
+      }
+      .input-group .input:focus {
+        box-shadow: none;
+      }
+      .input-group:has(.input:focus) .input,
+      .input-group:has(.input:focus) .input-group__suffix {
+        border-color: var(--accent);
+      }
+      .input-group__suffix {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 0 12px;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+        color: var(--fg-muted);
+        background: var(--bg-muted);
+        border: 1px solid var(--border-default);
+        border-radius: 0 6px 6px 0;
+        cursor: pointer;
+        user-select: none;
+        appearance: none;
+        -webkit-appearance: none;
+        transition:
+          background-color 0.12s ease,
+          border-color 0.12s ease;
+      }
+      .input-group__suffix:hover {
+        background: var(--btn-bg-hover);
+      }
+      .input-group__suffix:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+      }
+      .segmented {
+        display: inline-flex;
+        gap: 2px;
+        padding: 2px;
+        background: var(--bg-muted);
+        border: 1px solid var(--border-muted);
+        border-radius: 6px;
+        align-self: flex-start;
+      }
+      .segmented__item input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .segmented__item span {
+        display: block;
+        padding: 3px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--fg-muted);
+        border-radius: 4px;
+        cursor: pointer;
+        transition:
+          background-color 0.12s ease,
+          color 0.12s ease;
+      }
+      .segmented__item input:checked + span {
+        background: var(--bg-default);
+        color: var(--fg-default);
+        box-shadow: var(--shadow-sm);
+      }
+      .segmented__item input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 20px;
+      }
+      .slider {
+        flex: 1;
+        min-width: 0;
+        height: 20px;
+        margin: 0;
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        cursor: pointer;
+      }
+      .slider::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(to right, var(--accent) 0 var(--fill, 85%), var(--border-default) var(--fill, 85%) 100%);
+      }
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        margin-top: -6px;
+        border-radius: 50%;
+        background: var(--bg-default);
+        border: 1px solid var(--border-default);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .slider::-moz-range-track {
+        height: 4px;
+        border-radius: 999px;
+        background: var(--border-default);
+      }
+      .slider::-moz-range-progress {
+        height: 4px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+      .slider::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--bg-default);
+        border: 1px solid var(--border-default);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .slider:focus-visible {
+        outline: none;
+      }
+      .slider:focus-visible::-webkit-slider-thumb {
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+      .slider:focus-visible::-moz-range-thumb {
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+      .slider__value {
+        flex: none;
+        width: 44px;
+        text-align: right;
+        font-size: 13px;
+        color: var(--fg-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .quality-note {
+        display: flex;
+        align-items: center;
+        height: 20px;
+        margin: 0;
+        font-size: 13px;
+        color: var(--fg-muted);
+      }
+      .hint {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--fg-muted);
+      }
+      .hint--warn {
+        color: var(--danger-fg);
+      }
+      .hint--ok {
+        color: var(--success-fg);
+      }
+      .output-bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 2px;
+      }
+      .output-bar__label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--fg-muted);
+      }
+      .output-bar__value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--fg-default);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        user-select: none;
+        color: var(--fg-default);
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition:
+          background-color 0.12s ease,
+          border-color 0.12s ease,
+          opacity 0.12s ease;
+      }
+      .btn:hover:not(:disabled) {
+        background: var(--btn-bg-hover);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn--sm {
+        height: 28px;
+        padding: 0 12px;
+        font-size: 12px;
+      }
+      .btn--primary {
+        color: var(--btn-primary-fg);
+        background: var(--btn-primary-bg);
+        border-color: var(--btn-border);
+      }
+      .btn--primary:hover:not(:disabled) {
+        background: var(--btn-primary-bg-hover);
+      }
+      .btn--block {
+        width: 100%;
+        height: 36px;
+      }
+      .toast {
+        position: fixed;
+        top: calc(16px + env(safe-area-inset-top, 0px));
+        left: 50%;
+        z-index: 100;
+        max-width: calc(100vw - 32px);
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.4;
+        color: var(--bg-default);
+        background: var(--fg-default);
+        border-radius: 6px;
+        box-shadow: var(--shadow-float);
+        opacity: 0;
+        transform: translate(-50%, -8px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        pointer-events: none;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      @media (min-width: 1024px) {
+        body {
+          height: 100vh;
+          height: 100dvh;
+          overflow: hidden;
+        }
+        .layout {
+          flex-direction: row;
+        }
+        .stage {
+          order: 0;
+          flex: 1;
+          min-width: 0;
+          padding: 32px;
+        }
+        .preview {
+          max-height: 100%;
+        }
+        .panel {
+          order: -1;
+          flex: none;
+          width: 360px;
+          border-top: 0;
+          border-right: 1px solid var(--border-default);
+          overflow: hidden;
+        }
+        .panel__body {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding: 20px;
+        }
+        .panel__footer {
+          position: static;
+          padding: 12px 20px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="stage" id="stage">
+        <img class="preview" id="preview" alt="处理后的预览图" hidden />
+        <button type="button" class="dropzone" id="dropzone">
+          <span class="dropzone__title">上传图片</span>
+          <span class="dropzone__hint">点击选择文件，或将图片拖拽到这里</span>
+        </button>
+      </section>
+      <aside class="panel" id="panel" hidden>
+        <div class="panel__body">
+          <section class="section">
+            <div class="source">
+              <div class="source__text">
+                <span class="source__name" id="fileName"></span>
+                <span class="source__meta" id="fileMeta"></span>
+              </div>
+              <button type="button" class="btn btn--sm" id="replaceBtn">替换</button>
+            </div>
+          </section>
+          <section class="section">
+            <h2 class="section__title">分辨率</h2>
+            <div class="dims">
+              <label class="dim">
+                <span class="dim__label">宽度</span>
+                <input class="input" type="number" id="widthInput" min="1" step="1" inputmode="numeric" />
+              </label>
+              <span class="dims__sep">×</span>
+              <label class="dim">
+                <span class="dim__label">高度</span>
+                <input class="input" type="number" id="heightInput" min="1" step="1" inputmode="numeric" />
+              </label>
+            </div>
+          </section>
+          <section class="section">
+            <h2 class="section__title">格式</h2>
+            <div class="segmented" id="formatGroup">
+              <label class="segmented__item">
+                <input type="radio" name="format" value="image/jpeg" checked />
+                <span>JPEG</span>
+              </label>
+              <label class="segmented__item">
+                <input type="radio" name="format" value="image/webp" />
+                <span>WebP</span>
+              </label>
+              <label class="segmented__item">
+                <input type="radio" name="format" value="image/png" />
+                <span>PNG</span>
+              </label>
+            </div>
+          </section>
+          <section class="section" id="qualitySection">
+            <h2 class="section__title">质量</h2>
+            <div class="slider-row" id="qualityControl">
+              <input class="slider" id="qualityInput" type="range" min="1" max="100" step="1" value="85" />
+              <span class="slider__value" id="qualityValue">85%</span>
+            </div>
+            <p class="quality-note" id="qualityNote" hidden>PNG 格式不支持质量压缩</p>
+          </section>
+          <section class="section" id="targetSection">
+            <h2 class="section__title">目标文件大小</h2>
+            <div class="input-group">
+              <input class="input" type="number" id="targetInput" min="0" step="any" inputmode="decimal" placeholder="当前文件大小" />
+              <button type="button" class="input-group__suffix" id="unitBtn" aria-label="切换单位">KB</button>
+            </div>
+            <p class="hint" id="targetHint" hidden></p>
+          </section>
+        </div>
+        <div class="panel__footer">
+          <div class="output-bar">
+            <span class="output-bar__label">预估文件大小</span>
+            <span class="output-bar__value" id="sizeValue">—</span>
+          </div>
+          <button type="button" class="btn btn--primary btn--block" id="downloadBtn" disabled>下载</button>
+        </div>
+      </aside>
+    </main>
+    <input type="file" id="fileInput" accept="image/*" hidden />
+    <div class="toast" id="toast" hidden></div>
+    <script>
+      (() => {
+        "use strict";
+        const FORMATS = {
+          "image/jpeg": { ext: "jpg", lossy: true },
+          "image/webp": { ext: "webp", lossy: true },
+          "image/png": { ext: "png", lossy: false },
+        };
+        const UNITS = [
+          { label: "B", factor: 1 },
+          { label: "KB", factor: 1024 },
+          { label: "MB", factor: 1024 * 1024 },
+        ];
+        const $ = (id) => document.getElementById(id);
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+        function debounce(fn, delay) {
+          let timer = 0;
+          const call = (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+          };
+          call.cancel = () => clearTimeout(timer);
+          call.flush = (...args) => {
+            clearTimeout(timer);
+            fn(...args);
+          };
+          return call;
+        }
+        function guard() {
+          let current = 0;
+          return {
+            issue: () => ++current,
+            check: (token) => token === current,
+            cancel: () => ++current,
+          };
+        }
+        const els = {
+          stage: $("stage"),
+          dropzone: $("dropzone"),
+          fileInput: $("fileInput"),
+          preview: $("preview"),
+          panel: $("panel"),
+          fileName: $("fileName"),
+          fileMeta: $("fileMeta"),
+          replaceBtn: $("replaceBtn"),
+          widthInput: $("widthInput"),
+          heightInput: $("heightInput"),
+          formatGroup: $("formatGroup"),
+          qualityControl: $("qualityControl"),
+          qualityInput: $("qualityInput"),
+          qualityValue: $("qualityValue"),
+          qualityNote: $("qualityNote"),
+          sizeValue: $("sizeValue"),
+          targetInput: $("targetInput"),
+          targetHint: $("targetHint"),
+          unitBtn: $("unitBtn"),
+          downloadBtn: $("downloadBtn"),
+          toast: $("toast"),
+        };
+        const state = {
+          source: null,
+          name: "image",
+          origW: 0,
+          origH: 0,
+          width: 0,
+          height: 0,
+          quality: 0.85,
+          format: "image/jpeg",
+          unitIndex: 1,
+          unitManual: false,
+          targetBytes: null,
+          blob: null,
+          url: null,
+        };
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const previewGuard = guard();
+        const targetGuard = guard();
+        const loadGuard = guard();
+        let toastTimer = 0;
+        let toastHideTimer = 0;
+        const isLossy = () => FORMATS[state.format].lossy;
+        const currentUnit = () => UNITS[state.unitIndex];
+        function formatBytes(bytes) {
+          if (!Number.isFinite(bytes)) return "—";
+          if (bytes < 1024) return `${bytes} B`;
+          if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+          return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+        }
+        function formatNumber(value) {
+          if (value >= 100) return String(Math.round(value));
+          if (value >= 10) return String(Math.round(value * 10) / 10);
+          return String(Math.round(value * 100) / 100);
+        }
+        function showToast(message) {
+          els.toast.textContent = message;
+          els.toast.hidden = false;
+          requestAnimationFrame(() => els.toast.classList.add("is-visible"));
+          clearTimeout(toastTimer);
+          clearTimeout(toastHideTimer);
+          toastTimer = setTimeout(() => {
+            els.toast.classList.remove("is-visible");
+            toastHideTimer = setTimeout(() => {
+              els.toast.hidden = true;
+            }, 220);
+          }, 2600);
+        }
+        function setHint(element, text, tone) {
+          if (!text) {
+            element.hidden = true;
+            element.textContent = "";
+            element.className = "hint";
+            return;
+          }
+          element.hidden = false;
+          element.textContent = text;
+          element.className = tone ? `hint hint--${tone}` : "hint";
+        }
+        function renderSlider() {
+          const min = Number(els.qualityInput.min);
+          const max = Number(els.qualityInput.max);
+          const value = Number(els.qualityInput.value);
+          const percent = ((value - min) / (max - min)) * 100;
+          els.qualityInput.style.setProperty("--fill", `${percent.toFixed(2)}%`);
+        }
+        function renderUnit() {
+          els.unitBtn.textContent = currentUnit().label;
+        }
+        function renderTargetPlaceholder() {
+          els.targetInput.placeholder = state.blob ? `当前 ${formatBytes(state.blob.size)}` : "当前文件大小";
+          if (!els.targetInput.value.trim()) autoSelectUnit();
+        }
+        function renderOutput(blob) {
+          els.preview.src = state.url;
+          els.preview.hidden = false;
+          els.sizeValue.textContent = formatBytes(blob.size);
+          els.downloadBtn.disabled = false;
+          renderTargetPlaceholder();
+        }
+        function renderFormat() {
+          const lossy = isLossy();
+          els.qualityControl.hidden = !lossy;
+          els.qualityNote.hidden = lossy;
+        }
+        function autoSelectUnit() {
+          if (state.unitManual) return;
+          const size = state.blob ? state.blob.size : 0;
+          let index = 0;
+          if (size >= 1024 * 1024) index = 2;
+          else if (size >= 1024) index = 1;
+          if (state.unitIndex === index) return;
+          state.unitIndex = index;
+          renderUnit();
+        }
+        function drawCanvas(width, height) {
+          canvas.width = width;
+          canvas.height = height;
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.clearRect(0, 0, width, height);
+          if (state.format === "image/jpeg") {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, width, height);
+          }
+          ctx.drawImage(state.source, 0, 0, width, height);
+        }
+        function encodeImage(width, height, quality) {
+          if (!state.source) return Promise.resolve(null);
+          drawCanvas(width, height);
+          return new Promise((resolve) => {
+            canvas.toBlob(resolve, state.format, quality);
+          });
+        }
+        function commitBlob(blob) {
+          previewGuard.cancel();
+          if (state.url) URL.revokeObjectURL(state.url);
+          state.url = URL.createObjectURL(blob);
+          state.blob = blob;
+          renderOutput(blob);
+        }
+        async function refreshPreview() {
+          if (!state.source) return;
+          const token = previewGuard.issue();
+          const blob = await encodeImage(state.width, state.height, isLossy() ? state.quality : undefined);
+          if (!blob || !previewGuard.check(token)) return;
+          commitBlob(blob);
+        }
+        const schedulePreview = debounce(refreshPreview, 120);
+        const scheduleTargetFit = debounce(fitToTargetSize, 350);
+        function setQuality(value) {
+          state.quality = clamp(value, 0.01, 1);
+          const percent = Math.round(state.quality * 100);
+          els.qualityInput.value = String(percent);
+          els.qualityValue.textContent = `${percent}%`;
+          renderSlider();
+        }
+        function clearTargetInput() {
+          targetGuard.cancel();
+          state.targetBytes = null;
+          els.targetInput.value = "";
+          setHint(els.targetHint, "");
+          renderTargetPlaceholder();
+        }
+        function applySize(width, height) {
+          state.width = clamp(Math.round(width), 1, state.origW);
+          state.height = clamp(Math.round(height), 1, state.origH);
+          els.widthInput.value = state.width;
+          els.heightInput.value = state.height;
+          schedulePreview();
+        }
+        function setWidth(value) {
+          const width = clamp(Math.round(value), 1, state.origW);
+          applySize(width, (width * state.origH) / state.origW);
+        }
+        function setHeight(value) {
+          const height = clamp(Math.round(value), 1, state.origH);
+          applySize((height * state.origW) / state.origH, height);
+        }
+        function cycleUnit() {
+          const raw = els.targetInput.value.trim();
+          const value = Number(raw);
+          const oldFactor = currentUnit().factor;
+          state.unitIndex = (state.unitIndex + 1) % UNITS.length;
+          state.unitManual = true;
+          renderUnit();
+          if (!raw || !Number.isFinite(value) || value <= 0) return;
+          const bytes = value * oldFactor;
+          els.targetInput.value = formatNumber(bytes / currentUnit().factor);
+          fitToTargetSize();
+        }
+        async function searchQuality(width, height, targetBytes, token) {
+          let low = 0.01;
+          let high = 1;
+          let best = 0.01;
+          let bestBlob = null;
+          for (let i = 0; i < 6; i += 1) {
+            if (!targetGuard.check(token)) return { quality: best, blob: bestBlob };
+            const mid = (low + high) / 2;
+            const blob = await encodeImage(width, height, mid);
+            if (!blob) break;
+            if (blob.size <= targetBytes) {
+              best = mid;
+              bestBlob = blob;
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+          return { quality: best, blob: bestBlob };
+        }
+        async function searchResolution(origW, origH, targetBytes, token) {
+          let low = 0.01;
+          let high = 1;
+          let best = null;
+          for (let i = 0; i < 8; i += 1) {
+            if (!targetGuard.check(token)) return best;
+            const mid = (low + high) / 2;
+            const w = Math.max(1, Math.round(origW * mid));
+            const h = Math.max(1, Math.round(origH * mid));
+            const blob = await encodeImage(w, h, undefined);
+            if (!blob) break;
+            if (blob.size <= targetBytes) {
+              best = { w, h, blob };
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+          return best;
+        }
+        async function fitLossyTarget(targetBytes, token) {
+          const width = state.width;
+          const height = state.height;
+          setHint(els.targetHint, "正在寻找最佳质量…");
+          const smallest = await encodeImage(width, height, 0.01);
+          if (!smallest || !targetGuard.check(token)) return;
+          if (smallest.size > targetBytes) {
+            setHint(els.targetHint, `当前分辨率下无法达到目标大小，最小输出为 ${formatBytes(smallest.size)}。请降低尺寸后重试。`, "warn");
+            return;
+          }
+          const largest = await encodeImage(width, height, 1);
+          if (!targetGuard.check(token)) return;
+          if (largest && largest.size <= targetBytes) {
+            setQuality(1);
+            commitBlob(largest);
+            setHint(els.targetHint, `当前尺寸下最高质量已低于 ${formatBytes(targetBytes)}。`, "ok");
+            return;
+          }
+          const result = await searchQuality(width, height, targetBytes, token);
+          if (!targetGuard.check(token)) return;
+          setQuality(result.quality);
+          if (result.blob) {
+            commitBlob(result.blob);
+          } else {
+            await refreshPreview();
+            if (!targetGuard.check(token)) return;
+          }
+          setHint(els.targetHint, `质量已设为 ${Math.round(result.quality * 100)}%，以保持在 ${formatBytes(targetBytes)} 以内。`, "ok");
+        }
+        async function fitPngTarget(targetBytes, token) {
+          const origW = state.origW;
+          const origH = state.origH;
+          const minBlob = await encodeImage(1, 1, undefined);
+          if (!targetGuard.check(token)) return;
+          if (!minBlob || minBlob.size > targetBytes) {
+            setHint(els.targetHint, `无法压缩到 ${formatBytes(targetBytes)} 以下。`, "warn");
+            return;
+          }
+          const originalBlob = await encodeImage(origW, origH, undefined);
+          if (!targetGuard.check(token)) return;
+          if (originalBlob && originalBlob.size <= targetBytes) {
+            state.width = origW;
+            state.height = origH;
+            els.widthInput.value = String(origW);
+            els.heightInput.value = String(origH);
+            commitBlob(originalBlob);
+            setHint(els.targetHint, "原始尺寸已满足目标大小。", "ok");
+            return;
+          }
+          const best = await searchResolution(origW, origH, targetBytes, token);
+          if (!targetGuard.check(token)) return;
+          if (!best) {
+            setHint(els.targetHint, "无法找到合适的分辨率。", "warn");
+            return;
+          }
+          state.width = best.w;
+          state.height = best.h;
+          els.widthInput.value = String(best.w);
+          els.heightInput.value = String(best.h);
+          commitBlob(best.blob);
+          setHint(els.targetHint, `已调整分辨率为 ${best.w} × ${best.h}，文件大小 ${formatBytes(best.blob.size)}。`, "ok");
+        }
+        async function fitToTargetSize() {
+          const raw = els.targetInput.value.trim();
+          const value = Number(raw);
+          if (!raw || !Number.isFinite(value) || value <= 0) {
+            clearTargetInput();
+            return;
+          }
+          const token = targetGuard.issue();
+          const bytes = Math.round(value * currentUnit().factor);
+          state.targetBytes = bytes;
+          if (isLossy()) {
+            await fitLossyTarget(bytes, token);
+          } else {
+            await fitPngTarget(bytes, token);
+          }
+        }
+        function updateFormat(format) {
+          state.format = format;
+          renderFormat();
+          if (state.targetBytes) {
+            fitToTargetSize();
+          } else {
+            schedulePreview();
+          }
+        }
+        async function loadBitmap(file) {
+          try {
+            return await createImageBitmap(file, { imageOrientation: "from-image" });
+          } catch {
+            try {
+              return await createImageBitmap(file);
+            } catch {
+              return null;
+            }
+          }
+        }
+        async function handleFile(file) {
+          if (!file || !file.type.startsWith("image/")) {
+            showToast("请选择一个图片文件。");
+            return;
+          }
+          const token = loadGuard.issue();
+          const bitmap = await loadBitmap(file);
+          if (!loadGuard.check(token)) return;
+          if (!bitmap || !bitmap.width || !bitmap.height) {
+            showToast("无法读取该图片，请尝试其他文件。");
+            return;
+          }
+          state.source = bitmap;
+          state.origW = bitmap.width;
+          state.origH = bitmap.height;
+          state.width = bitmap.width;
+          state.height = bitmap.height;
+          state.name = file.name.replace(/\.[^.]+$/, "") || "image";
+          state.unitManual = false;
+          els.fileName.textContent = file.name;
+          els.fileMeta.textContent = `${bitmap.width} × ${bitmap.height} · ${formatBytes(file.size)}`;
+          els.widthInput.max = String(state.origW);
+          els.heightInput.max = String(state.origH);
+          els.widthInput.value = String(state.width);
+          els.heightInput.value = String(state.height);
+          clearTargetInput();
+          els.panel.hidden = false;
+          els.dropzone.hidden = true;
+          els.downloadBtn.disabled = true;
+          renderFormat();
+          refreshPreview();
+        }
+        function openFilePicker() {
+          els.fileInput.value = "";
+          els.fileInput.click();
+        }
+        function download() {
+          if (!state.blob || !state.url) return;
+          const { ext } = FORMATS[state.format];
+          const link = document.createElement("a");
+          link.href = state.url;
+          link.download = `${state.name}-${state.width}x${state.height}.${ext}`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+        function setupDragAndDrop(target, onFile) {
+          let depth = 0;
+          target.addEventListener("dragenter", (event) => {
+            event.preventDefault();
+            depth += 1;
+            target.classList.add("is-dragover");
+          });
+          target.addEventListener("dragover", (event) => event.preventDefault());
+          target.addEventListener("dragleave", () => {
+            depth = Math.max(0, depth - 1);
+            if (depth === 0) target.classList.remove("is-dragover");
+          });
+          target.addEventListener("drop", (event) => {
+            event.preventDefault();
+            depth = 0;
+            target.classList.remove("is-dragover");
+            const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+            if (file) onFile(file);
+          });
+        }
+        function onTargetInput() {
+          scheduleTargetFit.cancel();
+          const raw = els.targetInput.value.trim();
+          const value = Number(raw);
+          if (!raw || !Number.isFinite(value) || value <= 0) {
+            state.targetBytes = null;
+            return;
+          }
+          scheduleTargetFit();
+        }
+        function onTargetChange() {
+          const raw = els.targetInput.value.trim();
+          const value = Number(raw);
+          if (!raw || !Number.isFinite(value) || value <= 0) {
+            clearTargetInput();
+            return;
+          }
+          scheduleTargetFit.flush();
+        }
+        function onWidthInput() {
+          const value = Number(els.widthInput.value);
+          if (!Number.isFinite(value) || value < 1) return;
+          if (state.targetBytes) clearTargetInput();
+          setWidth(value);
+        }
+        function onHeightInput() {
+          const value = Number(els.heightInput.value);
+          if (!Number.isFinite(value) || value < 1) return;
+          if (state.targetBytes) clearTargetInput();
+          setHeight(value);
+        }
+        function bindEvents() {
+          els.dropzone.addEventListener("click", openFilePicker);
+          els.replaceBtn.addEventListener("click", openFilePicker);
+          els.unitBtn.addEventListener("click", cycleUnit);
+          els.fileInput.addEventListener("change", () => {
+            const file = els.fileInput.files && els.fileInput.files[0];
+            if (file) handleFile(file);
+          });
+          els.widthInput.addEventListener("input", onWidthInput);
+          els.heightInput.addEventListener("input", onHeightInput);
+          els.widthInput.addEventListener("blur", () => {
+            els.widthInput.value = String(state.width);
+          });
+          els.heightInput.addEventListener("blur", () => {
+            els.heightInput.value = String(state.height);
+          });
+          els.qualityInput.addEventListener("input", () => {
+            setQuality(Number(els.qualityInput.value) / 100);
+            if (state.targetBytes) clearTargetInput();
+            schedulePreview();
+          });
+          els.targetInput.addEventListener("input", onTargetInput);
+          els.targetInput.addEventListener("change", onTargetChange);
+          els.formatGroup.addEventListener("change", (event) => {
+            if (event.target.name === "format" && event.target.checked) {
+              updateFormat(event.target.value);
+            }
+          });
+          els.downloadBtn.addEventListener("click", download);
+          setupDragAndDrop(els.stage, handleFile);
+          window.addEventListener("dragover", (event) => event.preventDefault());
+          window.addEventListener("drop", (event) => event.preventDefault());
+        }
+        bindEvents();
+        renderSlider();
+        renderUnit();
+        renderFormat();
+      })();
+    </script>
+  </body>
+</html>
