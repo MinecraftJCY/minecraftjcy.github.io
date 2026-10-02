@@ -128,6 +128,8 @@
         const MIN_DIST = 40;
         const MAX_DIST = 330;
         const PERFECT_RADIUS = 14;
+        const CAM_ANCHOR = 0.3;
+        const CAM_SMOOTH = 6;
         const LIGHT = {
           bg: "#f2f1ee",
           platTop: "#d6d2c9",
@@ -149,7 +151,7 @@
         let groundY = 0;
         let platforms = [];
         let player = null;
-        let cam = { x: 0, target: 0 };
+        let camX = 0;
         let currentIdx = 0;
         let score = 0;
         let chargeStart = 0;
@@ -165,6 +167,9 @@
         };
         if (mq.addEventListener) mq.addEventListener("change", onThemeChange);
         else if (mq.addListener) mq.addListener(onThemeChange);
+        function cameraTarget() {
+          return player.x - (W / zoom) * CAM_ANCHOR;
+        }
         function resize() {
           DPR = Math.min(window.devicePixelRatio || 1, 2);
           W = window.innerWidth;
@@ -175,9 +180,6 @@
           canvas.style.height = H + "px";
           zoom = Math.max(0.8, Math.min(1.9, Math.min(W / 520, H / 460)));
           groundY = H * 0.68;
-          if (player) {
-            cam.target = player.x - (W / zoom) * 0.3;
-          }
         }
         function addPlatform() {
           const last = platforms[platforms.length - 1];
@@ -205,8 +207,7 @@
           gameOver = false;
           flash = null;
           hasJumped = false;
-          cam.target = player.x - (W / zoom) * 0.3;
-          cam.x = cam.target;
+          camX = cameraTarget();
           scoreEl.textContent = "0";
           overEl.classList.remove("show");
           hintEl.classList.remove("hide");
@@ -238,7 +239,6 @@
               if (perfect) flash = { x: center, t: 0 };
               updateScore(score, perfect);
               while (platforms.length < currentIdx + 5) addPlatform();
-              cam.target = player.x - (W / zoom) * 0.3;
               return;
             }
           }
@@ -266,25 +266,14 @@
           if (player.land > 0) {
             player.land = Math.max(0, player.land - dt * 4);
           }
-          cam.x += (cam.target - cam.x) * (1 - Math.exp(-8 * dt));
+          if (!gameOver) {
+            const target = cameraTarget();
+            camX += (target - camX) * (1 - Math.exp(-CAM_SMOOTH * dt));
+          }
           if (flash) {
             flash.t += dt * 2.2;
             if (flash.t >= 1) flash = null;
           }
-        }
-        function rrectPath(x, y, w, h, r) {
-          const rr = Math.min(r, w / 2, h / 2);
-          ctx.beginPath();
-          ctx.moveTo(x + rr, y);
-          ctx.lineTo(x + w - rr, y);
-          ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
-          ctx.lineTo(x + w, y + h - rr);
-          ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
-          ctx.lineTo(x + rr, y + h);
-          ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
-          ctx.lineTo(x, y + rr);
-          ctx.quadraticCurveTo(x, y, x + rr, y);
-          ctx.closePath();
         }
         function drawPlatform(sx, sw) {
           const r = Math.min(sw * 0.22, 12 * zoom);
@@ -301,7 +290,7 @@
           ctx.fill();
         }
         function drawPlayer(t) {
-          const px = (player.x - cam.x) * zoom;
+          const px = (player.x - camX) * zoom;
           const py = groundY + player.y * zoom;
           if (py > H + 140) return;
           let sqX = 1;
@@ -345,14 +334,14 @@
           ctx.fillStyle = grad;
           for (let i = 0; i < platforms.length; i++) {
             const p = platforms[i];
-            const sx = (p.x - cam.x) * zoom;
+            const sx = (p.x - camX) * zoom;
             const sw = p.w * zoom;
             if (sx + sw < -30 || sx > W + 30) continue;
             drawPlatform(sx, sw);
           }
           if (flash) {
             const a = 1 - flash.t;
-            const cx = (flash.x - cam.x) * zoom;
+            const cx = (flash.x - camX) * zoom;
             const r = (10 + flash.t * 52) * zoom;
             ctx.beginPath();
             ctx.arc(cx, groundY - 1, r, Math.PI, Math.PI * 2);
