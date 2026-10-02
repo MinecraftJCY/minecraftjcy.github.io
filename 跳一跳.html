@@ -1,0 +1,448 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>跳一跳</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: #f2f1ee;
+        color: #1a1a1a;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: none;
+        overscroll-behavior: none;
+      }
+      canvas {
+        display: block;
+        position: fixed;
+        inset: 0;
+        touch-action: none;
+      }
+      .hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: calc(env(safe-area-inset-top, 0px) + 26px) calc(env(safe-area-inset-left, 0px) + 30px);
+        pointer-events: none;
+      }
+      .score {
+        font-size: clamp(38px, 7vmin, 66px);
+        font-weight: 300;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        transform-origin: left center;
+        opacity: 0.92;
+      }
+      .hint {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 42px);
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        opacity: 0.32;
+        transition: opacity 0.7s ease;
+        pointer-events: none;
+      }
+      .hint.hide {
+        opacity: 0;
+      }
+      .over {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: rgba(242, 241, 238, 0.84);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.45s ease;
+      }
+      .over.show {
+        opacity: 1;
+      }
+      .over-label {
+        font-size: 11px;
+        letter-spacing: 0.34em;
+        opacity: 0.38;
+      }
+      .over-score {
+        font-size: clamp(62px, 16vmin, 120px);
+        font-weight: 200;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .over-hint {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        opacity: 0.38;
+        margin-top: 10px;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #0e0e10;
+          color: #f0f0f2;
+        }
+        .over {
+          background: rgba(14, 14, 16, 0.84);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <div class="hud"><div class="score" id="score">0</div></div>
+    <div class="hint" id="hint">按住蓄力 · 松开起跳</div>
+    <div class="over" id="over">
+      <div class="over-label">得分</div>
+      <div class="over-score" id="overScore">0</div>
+      <div class="over-hint">点击或按空格重新开始</div>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+        const canvas = document.getElementById("c");
+        const ctx = canvas.getContext("2d");
+        const scoreEl = document.getElementById("score");
+        const overEl = document.getElementById("over");
+        const overScoreEl = document.getElementById("overScore");
+        const hintEl = document.getElementById("hint");
+        const GRAVITY = 2400;
+        const CHARGE_TIME = 1000;
+        const MIN_DIST = 40;
+        const MAX_DIST = 330;
+        const PERFECT_RADIUS = 14;
+        const LIGHT = {
+          bg: "#f2f1ee",
+          platTop: "#d6d2c9",
+          platBot: "#c2bdb3",
+          player: "#1a1a1a",
+          accent: "#1a1a1a",
+        };
+        const DARK = {
+          bg: "#0e0e10",
+          platTop: "#313136",
+          platBot: "#1e1e22",
+          player: "#f0f0f2",
+          accent: "#f0f0f2",
+        };
+        let W = 0;
+        let H = 0;
+        let DPR = 1;
+        let zoom = 1;
+        let groundY = 0;
+        let platforms = [];
+        let player = null;
+        let cam = { x: 0, target: 0 };
+        let currentIdx = 0;
+        let score = 0;
+        let chargeStart = 0;
+        let chargeProgress = 0;
+        let gameOver = false;
+        let flash = null;
+        let hasJumped = false;
+        let dark = false;
+        const mq = window.matchMedia("(prefers-color-scheme: dark)");
+        dark = mq.matches;
+        const onThemeChange = (e) => {
+          dark = e.matches;
+        };
+        if (mq.addEventListener) mq.addEventListener("change", onThemeChange);
+        else if (mq.addListener) mq.addListener(onThemeChange);
+        function resize() {
+          DPR = Math.min(window.devicePixelRatio || 1, 2);
+          W = window.innerWidth;
+          H = window.innerHeight;
+          canvas.width = Math.round(W * DPR);
+          canvas.height = Math.round(H * DPR);
+          canvas.style.width = W + "px";
+          canvas.style.height = H + "px";
+          zoom = Math.max(0.8, Math.min(1.9, Math.min(W / 520, H / 460)));
+          groundY = H * 0.68;
+          if (player) {
+            cam.target = player.x - (W / zoom) * 0.3;
+          }
+        }
+        function addPlatform() {
+          const last = platforms[platforms.length - 1];
+          const lastCenter = last.x + last.w / 2;
+          const gap = 130 + Math.random() * 120;
+          const w = 65 + Math.random() * 45;
+          const center = lastCenter + gap;
+          platforms.push({ x: center - w / 2, w: w });
+        }
+        function reset() {
+          platforms = [{ x: 0, w: 96 }];
+          for (let i = 0; i < 5; i++) addPlatform();
+          const first = platforms[0];
+          player = {
+            x: first.x + first.w / 2,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            mode: "idle",
+            land: 0,
+          };
+          currentIdx = 0;
+          score = 0;
+          chargeProgress = 0;
+          gameOver = false;
+          flash = null;
+          hasJumped = false;
+          cam.target = player.x - (W / zoom) * 0.3;
+          cam.x = cam.target;
+          scoreEl.textContent = "0";
+          overEl.classList.remove("show");
+          hintEl.classList.remove("hide");
+        }
+        function updateScore(v, perfect) {
+          scoreEl.textContent = v;
+          scoreEl.animate([{ transform: "scale(1)" }, { transform: "scale(" + (perfect ? 1.18 : 1.08) + ")" }, { transform: "scale(1)" }], { duration: perfect ? 340 : 220, easing: "ease-out" });
+        }
+        function endGame() {
+          if (gameOver) return;
+          gameOver = true;
+          player.mode = "dead";
+          overScoreEl.textContent = score;
+          overEl.classList.add("show");
+        }
+        function land() {
+          for (let i = 0; i < platforms.length; i++) {
+            const p = platforms[i];
+            if (player.x >= p.x && player.x <= p.x + p.w) {
+              player.y = 0;
+              player.vx = 0;
+              player.vy = 0;
+              player.mode = "idle";
+              player.land = 1;
+              currentIdx = i;
+              const center = p.x + p.w / 2;
+              const perfect = Math.abs(player.x - center) < PERFECT_RADIUS;
+              score += perfect ? 2 : 1;
+              if (perfect) flash = { x: center, t: 0 };
+              updateScore(score, perfect);
+              while (platforms.length < currentIdx + 5) addPlatform();
+              cam.target = player.x - (W / zoom) * 0.3;
+              return;
+            }
+          }
+          player.mode = "falling";
+          player.vx = 0;
+        }
+        function update(dt) {
+          if (player.mode === "charging") {
+            chargeProgress = Math.min(1, (performance.now() - chargeStart) / CHARGE_TIME);
+          } else if (chargeProgress > 0) {
+            chargeProgress = Math.max(0, chargeProgress - dt * 6);
+          }
+          if (player.mode === "airborne" || player.mode === "falling") {
+            player.vy += GRAVITY * dt;
+            player.x += player.vx * dt;
+            player.y += player.vy * dt;
+            if (player.mode === "airborne" && player.vy > 0 && player.y >= 0) {
+              land();
+            }
+            if (player.mode === "falling") {
+              const limit = (H - groundY) / zoom + 40;
+              if (player.y > limit) endGame();
+            }
+          }
+          if (player.land > 0) {
+            player.land = Math.max(0, player.land - dt * 4);
+          }
+          cam.x += (cam.target - cam.x) * (1 - Math.exp(-8 * dt));
+          if (flash) {
+            flash.t += dt * 2.2;
+            if (flash.t >= 1) flash = null;
+          }
+        }
+        function rrectPath(x, y, w, h, r) {
+          const rr = Math.min(r, w / 2, h / 2);
+          ctx.beginPath();
+          ctx.moveTo(x + rr, y);
+          ctx.lineTo(x + w - rr, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+          ctx.lineTo(x + w, y + h - rr);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+          ctx.lineTo(x + rr, y + h);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+          ctx.lineTo(x, y + rr);
+          ctx.quadraticCurveTo(x, y, x + rr, y);
+          ctx.closePath();
+        }
+        function drawPlatform(sx, sw) {
+          const r = Math.min(sw * 0.22, 12 * zoom);
+          const top = groundY;
+          const bot = H + 12;
+          ctx.beginPath();
+          ctx.moveTo(sx, bot);
+          ctx.lineTo(sx, top + r);
+          ctx.quadraticCurveTo(sx, top, sx + r, top);
+          ctx.lineTo(sx + sw - r, top);
+          ctx.quadraticCurveTo(sx + sw, top, sx + sw, top + r);
+          ctx.lineTo(sx + sw, bot);
+          ctx.closePath();
+          ctx.fill();
+        }
+        function drawPlayer(t) {
+          const px = (player.x - cam.x) * zoom;
+          const py = groundY + player.y * zoom;
+          if (py > H + 140) return;
+          let sqX = 1;
+          let sqY = 1;
+          if (player.mode === "charging") {
+            sqY = 1 - 0.38 * chargeProgress;
+            sqX = 1 + 0.2 * chargeProgress;
+          }
+          if (player.land > 0) {
+            sqY *= 1 - 0.2 * player.land;
+            sqX *= 1 + 0.13 * player.land;
+          }
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.scale(zoom * sqX, zoom * sqY);
+          ctx.fillStyle = t.player;
+          ctx.beginPath();
+          ctx.moveTo(-12, -4);
+          ctx.lineTo(-12, -20);
+          ctx.quadraticCurveTo(-12, -32, 0, -32);
+          ctx.quadraticCurveTo(12, -32, 12, -20);
+          ctx.lineTo(12, -4);
+          ctx.quadraticCurveTo(12, 0, 8, 0);
+          ctx.lineTo(-8, 0);
+          ctx.quadraticCurveTo(-12, 0, -12, -4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, -42, 10, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        function render() {
+          const t = dark ? DARK : LIGHT;
+          ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+          ctx.fillStyle = t.bg;
+          ctx.fillRect(0, 0, W, H);
+          const grad = ctx.createLinearGradient(0, groundY, 0, H);
+          grad.addColorStop(0, t.platTop);
+          grad.addColorStop(1, t.platBot);
+          ctx.fillStyle = grad;
+          for (let i = 0; i < platforms.length; i++) {
+            const p = platforms[i];
+            const sx = (p.x - cam.x) * zoom;
+            const sw = p.w * zoom;
+            if (sx + sw < -30 || sx > W + 30) continue;
+            drawPlatform(sx, sw);
+          }
+          if (flash) {
+            const a = 1 - flash.t;
+            const cx = (flash.x - cam.x) * zoom;
+            const r = (10 + flash.t * 52) * zoom;
+            ctx.beginPath();
+            ctx.arc(cx, groundY - 1, r, Math.PI, Math.PI * 2);
+            ctx.strokeStyle = t.accent;
+            ctx.globalAlpha = a * 0.65;
+            ctx.lineWidth = Math.max(1, 1.8 * zoom);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+          drawPlayer(t);
+        }
+        let lastTime = 0;
+        function loop(now) {
+          if (!lastTime) lastTime = now;
+          const dt = Math.min((now - lastTime) / 1000, 0.05);
+          lastTime = now;
+          update(dt);
+          render();
+          requestAnimationFrame(loop);
+        }
+        function onDown() {
+          if (gameOver) {
+            reset();
+            return;
+          }
+          if (player.mode !== "idle") return;
+          player.mode = "charging";
+          chargeStart = performance.now();
+          chargeProgress = 0;
+        }
+        function onUp() {
+          if (player.mode !== "charging") return;
+          chargeProgress = Math.min(1, (performance.now() - chargeStart) / CHARGE_TIME);
+          const dist = MIN_DIST + chargeProgress * (MAX_DIST - MIN_DIST);
+          const height = 70 + dist * 0.12;
+          const vy0 = Math.sqrt(2 * GRAVITY * height);
+          const duration = (2 * vy0) / GRAVITY;
+          player.vx = dist / duration;
+          player.vy = -vy0;
+          player.mode = "airborne";
+          if (!hasJumped) {
+            hasJumped = true;
+            hintEl.classList.add("hide");
+          }
+        }
+        window.addEventListener(
+          "pointerdown",
+          function (e) {
+            if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
+            onDown();
+          },
+          { passive: true },
+        );
+        window.addEventListener(
+          "pointerup",
+          function () {
+            onUp();
+          },
+          { passive: true },
+        );
+        window.addEventListener("pointercancel", function () {
+          onUp();
+        });
+        window.addEventListener("keydown", function (e) {
+          if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowUp") {
+            if (e.repeat) return;
+            e.preventDefault();
+            onDown();
+          }
+        });
+        window.addEventListener("keyup", function (e) {
+          if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowUp") {
+            e.preventDefault();
+            onUp();
+          }
+        });
+        window.addEventListener("blur", function () {
+          if (player && player.mode === "charging") {
+            player.mode = "idle";
+            chargeProgress = 0;
+          }
+        });
+        window.addEventListener("resize", resize);
+        window.addEventListener("orientationchange", function () {
+          setTimeout(resize, 120);
+        });
+        resize();
+        reset();
+        requestAnimationFrame(loop);
+      })();
+    </script>
+  </body>
+</html>
