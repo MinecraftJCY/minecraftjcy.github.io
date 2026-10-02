@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>时钟</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #f2f1ee;
+        --ink: #17171b;
+        --accent: #c2553a;
+        --halo: rgba(255, 255, 255, 0.85);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0a0b;
+          --ink: #ededf0;
+          --accent: #ff8f66;
+          --halo: rgba(255, 255, 255, 0.055);
+        }
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background-color: var(--bg);
+        background-image: radial-gradient(circle at 50% 44%, var(--halo), transparent 62%);
+        color: var(--ink);
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior: none;
+        transition: background-color 0.5s ease;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: grab;
+        outline: none;
+      }
+      canvas:active {
+        cursor: grabbing;
+      }
+      .hint {
+        position: absolute;
+        left: 50%;
+        bottom: max(5vh, 28px);
+        margin: 0;
+        transform: translateX(-50%);
+        font-size: 11px;
+        letter-spacing: 0.42em;
+        text-indent: 0.42em;
+        white-space: nowrap;
+        opacity: 0.28;
+        pointer-events: none;
+        transition: opacity 0.8s ease;
+      }
+      .hint.gone {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="clock" tabindex="0" role="img" aria-label="3D 时钟，拖动旋转，滚轮或捏合缩放"></canvas>
+    <p class="hint" id="hint" aria-hidden="true">拖动旋转 · 缩放</p>
+    <script>
+      (() => {
+        "use strict";
+        const TAU = Math.PI * 2;
+        const CAM_DIST = 6.5;
+        const HOME_RX = -0.3;
+        const HOME_RY = 0.35;
+        const RX_LIMIT = 1.2;
+        const DRAG_SENS = 0.0055;
+        const MAX_SPIN = 7;
+        const DECAY_BASE = 0.012;
+        const ZOOM_MIN = 0.55;
+        const ZOOM_MAX = 2.4;
+        const WHEEL_SENS = 0.0018;
+        const canvas = document.getElementById("clock");
+        const ctx = canvas.getContext("2d");
+        const hint = document.getElementById("hint");
+        const palette = { ink: "#17171b", accent: "#c2553a" };
+        let W = 0;
+        let H = 0;
+        let CX = 0;
+        let CY = 0;
+        let baseScale = 1;
+        let SCALE = 1;
+        let rx = HOME_RX;
+        let ry = HOME_RY;
+        let vrx = 0;
+        let vry = 0;
+        let cosX = 1;
+        let sinX = 0;
+        let cosY = 1;
+        let sinY = 0;
+        let zoom = 1;
+        let targetZoom = 1;
+        const pointers = new Map();
+        let dragging = false;
+        let resetting = false;
+        let hinted = false;
+        let pointerX = 0;
+        let pointerY = 0;
+        let pointerT = 0;
+        let prevT = 0;
+        let pinchDist = 0;
+        let pinchZoom = 1;
+        const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+        const readPalette = () => {
+          const cs = getComputedStyle(document.documentElement);
+          palette.ink = cs.getPropertyValue("--ink").trim() || "#17171b";
+          palette.accent = cs.getPropertyValue("--accent").trim() || "#c2553a";
+        };
+        const resize = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          W = canvas.clientWidth || window.innerWidth;
+          H = canvas.clientHeight || window.innerHeight;
+          canvas.width = Math.round(W * dpr);
+          canvas.height = Math.round(H * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          CX = W / 2;
+          CY = H / 2;
+          baseScale = Math.min(W, H) * 0.34;
+        };
+        const project = (x, y, z) => {
+          const x1 = x * cosY + z * sinY;
+          const z1 = z * cosY - x * sinY;
+          const y1 = y * cosX - z1 * sinX;
+          const z2 = y * sinX + z1 * cosX;
+          const s = CAM_DIST / (CAM_DIST + z2);
+          return [CX + x1 * SCALE * s, CY + y1 * SCALE * s, s];
+        };
+        const drawDial = () => {
+          const N = 140;
+          ctx.beginPath();
+          let sum = 0;
+          for (let i = 0; i <= N; i++) {
+            const a = (i / N) * TAU;
+            const p = project(Math.cos(a), Math.sin(a), 0);
+            if (i === 0) ctx.moveTo(p[0], p[1]);
+            else ctx.lineTo(p[0], p[1]);
+            sum += p[2];
+          }
+          ctx.strokeStyle = palette.ink;
+          ctx.globalAlpha = 0.16;
+          ctx.lineCap = "round";
+          ctx.lineWidth = Math.max(0.7, 1.2 * (sum / (N + 1)));
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        };
+        const drawTicks = () => {
+          const N = 60;
+          ctx.lineCap = "butt";
+          for (let i = 0; i < N; i++) {
+            const isHour = i % 5 === 0;
+            const a = (i / N) * TAU - Math.PI / 2;
+            const ca = Math.cos(a);
+            const sa = Math.sin(a);
+            const inner = isHour ? 0.895 : 0.945;
+            const p0 = project(ca * inner, sa * inner, 0);
+            const p1 = project(ca * 0.985, sa * 0.985, 0);
+            const s = (p0[2] + p1[2]) * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(p0[0], p0[1]);
+            ctx.lineTo(p1[0], p1[1]);
+            ctx.strokeStyle = i === 0 ? palette.accent : palette.ink;
+            ctx.globalAlpha = i === 0 ? 1 : isHour ? 0.5 : 0.15;
+            ctx.lineWidth = Math.max(0.6, SCALE * (isHour ? 0.011 : 0.0038) * s);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        };
+        const strokeHand = (angle, tail, len, width, z, color, alpha) => {
+          const ca = Math.cos(angle);
+          const sa = Math.sin(angle);
+          const p0 = project(-ca * tail, -sa * tail, z);
+          const p1 = project(ca * len, sa * len, z);
+          const s = (p0[2] + p1[2]) * 0.5;
+          ctx.beginPath();
+          ctx.moveTo(p0[0], p0[1]);
+          ctx.lineTo(p1[0], p1[1]);
+          ctx.strokeStyle = color;
+          ctx.globalAlpha = alpha;
+          ctx.lineCap = "round";
+          ctx.lineWidth = Math.max(1, width * s);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        };
+        const drawHands = () => {
+          const now = new Date();
+          const h = now.getHours() % 12;
+          const m = now.getMinutes();
+          const s = now.getSeconds() + now.getMilliseconds() / 1000;
+          const aH = -Math.PI / 2 + ((h + m / 60 + s / 3600) / 12) * TAU;
+          const aM = -Math.PI / 2 + ((m + s / 60) / 60) * TAU;
+          const aS = -Math.PI / 2 + (s / 60) * TAU;
+          strokeHand(aH, 0.06, 0.5, SCALE * 0.02, -0.012, palette.ink, 0.85);
+          strokeHand(aM, 0.1, 0.74, SCALE * 0.0135, -0.026, palette.ink, 0.85);
+          strokeHand(aS, 0.17, 0.86, SCALE * 0.0055, -0.042, palette.accent, 1);
+        };
+        const drawPivot = () => {
+          const p = project(0, 0, -0.035);
+          ctx.beginPath();
+          ctx.arc(p[0], p[1], Math.max(2.4, SCALE * 0.017 * p[2]), 0, TAU);
+          ctx.fillStyle = palette.accent;
+          ctx.fill();
+        };
+        const draw = () => {
+          SCALE = baseScale * zoom;
+          ctx.clearRect(0, 0, W, H);
+          cosX = Math.cos(rx);
+          sinX = Math.sin(rx);
+          cosY = Math.cos(ry);
+          sinY = Math.sin(ry);
+          drawDial();
+          drawTicks();
+          drawHands();
+          drawPivot();
+        };
+        const updateMotion = (dt) => {
+          const zk = 1 - Math.pow(0.0005, dt);
+          zoom += (targetZoom - zoom) * zk;
+          if (dragging) return;
+          if (resetting) {
+            const k = 1 - Math.pow(0.0015, dt);
+            let d = HOME_RY - ry;
+            d = ((((d + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
+            ry += d * k;
+            rx += (HOME_RX - rx) * k;
+            if (Math.abs(d) < 0.002 && Math.abs(HOME_RX - rx) < 0.002) {
+              ry = HOME_RY;
+              rx = HOME_RX;
+              resetting = false;
+            }
+            return;
+          }
+          rx += vrx * dt;
+          ry += vry * dt;
+          const decay = Math.pow(DECAY_BASE, dt);
+          vrx *= decay;
+          vry *= decay;
+          if (Math.abs(vrx) < 0.002) vrx = 0;
+          if (Math.abs(vry) < 0.002) vry = 0;
+          if (rx > RX_LIMIT) {
+            rx = RX_LIMIT;
+            vrx = 0;
+          } else if (rx < -RX_LIMIT) {
+            rx = -RX_LIMIT;
+            vrx = 0;
+          }
+        };
+        const loop = (t) => {
+          const dt = Math.min((t - prevT) / 1000, 0.05);
+          prevT = t;
+          updateMotion(dt);
+          draw();
+          requestAnimationFrame(loop);
+        };
+        const dismissHint = () => {
+          if (hinted) return;
+          hinted = true;
+          hint.classList.add("gone");
+        };
+        const resetView = () => {
+          resetting = true;
+          vrx = 0;
+          vry = 0;
+          targetZoom = 1;
+          dismissHint();
+        };
+        const pairOf = () => {
+          const arr = [...pointers.values()];
+          return [arr[0], arr[1]];
+        };
+        const beginPinch = () => {
+          const [a, b] = pairOf();
+          pinchDist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+          pinchZoom = targetZoom;
+        };
+        canvas.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          canvas.setPointerCapture(e.pointerId);
+          pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          dismissHint();
+          if (pointers.size === 1) {
+            dragging = true;
+            resetting = false;
+            vrx = 0;
+            vry = 0;
+            pointerX = e.clientX;
+            pointerY = e.clientY;
+            pointerT = performance.now();
+          } else if (pointers.size === 2) {
+            dragging = false;
+            vrx = 0;
+            vry = 0;
+            resetting = false;
+            beginPinch();
+          }
+        });
+        canvas.addEventListener("pointermove", (e) => {
+          const tracked = pointers.get(e.pointerId);
+          if (!tracked) return;
+          tracked.x = e.clientX;
+          tracked.y = e.clientY;
+          if (pointers.size >= 2) {
+            const [a, b] = pairOf();
+            const d = Math.hypot(a.x - b.x, a.y - b.y);
+            if (pinchDist > 0) {
+              targetZoom = clamp(pinchZoom * (d / pinchDist), ZOOM_MIN, ZOOM_MAX);
+            }
+            return;
+          }
+          if (!dragging) return;
+          const now = performance.now();
+          const dx = e.clientX - pointerX;
+          const dy = e.clientY - pointerY;
+          pointerX = e.clientX;
+          pointerY = e.clientY;
+          const dry = -dx * DRAG_SENS;
+          const drx = dy * DRAG_SENS;
+          ry += dry;
+          rx = clamp(rx + drx, -RX_LIMIT, RX_LIMIT);
+          const dt = Math.max((now - pointerT) / 1000, 0.01);
+          pointerT = now;
+          vry = clamp(vry * 0.4 + (dry / dt) * 0.6, -MAX_SPIN, MAX_SPIN);
+          vrx = clamp(vrx * 0.4 + (drx / dt) * 0.6, -MAX_SPIN, MAX_SPIN);
+          if (rx >= RX_LIMIT || rx <= -RX_LIMIT) vrx = 0;
+        });
+        const endPointer = (e) => {
+          pointers.delete(e.pointerId);
+          if (canvas.hasPointerCapture(e.pointerId)) {
+            canvas.releasePointerCapture(e.pointerId);
+          }
+          if (pointers.size >= 2) {
+            beginPinch();
+            dragging = false;
+            return;
+          }
+          if (pointers.size === 1) {
+            const [a] = pointers.values();
+            pointerX = a.x;
+            pointerY = a.y;
+            pointerT = performance.now();
+            dragging = true;
+            vrx = 0;
+            vry = 0;
+            return;
+          }
+          dragging = false;
+          pinchDist = 0;
+        };
+        canvas.addEventListener("pointerup", endPointer);
+        canvas.addEventListener("pointercancel", endPointer);
+        canvas.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
+            const factor = Math.exp(-e.deltaY * unit * WHEEL_SENS);
+            targetZoom = clamp(targetZoom * factor, ZOOM_MIN, ZOOM_MAX);
+            dismissHint();
+          },
+          { passive: false },
+        );
+        canvas.addEventListener("dblclick", resetView);
+        canvas.addEventListener("keydown", (e) => {
+          const STEP = 0.1;
+          switch (e.key) {
+            case "ArrowLeft":
+              ry += STEP;
+              break;
+            case "ArrowRight":
+              ry -= STEP;
+              break;
+            case "ArrowUp":
+              rx = clamp(rx + STEP, -RX_LIMIT, RX_LIMIT);
+              break;
+            case "ArrowDown":
+              rx = clamp(rx - STEP, -RX_LIMIT, RX_LIMIT);
+              break;
+            case "+":
+            case "=":
+              targetZoom = clamp(targetZoom * 1.15, ZOOM_MIN, ZOOM_MAX);
+              break;
+            case "-":
+            case "_":
+              targetZoom = clamp(targetZoom / 1.15, ZOOM_MIN, ZOOM_MAX);
+              break;
+            case "r":
+            case "R":
+              resetView();
+              return;
+            default:
+              return;
+          }
+          e.preventDefault();
+          vrx = 0;
+          vry = 0;
+          resetting = false;
+          dismissHint();
+        });
+        window.addEventListener("resize", resize);
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readPalette);
+        resize();
+        readPalette();
+        prevT = performance.now();
+        requestAnimationFrame(loop);
+      })();
+    </script>
+  </body>
+</html>
