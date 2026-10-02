@@ -1,0 +1,803 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>迷宫</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        color-scheme: light dark;
+        --bg: #eeedea;
+        --fg: #17181b;
+        --muted: rgba(23, 24, 27, 0.44);
+        --line: rgba(23, 24, 27, 0.16);
+        --accent: #8d6a2b;
+        --panel: rgba(238, 237, 234, 0.8);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #08090b;
+          --fg: #eceae6;
+          --muted: rgba(236, 234, 230, 0.4);
+          --line: rgba(236, 234, 230, 0.16);
+          --accent: #d5b378;
+          --panel: rgba(8, 9, 11, 0.78);
+        }
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #view {
+        position: fixed;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+      #hud {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: calc(env(safe-area-inset-top, 0px) + 20px) calc(env(safe-area-inset-right, 0px) + 22px) calc(env(safe-area-inset-bottom, 0px) + 20px) calc(env(safe-area-inset-left, 0px) + 22px);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        font-variant-numeric: tabular-nums;
+      }
+      body.playing #hud {
+        opacity: 1;
+      }
+      #timer {
+        padding: 9px 4px;
+        line-height: 1;
+        color: var(--muted);
+      }
+      .hud-actions {
+        display: flex;
+        gap: 8px;
+        pointer-events: auto;
+      }
+      .ghost {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--fg);
+        font: inherit;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        padding: 9px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition:
+          border-color 0.3s ease,
+          color 0.3s ease;
+      }
+      .ghost:hover,
+      .ghost:active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      #stick {
+        position: fixed;
+        left: calc(env(safe-area-inset-left, 0px) + 24px);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+        width: 122px;
+        height: 122px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        z-index: 5;
+        display: none;
+        touch-action: none;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+      }
+      @media (pointer: coarse) {
+        #stick {
+          display: block;
+        }
+      }
+      body.playing #stick {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #knob {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 48px;
+        height: 48px;
+        margin: -24px 0 0 -24px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.14;
+        transition: opacity 0.25s ease;
+        will-change: transform;
+      }
+      #stick.active #knob {
+        opacity: 0.3;
+      }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        padding: 32px 24px;
+        background: var(--panel);
+        -webkit-backdrop-filter: blur(28px) saturate(1.2);
+        backdrop-filter: blur(28px) saturate(1.2);
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.6s ease,
+          visibility 0s linear 0.6s;
+      }
+      .overlay.open {
+        opacity: 1;
+        visibility: visible;
+        transition:
+          opacity 0.6s ease,
+          visibility 0s;
+      }
+      .card {
+        width: min(360px, 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .card h1 {
+        font-size: clamp(40px, 12vw, 66px);
+        font-weight: 200;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+        line-height: 1.1;
+      }
+      .eyebrow {
+        font-size: 10px;
+        letter-spacing: 0.42em;
+        text-indent: 0.42em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 26px;
+      }
+      .sub {
+        margin-top: 22px;
+        font-size: 11px;
+        letter-spacing: 0.26em;
+        text-indent: 0.26em;
+        color: var(--muted);
+        line-height: 1.9;
+      }
+      #winTime {
+        font-size: clamp(48px, 15vw, 82px);
+        font-weight: 200;
+        letter-spacing: 0.06em;
+        font-variant-numeric: tabular-nums;
+      }
+      .field {
+        width: 100%;
+        margin-top: 48px;
+      }
+      .field-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      .field-head strong {
+        font-weight: 400;
+        color: var(--fg);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.1em;
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        display: block;
+        width: 100%;
+        height: 20px;
+        background: transparent;
+        cursor: pointer;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 1px;
+        background: var(--line);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 15px;
+        height: 15px;
+        margin-top: -7px;
+        border-radius: 50%;
+        background: var(--fg);
+        border: none;
+        transition: transform 0.25s ease;
+      }
+      input[type="range"]:active::-webkit-slider-thumb {
+        transform: scale(1.3);
+      }
+      input[type="range"]::-moz-range-track {
+        height: 1px;
+        background: var(--line);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: var(--fg);
+        border: none;
+      }
+      .btn {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 1px solid var(--fg);
+        background: transparent;
+        color: var(--fg);
+        font: inherit;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+        padding: 17px 44px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition:
+          background-color 0.35s ease,
+          color 0.35s ease;
+      }
+      .btn:hover,
+      .btn:active {
+        background: var(--fg);
+        color: var(--bg);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 48px;
+      }
+      .actions .btn {
+        padding: 15px 32px;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="hud">
+      <div id="timer">00:00</div>
+      <div class="hud-actions">
+        <button class="ghost" id="resetBtn">重置</button>
+        <button class="ghost" id="menuBtn">菜单</button>
+      </div>
+    </div>
+    <div id="stick"><div id="knob"></div></div>
+    <div class="overlay open" id="startScreen">
+      <div class="card">
+        <h1>迷宫</h1>
+        <p class="sub">未照之处，皆不存在</p>
+        <div class="field">
+          <div class="field-head">
+            <span>尺寸</span>
+            <strong id="sizeLabel">12 × 12</strong>
+          </div>
+          <input type="range" id="sizeRange" min="6" max="24" step="1" value="12" />
+        </div>
+        <div class="actions">
+          <button class="btn" id="startBtn">进入</button>
+        </div>
+      </div>
+    </div>
+    <div class="overlay" id="winScreen">
+      <div class="card">
+        <p class="eyebrow">抵达出口</p>
+        <h1 id="winTime">00:00</h1>
+        <div class="actions">
+          <button class="btn" id="againBtn">再来一次</button>
+          <button class="btn" id="backBtn">返回</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      (() => {
+        "use strict";
+        const canvas = document.getElementById("view");
+        const ctx = canvas.getContext("2d", { alpha: false });
+        const startScreen = document.getElementById("startScreen");
+        const winScreen = document.getElementById("winScreen");
+        const sizeRange = document.getElementById("sizeRange");
+        const sizeLabel = document.getElementById("sizeLabel");
+        const timerEl = document.getElementById("timer");
+        const winTimeEl = document.getElementById("winTime");
+        const stick = document.getElementById("stick");
+        const knob = document.getElementById("knob");
+        const THEMES = {
+          dark: {
+            skyTop: [7, 8, 10],
+            skyBot: [15, 17, 22],
+            floorTop: [15, 17, 22],
+            floorBot: [6, 7, 9],
+            fog: [15, 17, 22],
+            wall: [196, 192, 182],
+            glow: [148, 108, 54],
+          },
+          light: {
+            skyTop: [255, 255, 255],
+            skyBot: [236, 235, 231],
+            floorTop: [236, 235, 231],
+            floorBot: [222, 221, 216],
+            fog: [236, 235, 231],
+            wall: [42, 43, 47],
+            glow: [212, 164, 88],
+          },
+        };
+        const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const coarseQuery = window.matchMedia("(pointer: coarse)");
+        let themeKey = darkQuery.matches ? "dark" : "light";
+        let coarse = coarseQuery.matches;
+        darkQuery.addEventListener("change", (e) => {
+          themeKey = e.matches ? "dark" : "light";
+        });
+        coarseQuery.addEventListener("change", (e) => {
+          coarse = e.matches;
+        });
+        let cw = 0;
+        let ch = 0;
+        function resize() {
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+          let w = Math.round(window.innerWidth * dpr);
+          let h = Math.round(window.innerHeight * dpr);
+          const maxW = 1800;
+          if (w > maxW) {
+            const k = maxW / w;
+            w = Math.round(w * k);
+            h = Math.round(h * k);
+          }
+          cw = w;
+          ch = h;
+          canvas.width = w;
+          canvas.height = h;
+        }
+        window.addEventListener("resize", resize);
+        window.addEventListener("orientationchange", resize);
+        let mgrid = null;
+        let mw = 0;
+        let mh = 0;
+        let exitGX = 1;
+        let exitGY = 1;
+        let px = 1.5;
+        let py = 1.5;
+        let angle = 0;
+        let mode = "menu";
+        let mazeSize = 12;
+        let startTime = 0;
+        let lastShownSecond = -1;
+        const DIRS = [
+          [0, -1],
+          [1, 0],
+          [0, 1],
+          [-1, 0],
+        ];
+        function buildMaze(size) {
+          const cols = size;
+          const rows = size;
+          mw = cols * 2 + 1;
+          mh = rows * 2 + 1;
+          mgrid = new Uint8Array(mw * mh).fill(1);
+          const visited = new Uint8Array(cols * rows);
+          const stack = [[0, 0]];
+          visited[0] = 1;
+          mgrid[mw + 1] = 0;
+          while (stack.length) {
+            const cur = stack[stack.length - 1];
+            const cx = cur[0];
+            const cy = cur[1];
+            const options = [];
+            for (let i = 0; i < 4; i++) {
+              const nx = cx + DIRS[i][0];
+              const ny = cy + DIRS[i][1];
+              if (nx >= 0 && ny >= 0 && nx < cols && ny < rows && !visited[ny * cols + nx]) {
+                options.push(i);
+              }
+            }
+            if (options.length === 0) {
+              stack.pop();
+              continue;
+            }
+            const d = DIRS[options[(Math.random() * options.length) | 0]];
+            const nx = cx + d[0];
+            const ny = cy + d[1];
+            visited[ny * cols + nx] = 1;
+            mgrid[(ny * 2 + 1) * mw + (nx * 2 + 1)] = 0;
+            mgrid[(cy * 2 + 1 + d[1]) * mw + (cx * 2 + 1 + d[0])] = 0;
+            stack.push([nx, ny]);
+          }
+          const dist = new Int32Array(cols * rows).fill(-1);
+          dist[0] = 0;
+          const queue = [0];
+          let far = 0;
+          for (let qi = 0; qi < queue.length; qi++) {
+            const c = queue[qi];
+            const cx = c % cols;
+            const cy = (c / cols) | 0;
+            for (let i = 0; i < 4; i++) {
+              const nx = cx + DIRS[i][0];
+              const ny = cy + DIRS[i][1];
+              if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+              const ni = ny * cols + nx;
+              if (dist[ni] !== -1) continue;
+              if (mgrid[(cy * 2 + 1 + DIRS[i][1]) * mw + (cx * 2 + 1 + DIRS[i][0])] === 1) continue;
+              dist[ni] = dist[c] + 1;
+              if (dist[ni] > dist[far]) far = ni;
+              queue.push(ni);
+            }
+          }
+          exitGX = (far % cols) * 2 + 1;
+          exitGY = ((far / cols) | 0) * 2 + 1;
+          px = 1.5;
+          py = 1.5;
+          angle = mgrid[mw + 2] === 0 ? 0 : Math.PI / 2;
+        }
+        function solid(x, y) {
+          const ix = Math.floor(x);
+          const iy = Math.floor(y);
+          if (ix < 0 || iy < 0 || ix >= mw || iy >= mh) return true;
+          return mgrid[iy * mw + ix] === 1;
+        }
+        function free(x, y) {
+          const r = 0.24;
+          return !solid(x - r, y - r) && !solid(x + r, y - r) && !solid(x - r, y + r) && !solid(x + r, y + r);
+        }
+        function mixColor(a, b, t) {
+          return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+        }
+        function rgb(c) {
+          return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+        }
+        function render() {
+          const th = THEMES[themeKey];
+          const W = cw;
+          const H = ch;
+          if (mode === "menu") {
+            const g = ctx.createLinearGradient(0, 0, 0, H);
+            g.addColorStop(0, rgb(th.skyTop));
+            g.addColorStop(1, rgb(th.floorBot));
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+            return;
+          }
+          const aspect = W / H;
+          let tanV = 0.85 / aspect;
+          if (tanV < 0.5) tanV = 0.5;
+          else if (tanV > 1.15) tanV = 1.15;
+          const K = 1 / (2 * tanV);
+          const planeLen = tanV * aspect;
+          const dxe = px - (exitGX + 0.5);
+          const dye = py - (exitGY + 0.5);
+          const glowRaw = 1 - Math.sqrt(dxe * dxe + dye * dye) / 9;
+          const glow = glowRaw > 0 ? glowRaw * glowRaw * 0.55 : 0;
+          const fog = th.fog;
+          const wallC = th.wall;
+          const gl = th.glow;
+          const horizon = Math.round(H * 0.5);
+          let grad = ctx.createLinearGradient(0, 0, 0, horizon);
+          grad.addColorStop(0, rgb(mixColor(th.skyTop, gl, glow)));
+          grad.addColorStop(1, rgb(mixColor(th.skyBot, gl, glow)));
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, horizon);
+          grad = ctx.createLinearGradient(0, horizon, 0, H);
+          grad.addColorStop(0, rgb(mixColor(th.floorTop, gl, glow)));
+          grad.addColorStop(1, rgb(mixColor(th.floorBot, gl, glow)));
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, horizon, W, H - horizon);
+          const dirX = Math.cos(angle);
+          const dirY = Math.sin(angle);
+          const planeX = -dirY * planeLen;
+          const planeY = dirX * planeLen;
+          const fr = fog[0];
+          const fg = fog[1];
+          const fb = fog[2];
+          const wr = wallC[0] - fr;
+          const wg = wallC[1] - fg;
+          const wb = wallC[2] - fb;
+          const gr = gl[0];
+          const gg = gl[1];
+          const gb = gl[2];
+          for (let x = 0; x < W; x++) {
+            const camX = (2 * x) / W - 1;
+            const rdx = dirX + planeX * camX;
+            const rdy = dirY + planeY * camX;
+            let mapX = Math.floor(px);
+            let mapY = Math.floor(py);
+            const deltaX = rdx === 0 ? 1e30 : Math.abs(1 / rdx);
+            const deltaY = rdy === 0 ? 1e30 : Math.abs(1 / rdy);
+            let stepX;
+            let stepY;
+            let sideDistX;
+            let sideDistY;
+            if (rdx < 0) {
+              stepX = -1;
+              sideDistX = (px - mapX) * deltaX;
+            } else {
+              stepX = 1;
+              sideDistX = (mapX + 1 - px) * deltaX;
+            }
+            if (rdy < 0) {
+              stepY = -1;
+              sideDistY = (py - mapY) * deltaY;
+            } else {
+              stepY = 1;
+              sideDistY = (mapY + 1 - py) * deltaY;
+            }
+            let side = 0;
+            let hit = false;
+            let guard = 0;
+            while (!hit && guard < 512) {
+              guard++;
+              if (sideDistX < sideDistY) {
+                sideDistX += deltaX;
+                mapX += stepX;
+                side = 0;
+              } else {
+                sideDistY += deltaY;
+                mapY += stepY;
+                side = 1;
+              }
+              if (mapX < 0 || mapY < 0 || mapX >= mw || mapY >= mh) break;
+              if (mgrid[mapY * mw + mapX] === 1) hit = true;
+            }
+            if (!hit) continue;
+            let perp = side === 0 ? sideDistX - deltaX : sideDistY - deltaY;
+            if (perp < 0.15) perp = 0.15;
+            let lineH = (H * K) / perp;
+            if (lineH > H * 10) lineH = H * 10;
+            const top = (H - lineH) * 0.5;
+            const bright = Math.exp(-perp * 0.12) * (side === 0 ? 1 : 0.72);
+            let cr = fr + wr * bright;
+            let cg = fg + wg * bright;
+            let cb = fb + wb * bright;
+            if (glow > 0) {
+              cr += (gr - cr) * glow;
+              cg += (gg - cg) * glow;
+              cb += (gb - cb) * glow;
+            }
+            const y0 = top < 0 ? 0 : top | 0;
+            const y1 = top + lineH > H ? H : (top + lineH) | 0;
+            if (y1 > y0) {
+              ctx.fillStyle = "rgb(" + (cr | 0) + "," + (cg | 0) + "," + (cb | 0) + ")";
+              ctx.fillRect(x, y0, 1, y1 - y0);
+            }
+          }
+        }
+        const keys = new Set();
+        window.addEventListener("keydown", (e) => {
+          const k = e.key.toLowerCase();
+          if (k === "arrowup" || k === "arrowdown" || k === "arrowleft" || k === "arrowright" || k === " ") {
+            e.preventDefault();
+          }
+          keys.add(k);
+        });
+        window.addEventListener("keyup", (e) => {
+          keys.delete(e.key.toLowerCase());
+        });
+        window.addEventListener("blur", () => {
+          keys.clear();
+        });
+        let stickX = 0;
+        let stickY = 0;
+        let stickId = -1;
+        function stickMove(e) {
+          const rect = stick.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const max = rect.width / 2 - 12;
+          let dx = e.clientX - cx;
+          let dy = e.clientY - cy;
+          const d = Math.hypot(dx, dy);
+          if (d > max) {
+            dx = (dx / d) * max;
+            dy = (dy / d) * max;
+          }
+          knob.style.transform = "translate(" + dx + "px," + dy + "px)";
+          stickX = dx / max;
+          stickY = -dy / max;
+        }
+        function stickEnd() {
+          stickId = -1;
+          stick.classList.remove("active");
+          stickX = 0;
+          stickY = 0;
+          knob.style.transform = "translate(0,0)";
+        }
+        stick.addEventListener("pointerdown", (e) => {
+          if (stickId !== -1) return;
+          stickId = e.pointerId;
+          stick.classList.add("active");
+          stick.setPointerCapture(e.pointerId);
+          stickMove(e);
+        });
+        stick.addEventListener("pointermove", (e) => {
+          if (e.pointerId !== stickId) return;
+          stickMove(e);
+        });
+        stick.addEventListener("pointerup", (e) => {
+          if (e.pointerId === stickId) stickEnd();
+        });
+        stick.addEventListener("pointercancel", (e) => {
+          if (e.pointerId === stickId) stickEnd();
+        });
+        let lookId = -1;
+        let lookX = 0;
+        let pointerLocked = false;
+        canvas.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "mouse") return;
+          if (lookId !== -1) return;
+          lookId = e.pointerId;
+          lookX = e.clientX;
+          canvas.setPointerCapture(e.pointerId);
+        });
+        canvas.addEventListener("pointermove", (e) => {
+          if (e.pointerId !== lookId) return;
+          angle += (e.clientX - lookX) * 0.0055;
+          lookX = e.clientX;
+        });
+        canvas.addEventListener("pointerup", (e) => {
+          if (e.pointerId === lookId) lookId = -1;
+        });
+        canvas.addEventListener("pointercancel", (e) => {
+          if (e.pointerId === lookId) lookId = -1;
+        });
+        canvas.addEventListener("click", () => {
+          if (mode === "play" && !coarse && document.pointerLockElement !== canvas) {
+            canvas.requestPointerLock();
+          }
+        });
+        document.addEventListener("pointerlockchange", () => {
+          pointerLocked = document.pointerLockElement === canvas;
+        });
+        document.addEventListener("mousemove", (e) => {
+          if (pointerLocked) angle += e.movementX * 0.0022;
+        });
+        function update(dt) {
+          let mf = stickY;
+          let ms = stickX;
+          if (keys.has("w") || keys.has("arrowup")) mf += 1;
+          if (keys.has("s") || keys.has("arrowdown")) mf -= 1;
+          if (keys.has("a")) ms -= 1;
+          if (keys.has("d")) ms += 1;
+          let rot = 0;
+          if (keys.has("arrowleft") || keys.has("q")) rot -= 1;
+          if (keys.has("arrowright") || keys.has("e")) rot += 1;
+          angle += rot * 2.4 * dt;
+          const len = Math.hypot(mf, ms);
+          if (len > 1) {
+            mf /= len;
+            ms /= len;
+          }
+          const speed = 2.5;
+          const dirX = Math.cos(angle);
+          const dirY = Math.sin(angle);
+          const vx = (dirX * mf - dirY * ms) * speed * dt;
+          const vy = (dirY * mf + dirX * ms) * speed * dt;
+          const nx = px + vx;
+          const ny = py + vy;
+          if (free(nx, py)) px = nx;
+          if (free(px, ny)) py = ny;
+          if (Math.floor(px) === exitGX && Math.floor(py) === exitGY) {
+            winGame();
+          }
+        }
+        function formatTime(ms) {
+          const total = Math.floor(ms / 1000);
+          const m = Math.floor(total / 60);
+          const s = total % 60;
+          return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+        }
+        function tickTimer() {
+          const sec = Math.floor((performance.now() - startTime) / 1000);
+          if (sec !== lastShownSecond) {
+            lastShownSecond = sec;
+            timerEl.textContent = formatTime(performance.now() - startTime);
+          }
+        }
+        function startGame(size) {
+          mazeSize = size;
+          buildMaze(size);
+          startTime = performance.now();
+          lastShownSecond = -1;
+          timerEl.textContent = "00:00";
+          mode = "play";
+          winScreen.classList.remove("open");
+          startScreen.classList.remove("open");
+          document.body.classList.add("playing");
+          stickEnd();
+        }
+        function winGame() {
+          if (mode !== "play") return;
+          mode = "win";
+          const elapsed = performance.now() - startTime;
+          winTimeEl.textContent = formatTime(elapsed);
+          winScreen.classList.add("open");
+          document.body.classList.remove("playing");
+          if (document.exitPointerLock) document.exitPointerLock();
+          stickEnd();
+        }
+        function toMenu() {
+          mode = "menu";
+          winScreen.classList.remove("open");
+          startScreen.classList.add("open");
+          document.body.classList.remove("playing");
+          if (document.exitPointerLock) document.exitPointerLock();
+          stickEnd();
+          keys.clear();
+        }
+        let last = 0;
+        function loop(t) {
+          const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
+          last = t;
+          if (mode === "play") {
+            update(dt);
+            tickTimer();
+          }
+          render();
+          requestAnimationFrame(loop);
+        }
+        sizeRange.addEventListener("input", () => {
+          const v = Number(sizeRange.value);
+          sizeLabel.textContent = v + " × " + v;
+        });
+        document.getElementById("startBtn").addEventListener("click", () => {
+          startGame(Number(sizeRange.value));
+        });
+        document.getElementById("resetBtn").addEventListener("click", () => {
+          startGame(mazeSize);
+        });
+        document.getElementById("menuBtn").addEventListener("click", () => {
+          toMenu();
+        });
+        document.getElementById("againBtn").addEventListener("click", () => {
+          startGame(mazeSize);
+        });
+        document.getElementById("backBtn").addEventListener("click", () => {
+          toMenu();
+        });
+        resize();
+        buildMaze(12);
+        requestAnimationFrame(loop);
+      })();
+    </script>
+  </body>
+</html>
