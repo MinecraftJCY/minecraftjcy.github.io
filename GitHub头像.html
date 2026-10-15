@@ -1,0 +1,750 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitHub 头像生成器</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --container-max: 1012px;
+        --gutter-x: 2rem;
+        --radius-small: 6px;
+        --radius-medium: 8px;
+        --radius-large: 12px;
+        --radius-full: 999px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 24px;
+        --space-6: 32px;
+        --font-size-xs: 12px;
+        --font-size-sm: 14px;
+        --font-size-md: 16px;
+        --control-height: 32px;
+        --bg-default: #ffffff;
+        --bg-subtle: #f6f8fa;
+        --bg-inset: #f6f8fa;
+        --bg-disabled: #eff2f5;
+        --border-default: #d1d9e0;
+        --border-muted: #eaeef2;
+        --fg-default: #1f2328;
+        --fg-muted: #59636e;
+        --fg-subtle: #6e7781;
+        --fg-disabled: #818b98;
+        --fg-on-emphasis: #ffffff;
+        --accent-fg: #0969da;
+        --accent-emphasis: #0969da;
+        --accent-emphasis-hover: #0860ca;
+        --accent-emphasis-active: #0657b0;
+        --primary-bg: #1f883d;
+        --primary-bg-hover: #1a7f37;
+        --primary-bg-active: #187733;
+        --track-bg: #d1d9e0;
+        --btn-bg: #f6f8fa;
+        --btn-bg-hover: #eff2f5;
+        --btn-bg-active: #e6eaef;
+        --control-bg: #ffffff;
+        --focus-outline: #0969da;
+        --focus-ring: rgb(9 105 218 / 30%);
+        --avatar-ring: rgb(31 35 40 / 12%);
+        --shadow-small: 0 1px 0 rgb(31 35 40 / 4%);
+        --shadow-large: 0 8px 24px rgb(140 149 159 / 20%);
+        --toast-bg: #1f2328;
+        --toast-fg: #ffffff;
+        --toast-border: transparent;
+        --toast-success-fg: #3fb950;
+        --toast-error-fg: #f85149;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-default: #0d1117;
+          --bg-subtle: #151b23;
+          --bg-inset: #010409;
+          --bg-disabled: #212830;
+          --border-default: #3d444d;
+          --border-muted: #2d333b;
+          --fg-default: #f0f6fc;
+          --fg-muted: #9198a1;
+          --fg-subtle: #818b98;
+          --fg-disabled: #656d76;
+          --accent-fg: #4493f8;
+          --accent-emphasis: #1f6feb;
+          --accent-emphasis-hover: #1a63c8;
+          --accent-emphasis-active: #1552ad;
+          --primary-bg: #238636;
+          --primary-bg-hover: #2ea043;
+          --primary-bg-active: #2c974b;
+          --track-bg: #3d444d;
+          --btn-bg: #212830;
+          --btn-bg-hover: #262c36;
+          --btn-bg-active: #2a313a;
+          --control-bg: #0d1117;
+          --focus-outline: #388bfd;
+          --focus-ring: rgb(56 139 253 / 40%);
+          --avatar-ring: rgb(255 255 255 / 15%);
+          --shadow-small: 0 1px 0 rgb(1 4 9 / 40%);
+          --shadow-large: 0 8px 24px rgb(1 4 9 / 80%);
+          --toast-bg: #151b23;
+          --toast-fg: #f0f6fc;
+          --toast-border: #3d444d;
+        }
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: var(--bg-default);
+        color: var(--fg-default);
+        font-size: var(--font-size-sm);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .main {
+        width: min(calc(100% - var(--gutter-x)), var(--container-max));
+        margin-inline: auto;
+        padding-block: var(--space-5) var(--space-6);
+        display: grid;
+        gap: var(--space-4);
+        align-content: start;
+      }
+      .panel {
+        background: var(--bg-default);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-large);
+        padding: var(--space-4);
+        min-width: 0;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-3);
+      }
+      .panel-title {
+        margin: 0;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+      }
+      .badge {
+        padding: 2px 10px;
+        background: var(--bg-subtle);
+        border: 1px solid var(--border-muted);
+        border-radius: var(--radius-full);
+        color: var(--fg-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 600;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .panel-preview {
+        display: flex;
+        flex-direction: column;
+        aspect-ratio: 1 / 1;
+        width: 100%;
+        max-width: 720px;
+        justify-self: center;
+      }
+      .panel-preview .panel-head {
+        flex: none;
+      }
+      .avatar-wrap {
+        flex: 1;
+        min-height: 0;
+        min-width: 0;
+        display: grid;
+        place-items: center;
+      }
+      .avatar {
+        display: block;
+        border-radius: var(--radius-small);
+        box-shadow: inset 0 0 0 1px var(--avatar-ring);
+      }
+      .avatar-seed {
+        margin: var(--space-3) 0 0;
+        flex: none;
+        max-width: 100%;
+        text-align: center;
+        color: var(--fg-muted);
+        font-size: var(--font-size-xs);
+        font-variant-numeric: tabular-nums;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .sidebar {
+        display: grid;
+        gap: var(--space-4);
+        align-content: start;
+        align-self: start;
+        min-width: 0;
+      }
+      .field-label {
+        display: block;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+      }
+      .input-row {
+        display: flex;
+        gap: var(--space-2);
+      }
+      .input-row .input {
+        flex: 1;
+        min-width: 0;
+      }
+      .input {
+        width: 100%;
+        height: var(--control-height);
+        padding-inline: var(--space-3);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-medium);
+        background: var(--control-bg);
+        color: var(--fg-default);
+        font-size: var(--font-size-sm);
+      }
+      .input::placeholder {
+        color: var(--fg-subtle);
+      }
+      .input:focus {
+        outline: none;
+        border-color: var(--focus-outline);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+      .input[readonly] {
+        background: var(--bg-disabled);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        height: var(--control-height);
+        padding-inline: var(--space-4);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-medium);
+        background: var(--btn-bg);
+        color: var(--fg-default);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        box-shadow: var(--shadow-small);
+        cursor: pointer;
+        user-select: none;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          background-color 120ms ease-in-out,
+          border-color 120ms ease-in-out,
+          box-shadow 120ms ease-in-out;
+        white-space: nowrap;
+      }
+      .btn svg {
+        width: 16px;
+        height: 16px;
+        flex: none;
+      }
+      .btn:active {
+        background: var(--btn-bg-active);
+        box-shadow: none;
+      }
+      .btn:disabled {
+        background: var(--bg-disabled);
+        border-color: var(--border-muted);
+        color: var(--fg-disabled);
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+      .btn:focus-visible {
+        outline: none;
+        box-shadow:
+          var(--shadow-small),
+          0 0 0 3px var(--focus-ring);
+      }
+      .btn-primary {
+        background: var(--primary-bg);
+        border-color: transparent;
+        color: var(--fg-on-emphasis);
+      }
+      .btn-primary:active {
+        background: var(--primary-bg-active);
+      }
+      .btn-primary:disabled {
+        background: var(--bg-disabled);
+        border-color: var(--border-muted);
+        color: var(--fg-disabled);
+      }
+      .btn-block {
+        width: 100%;
+      }
+      .control-row {
+        display: grid;
+        gap: var(--space-3);
+        padding-block: var(--space-4);
+        border-top: 1px solid var(--border-muted);
+      }
+      .control-row:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .slider-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+      }
+      .slider-head .field-label {
+        margin-bottom: 0;
+      }
+      .slider-output {
+        color: var(--fg-muted);
+        font-size: var(--font-size-xs);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .range {
+        width: 100%;
+        height: var(--control-height);
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        margin: 0;
+      }
+      .range::-webkit-slider-runnable-track {
+        height: 8px;
+        border-radius: var(--radius-full);
+        background: linear-gradient(to right, var(--accent-emphasis) var(--range-progress, 16%), var(--track-bg) var(--range-progress, 16%));
+      }
+      .range::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        margin-top: -6px;
+        border-radius: 50%;
+        background: var(--fg-on-emphasis);
+        border: 1px solid var(--border-default);
+        box-shadow: var(--shadow-small);
+      }
+      .range::-moz-range-track {
+        height: 8px;
+        border-radius: var(--radius-full);
+        background: var(--track-bg);
+      }
+      .range::-moz-range-progress {
+        height: 8px;
+        border-radius: var(--radius-full);
+        background: var(--accent-emphasis);
+      }
+      .range::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--fg-on-emphasis);
+        border: 1px solid var(--border-default);
+        box-shadow: var(--shadow-small);
+      }
+      .range:focus-visible {
+        outline: none;
+      }
+      .range:focus-visible::-webkit-slider-thumb {
+        box-shadow:
+          var(--shadow-small),
+          0 0 0 3px var(--focus-ring);
+      }
+      .range:focus-visible::-moz-range-thumb {
+        box-shadow:
+          var(--shadow-small),
+          0 0 0 3px var(--focus-ring);
+      }
+      .action-list {
+        display: grid;
+        gap: var(--space-2);
+        padding-top: var(--space-2);
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: var(--space-5);
+        transform: translate(-50%, calc(100% + var(--space-5)));
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        max-width: min(calc(100vw - 2rem), 420px);
+        padding: var(--space-2) var(--space-4);
+        background: var(--toast-bg);
+        color: var(--toast-fg);
+        border: 1px solid var(--toast-border);
+        border-radius: var(--radius-medium);
+        box-shadow: var(--shadow-large);
+        font-size: var(--font-size-sm);
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 180ms ease-in-out,
+          transform 180ms ease-in-out,
+          visibility 180ms ease-in-out;
+        z-index: 20;
+      }
+      .toast.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translate(-50%, 0);
+      }
+      .toast-icon {
+        width: 16px;
+        height: 16px;
+        flex: none;
+      }
+      .toast:not([data-type]) .toast-icon {
+        display: none;
+      }
+      .toast[data-type="success"] .toast-icon-error {
+        display: none;
+      }
+      .toast[data-type="error"] .toast-icon-success {
+        display: none;
+      }
+      .toast[data-type="success"] .toast-icon-success {
+        color: var(--toast-success-fg);
+      }
+      .toast[data-type="error"] .toast-icon-error {
+        color: var(--toast-error-fg);
+      }
+      @media (hover: hover) {
+        .btn:hover {
+          background: var(--btn-bg-hover);
+        }
+        .btn-primary:hover {
+          background: var(--primary-bg-hover);
+        }
+      }
+      @media (min-width: 768px) {
+        :root {
+          --gutter-x: 3rem;
+        }
+        .main {
+          grid-template-columns: minmax(0, 1fr) 260px;
+          gap: var(--space-4);
+        }
+      }
+      @media (min-width: 1012px) {
+        .main {
+          grid-template-columns: minmax(0, 1fr) 320px;
+          gap: var(--space-5);
+        }
+      }
+      @media (min-width: 1280px) {
+        :root {
+          --container-max: 1200px;
+        }
+        .main {
+          grid-template-columns: minmax(0, 1fr) 340px;
+          gap: var(--space-5);
+        }
+      }
+      @media (pointer: coarse), (max-width: 543.98px) {
+        :root {
+          --control-height: 44px;
+        }
+        .input {
+          font-size: var(--font-size-md);
+        }
+        .range {
+          height: 44px;
+        }
+        .range::-webkit-slider-thumb {
+          width: 26px;
+          height: 26px;
+          margin-top: -9px;
+        }
+        .range::-moz-range-thumb {
+          width: 24px;
+          height: 24px;
+        }
+        .panel-preview {
+          max-width: 100%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .btn,
+        .toast {
+          transition-duration: 0.01ms;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="main">
+      <section class="panel panel-preview" aria-labelledby="previewTitle">
+        <div class="panel-head">
+          <h2 class="panel-title" id="previewTitle">头像预览</h2>
+          <span class="badge" id="sizeBadge">1160 × 1160px</span>
+        </div>
+        <div class="avatar-wrap">
+          <canvas id="avatar" class="avatar" role="img" aria-label="生成的头像">你的头像预览将在这里显示。</canvas>
+        </div>
+        <p class="avatar-seed" id="avatarSeed">—</p>
+      </section>
+      <aside class="sidebar" aria-label="生成与导出设置">
+        <section class="panel" aria-label="生成">
+          <form id="generateForm">
+            <label class="field-label" for="seedInput">种子文本</label>
+            <div class="input-row">
+              <input class="input" id="seedInput" type="text" placeholder="仓库名、用户名或任意文字" autocomplete="off" spellcheck="false" />
+              <button class="btn btn-primary" id="generateBtn" type="submit">生成</button>
+            </div>
+            <div class="control-row">
+              <button class="btn btn-block" id="randomBtn" type="button">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="1.75" y="1.75" width="12.5" height="12.5" rx="2.5" />
+                  <circle cx="5.5" cy="5.5" r="1.1" fill="currentColor" stroke="none" />
+                  <circle cx="10.5" cy="10.5" r="1.1" fill="currentColor" stroke="none" />
+                  <circle cx="5.5" cy="10.5" r="1.1" fill="currentColor" stroke="none" />
+                  <circle cx="10.5" cy="5.5" r="1.1" fill="currentColor" stroke="none" />
+                  <circle cx="8" cy="8" r="1.1" fill="currentColor" stroke="none" />
+                </svg>
+                随机生成
+              </button>
+            </div>
+          </form>
+        </section>
+        <section class="panel" aria-label="导出设置">
+          <div class="control-row">
+            <div class="slider-head">
+              <label class="field-label" for="borderRange">边框宽度</label>
+              <output class="slider-output" id="borderValue" for="borderRange">80px</output>
+            </div>
+            <input class="range" id="borderRange" type="range" min="0" max="500" step="10" value="80" />
+          </div>
+          <div class="action-list">
+            <button class="btn btn-block" id="downloadBtn" type="button" disabled>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 1.75v7.5" />
+                <path d="M4.75 6.5 8 9.75l3.25-3.25" />
+                <path d="M2.75 12.5h10.5" />
+              </svg>
+              保存图片
+            </button>
+          </div>
+        </section>
+      </aside>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <svg class="toast-icon toast-icon-success" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m2.75 8.5 3.25 3.25 7.25-7.25" />
+      </svg>
+      <svg class="toast-icon toast-icon-error" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 1.75 14.25 13.25H1.75L8 1.75Z" />
+        <path d="M8 5.5v3.5" />
+        <path d="M8 11.75h.01" />
+      </svg>
+      <span id="toastText"></span>
+    </div>
+    <script>
+      (() => {
+        const $ = (id) => document.getElementById(id);
+        const canvas = $("avatar");
+        const wrap = canvas.parentElement;
+        const seedInput = $("seedInput");
+        const generateForm = $("generateForm");
+        const generateBtn = $("generateBtn");
+        const randomBtn = $("randomBtn");
+        const borderRange = $("borderRange");
+        const borderValue = $("borderValue");
+        const sizeBadge = $("sizeBadge");
+        const downloadBtn = $("downloadBtn");
+        const avatarSeed = $("avatarSeed");
+        const toast = $("toast");
+        const toastText = $("toastText");
+        const GRID = 5;
+        const CELL = 200;
+        const SIZE = GRID * CELL;
+        const HALF_GRID = Math.ceil(GRID / 2);
+        const MIRROR = Array.from({ length: GRID }, (_, col) => (col < HALF_GRID ? col : GRID - 1 - col));
+        const BORDER_MIN = 0;
+        const BORDER_MAX = 500;
+        const BORDER_STEP = 10;
+        const DEFAULT_BORDER = 80;
+        function hslToRgb(h, s, l) {
+          s /= 100;
+          l /= 100;
+          const a = s * Math.min(l, 1 - l);
+          const k = h / 30;
+          const f = (n) => l - a * Math.max(-1, Math.min(((n + k) % 12) - 3, Math.min(9 - ((n + k) % 12), 1)));
+          return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+        }
+        function palette(hash) {
+          const hue = ((hash[0] << 8) | hash[1]) % 360;
+          const sat = 70 + (hash[2] % 25);
+          const lig = 50 + (hash[3] % 15);
+          const [r, g, b] = hslToRgb(hue, sat, lig);
+          return { fg: `rgb(${r},${g},${b})`, bg: `hsl(${hue},${Math.max(sat - 30, 5)}%,${Math.min(lig + 42, 96)}%)` };
+        }
+        async function sha256(str) {
+          const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+          return new Uint8Array(buffer);
+        }
+        const staging = document.createElement("canvas");
+        const state = { bg: null, name: null, busy: false };
+        function drawPattern(hash) {
+          const { fg, bg } = palette(hash);
+          staging.width = SIZE;
+          staging.height = SIZE;
+          const ctx = staging.getContext("2d");
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, SIZE, SIZE);
+          ctx.fillStyle = fg;
+          for (let row = 0; row < GRID; row++) {
+            const base = 4 + row * HALF_GRID;
+            for (let col = 0; col < GRID; col++) {
+              if ((hash[base + MIRROR[col]] & 1) === 0) {
+                ctx.fillRect(col * CELL, row * CELL, CELL, CELL);
+              }
+            }
+          }
+          return bg;
+        }
+        function borderGeometry() {
+          const border = Number(borderRange.value);
+          return { border, edge: SIZE + border * 2 };
+        }
+        function paint() {
+          if (!state.bg) return;
+          const cssSize = Math.min(wrap.clientWidth, wrap.clientHeight);
+          if (!cssSize) return;
+          const dpr = Math.max(1, window.devicePixelRatio || 1);
+          const { border, edge } = borderGeometry();
+          const scale = cssSize / edge;
+          canvas.style.width = `${cssSize}px`;
+          canvas.style.height = `${cssSize}px`;
+          canvas.width = Math.round(cssSize * dpr);
+          canvas.height = Math.round(cssSize * dpr);
+          const ctx = canvas.getContext("2d");
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.fillStyle = state.bg;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * scale * border, dpr * scale * border);
+          ctx.drawImage(staging, 0, 0);
+        }
+        let paintFrame = 0;
+        function schedulePaint() {
+          cancelAnimationFrame(paintFrame);
+          paintFrame = requestAnimationFrame(paint);
+        }
+        function syncBorder() {
+          const width = Number(borderRange.value);
+          const { edge } = borderGeometry();
+          borderValue.textContent = `${width}px`;
+          sizeBadge.textContent = `${edge} × ${edge}px`;
+          borderRange.style.setProperty("--range-progress", `${((width - BORDER_MIN) / (BORDER_MAX - BORDER_MIN)) * 100}%`);
+          borderRange.setAttribute("aria-valuetext", `${width}px`);
+          schedulePaint();
+        }
+        function setBusy(on) {
+          state.busy = on;
+          seedInput.readOnly = on;
+          generateBtn.disabled = on;
+          randomBtn.disabled = on;
+          generateForm.setAttribute("aria-busy", String(on));
+          downloadBtn.disabled = !(state.bg !== null && !on);
+        }
+        async function generate(name) {
+          if (state.busy) return;
+          const display = (name ?? seedInput.value).trim();
+          setBusy(true);
+          try {
+            const hash = await sha256(display.toLowerCase() || " ");
+            state.bg = drawPattern(hash);
+            state.name = display;
+            avatarSeed.textContent = display || "空白种子";
+            canvas.setAttribute("aria-label", `生成的头像：${display || "空白种子"}`);
+            paint();
+          } catch {
+            toastShow("生成失败，请重试", "error");
+          } finally {
+            setBusy(false);
+          }
+        }
+        function randomName() {
+          let letters = "";
+          for (let i = 0; i < 4; i += 1) {
+            letters += String.fromCharCode(97 + ((Math.random() * 26) | 0));
+          }
+          return letters + (1000 + ((Math.random() * 9000) | 0));
+        }
+        function random() {
+          const name = randomName();
+          seedInput.value = name;
+          return generate(name);
+        }
+        function exportCanvas() {
+          if (!state.bg) return null;
+          const { border, edge } = borderGeometry();
+          if (border === 0) return staging;
+          const out = document.createElement("canvas");
+          out.width = edge;
+          out.height = edge;
+          const ctx = out.getContext("2d");
+          ctx.fillStyle = state.bg;
+          ctx.fillRect(0, 0, edge, edge);
+          ctx.drawImage(staging, border, border);
+          return out;
+        }
+        function toBlob(source) {
+          return new Promise((resolve, reject) => {
+            source.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("PNG 编码失败"))), "image/png");
+          });
+        }
+        let toastTimer = 0;
+        function toastShow(message, type) {
+          toastText.textContent = message;
+          toast.dataset.type = type;
+          toast.classList.add("show");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+        }
+        async function download() {
+          const source = exportCanvas();
+          if (!source) return toastShow("请先生成头像", "error");
+          try {
+            const blob = await toBlob(source);
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = `${state.name || "avatar"}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            toastShow("图片已下载", "success");
+          } catch {
+            toastShow("下载失败，请重试", "error");
+          }
+        }
+        generateForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          generate();
+        });
+        randomBtn.addEventListener("click", random);
+        borderRange.addEventListener("input", syncBorder);
+        downloadBtn.addEventListener("click", download);
+        new ResizeObserver(schedulePaint).observe(wrap);
+        window.addEventListener("resize", schedulePaint);
+        window.addEventListener("orientationchange", () => requestAnimationFrame(schedulePaint));
+        borderRange.min = String(BORDER_MIN);
+        borderRange.max = String(BORDER_MAX);
+        borderRange.step = String(BORDER_STEP);
+        borderRange.value = String(DEFAULT_BORDER);
+        syncBorder();
+        const initial = randomName();
+        seedInput.value = initial;
+        generate(initial);
+      })();
+    </script>
+  </body>
+</html>
